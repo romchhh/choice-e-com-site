@@ -24,6 +24,7 @@ interface Product {
   lining_description?: string;
   fabric_composition?: string;
   stock?: number;
+  in_stock?: boolean;
 }
 
 interface UseProductsOptions {
