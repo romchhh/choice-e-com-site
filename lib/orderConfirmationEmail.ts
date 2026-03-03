@@ -109,7 +109,7 @@ export function buildOrderConfirmationHtml(
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(61,26,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:#3D1A00;padding:28px 32px;text-align:center;">
+            <td style="background:#ffffff;padding:28px 32px;text-align:center;border-bottom:1px solid #f0f0f0;">
               <a href="${escapeHtml(baseUrl)}" target="_blank" rel="noopener">
                 <img src="${escapeHtml(logoUrl)}" alt="Choice" width="140" height="40" style="display:inline-block;max-height:40px;width:auto;" />
               </a>

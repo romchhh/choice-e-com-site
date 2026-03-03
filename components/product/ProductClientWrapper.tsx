@@ -13,6 +13,9 @@ export default function ProductClientWrapper({ product }: ProductClientWrapperPr
 
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
   }, []);
 
   // Only render ProductClient after component is mounted on client

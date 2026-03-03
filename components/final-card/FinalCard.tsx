@@ -1099,7 +1099,7 @@ export default function FinalCard() {
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-2">
                 <div className="flex flex-col gap-1.5 mb-4">
                   <label className="text-sm font-['Montserrat'] text-[#3D1A00]/80">Промокод:</label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={promoCodeInput}
@@ -1108,7 +1108,7 @@ export default function FinalCard() {
                         setPromoError(null);
                         if (appliedPromo) setAppliedPromo(null);
                       }}
-                      className="flex-1 border border-gray-200 px-4 py-3 font-['Montserrat'] text-sm rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3D1A00]/15 focus:border-[#3D1A00]/30 transition-colors uppercase"
+                      className="w-full sm:flex-1 border border-gray-200 px-4 py-3 font-['Montserrat'] text-sm rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3D1A00]/15 focus:border-[#3D1A00]/30 transition-colors uppercase"
                       placeholder="Введіть промокод"
                     />
                     <button
@@ -1149,7 +1149,7 @@ export default function FinalCard() {
                           setPromoValidating(false);
                         }
                       }}
-                      className="shrink-0 px-4 py-3 font-['Montserrat'] text-sm font-medium rounded-lg bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20 disabled:opacity-50 transition-colors"
+                      className="w-full sm:w-auto sm:shrink-0 px-4 py-3 font-['Montserrat'] text-sm font-medium rounded-lg bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20 disabled:opacity-50 transition-colors text-center"
                     >
                       {promoValidating ? "Перевірка…" : "Застосувати"}
                     </button>
