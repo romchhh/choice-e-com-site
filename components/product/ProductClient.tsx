@@ -154,7 +154,9 @@ export default function ProductClient({ product: initialProduct }: ProductClient
   };
 
   const media = product.media || [];
-  const outOfStock = product.in_stock === false || (product.stock ?? 0) <= 0;
+  const outOfStock =
+    product.in_stock === false ||
+    (typeof product.stock === "number" && product.stock <= 0);
   const displayPrice = product.discount_percentage
     ? Math.round(product.price * (1 - product.discount_percentage / 100))
     : product.price;

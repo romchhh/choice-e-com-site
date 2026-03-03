@@ -54,7 +54,9 @@ export default function Product() {
     return <div className="p-10">Error: {error || "Product not found"}</div>;
 
   const media = product.media || [];
-  const outOfStock = (product.stock ?? 0) <= 0;
+  const outOfStock =
+    (typeof product.stock === "number" && product.stock <= 0) ||
+    product.in_stock === false;
 
   return (
     <section className="max-w-[1920px] w-full mx-auto">

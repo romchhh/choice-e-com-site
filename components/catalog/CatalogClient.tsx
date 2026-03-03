@@ -123,8 +123,11 @@ export default function CatalogClient({
     e.preventDefault();
     e.stopPropagation();
     setBasketError(null);
-    const imageUrl = getProductImageSrc(product.first_media);
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    // Зберігаємо в кошику той самий файл, що й на картці/сторінці товару
+    const firstMediaUrl =
+      product.first_media && "url" in product.first_media
+        ? product.first_media.url
+        : "";
     try {
       await addItem({
         id: product.id,
@@ -132,7 +135,8 @@ export default function CatalogClient({
         price: product.price,
         size: "—",
         quantity: 1,
-        imageUrl: imageUrl.startsWith("http") ? imageUrl : `${origin}${imageUrl}`,
+        // В кошику / оформленні це перетворюється у `/api/images/<filename>`
+        imageUrl: firstMediaUrl,
         discount_percentage: product.discount_percentage ?? undefined,
       });
     } catch (err) {
@@ -430,7 +434,8 @@ export default function CatalogClient({
               ) : (
                 visibleProducts.map((product, index) => {
                   const outOfStock =
-                    product.in_stock === false || (product.stock ?? 0) <= 0;
+                    product.in_stock === false ||
+                    (typeof product.stock === "number" && product.stock <= 0);
                   const displayPrice = product.discount_percentage
                     ? Math.round(product.price * (1 - product.discount_percentage / 100))
                     : product.price;
