@@ -18,6 +18,8 @@ interface Product {
   first_media?: { url: string; type: string } | null;
   discount_percentage?: number | null;
   category_id?: number | null;
+  stock?: number;
+  in_stock?: boolean;
 }
 
 interface Category {
@@ -46,6 +48,24 @@ export default function CatalogClient({
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
+
+  // Apply preselected category from sessionStorage when coming from header/categories navigation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (selectedCategories.length > 0) return;
+
+    const storedId = window.sessionStorage.getItem("catalogSelectedCategoryId");
+    if (!storedId) return;
+
+    const idNum = Number(storedId);
+    if (!Number.isNaN(idNum)) {
+      const exists = categories.some((c) => c.id === idNum);
+      if (exists) {
+        setSelectedCategories([idNum]);
+      }
+    }
+    window.sessionStorage.removeItem("catalogSelectedCategoryId");
+  }, [categories, selectedCategories.length]);
 
   const priceRange = useMemo(() => {
     if (initialProducts.length === 0) return { min: 0, max: 10000 };
@@ -409,6 +429,8 @@ export default function CatalogClient({
                 </div>
               ) : (
                 visibleProducts.map((product, index) => {
+                  const outOfStock =
+                    product.in_stock === false || (product.stock ?? 0) <= 0;
                   const displayPrice = product.discount_percentage
                     ? Math.round(product.price * (1 - product.discount_percentage / 100))
                     : product.price;
@@ -481,10 +503,15 @@ export default function CatalogClient({
                           </div>
                           <button
                             type="button"
-                            onClick={(e) => handleAddToCart(e, product)}
-                            className="py-2 px-4 text-xs sm:text-sm font-semibold font-['Montserrat'] bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded-full transition-colors whitespace-nowrap"
+                            disabled={outOfStock}
+                            onClick={outOfStock ? undefined : (e) => handleAddToCart(e, product)}
+                            className={`py-2 px-4 text-xs sm:text-sm font-semibold font-['Montserrat'] rounded-full transition-colors whitespace-nowrap ${
+                              outOfStock
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-[#8B9A47] hover:bg-[#7a8940] text-white"
+                            }`}
                           >
-                            В кошик
+                            {outOfStock ? "Немає в наявності" : "В кошик"}
                           </button>
                         </div>
                       </div>

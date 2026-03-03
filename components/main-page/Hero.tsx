@@ -5,7 +5,9 @@ import { useAppContext } from "@/lib/GeneralProvider";
 import Image from "next/image";
 import Link from "next/link";
 
-const HERO_IMAGE = "/images/hf_20260222_063745_3c9c7bbc-82d2-4f3f-8c11-4216792e4995.jpeg";
+const HERO_IMAGE_DESKTOP =
+  "/images/hf_20260222_063745_3c9c7bbc-82d2-4f3f-8c11-4216792e4995.jpeg";
+const HERO_IMAGE_MOBILE = "/images/tg_image_3018005591.jpg";
 
 export default function Hero() {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
@@ -13,25 +15,35 @@ export default function Hero() {
   return (
     <section id="hero" className="relative">
       <div className="max-w-[1920px] mx-auto w-full h-screen relative overflow-hidden">
-        {/* Hero image */}
+        {/* Hero image — mobile */}
         <Image
-          src={HERO_IMAGE}
+          src={HERO_IMAGE_MOBILE}
           alt="Choice — eco та wellness"
           fill
-          className="object-cover object-right"
+          className="object-cover object-center sm:hidden"
           priority
           sizes="100vw"
         />
 
-        {/* Blur + darkening overlay */}
+        {/* Hero image — desktop */}
+        <Image
+          src={HERO_IMAGE_DESKTOP}
+          alt="Choice — eco та wellness"
+          fill
+          className="hidden sm:block object-cover object-right"
+          priority
+          sizes="(max-width: 1024px) 100vw, 100vw"
+        />
+
+        {/* Subtle darkening overlay (no blur) */}
         <div
-          className="absolute inset-0 bg-black/35 backdrop-blur-[3px] pointer-events-none z-[1]"
+          className="absolute inset-0 bg-black/20 pointer-events-none z-[1]"
           aria-hidden
         />
 
-        {/* Gradient overlay at the bottom */}
+        {/* Slight gradient at the bottom */}
         <div
-          className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-[1]"
+          className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent pointer-events-none z-[1]"
           aria-hidden
         />
 

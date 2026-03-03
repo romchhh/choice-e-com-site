@@ -242,9 +242,15 @@ export default function Header() {
                   }}
                 >
                   <button
-                    onClick={() =>
-                      (window.location.href = `/catalog/${category.slug || encodeURIComponent(category.name)}`)
-                    }
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.sessionStorage.setItem(
+                          "catalogSelectedCategoryId",
+                          String(category.id)
+                        );
+                      }
+                      router.push("/catalog");
+                    }}
                     className={`cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
                       headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                     }`}
@@ -271,7 +277,15 @@ export default function Header() {
                           </Link>
                         ))}
                           <Link
-                            href={`/catalog/${category.slug || encodeURIComponent(category.name)}`}
+                            href="/catalog"
+                            onClick={() => {
+                              if (typeof window !== "undefined") {
+                                window.sessionStorage.setItem(
+                                  "catalogSelectedCategoryId",
+                                  String(category.id)
+                                );
+                              }
+                            }}
                             className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200 underline mt-2"
                           >
                             Переглянути всі
