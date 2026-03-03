@@ -469,13 +469,13 @@ export default function CatalogClient({
                           </p>
                         )}
                         <div className="mt-auto pt-3 flex items-center justify-between gap-2">
-                          <div className="flex flex-col">
+                          <div className="flex flex-col leading-none space-y-0.5">
                             {product.discount_percentage && (
-                              <span className="font-['Montserrat'] font-normal text-[20px] leading-[159%] tracking-[-0.02em] text-[#3D1A00]/70 line-through">
+                              <span className="font-['Montserrat'] font-normal text-sm sm:text-base lg:text-xl leading-none tracking-[-0.02em] text-[#3D1A00]/70 line-through">
                                 {product.price.toLocaleString("uk-UA")} грн
                               </span>
                             )}
-                            <span className="font-['Montserrat'] font-normal text-[20px] leading-[159%] tracking-[-0.02em] text-[#3D1A00] align-middle">
+                            <span className="font-['Montserrat'] font-normal text-lg sm:text-xl lg:text-3xl leading-none tracking-[-0.02em] text-[#3D1A00] align-middle">
                               {displayPrice.toLocaleString("uk-UA")} грн
                             </span>
                           </div>
