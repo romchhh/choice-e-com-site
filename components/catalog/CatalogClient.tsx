@@ -460,7 +460,7 @@ export default function CatalogClient({
 
                       {/* Інфо */}
                       <div className="p-4 flex flex-col gap-1 flex-1">
-                        <h3 className="font-['Montserrat'] font-light text-[32px] leading-[97%] tracking-[-0.02em] text-[#3D1A00] align-middle">
+                        <h3 className="font-['Montserrat'] font-light text-lg sm:text-xl md:text-2xl leading-tight tracking-[-0.02em] text-[#3D1A00] break-words line-clamp-2">
                           {product.name}
                         </h3>
                         {shortDesc && (
