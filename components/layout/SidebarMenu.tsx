@@ -204,7 +204,7 @@ export default function SidebarMenu({
                 ПРО БРЕНД
               </Link>
               <Link
-                href="/info#partnership"
+                href="/partnership"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >

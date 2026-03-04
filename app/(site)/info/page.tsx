@@ -190,11 +190,11 @@ export default function InfoPage() {
               </ul>
               <div className="pt-4 w-full">
                 <Link
-                  href="/contacts#contact-form"
+                  href="/partnership"
                   className="inline-flex items-center justify-center w-full px-8 py-3.5 bg-white border border-[#3D1A00]/20 text-[#3D1A00] uppercase font-['Montserrat'] font-semibold tracking-widest hover:border-[#3D1A00]/40 hover:bg-[#3D1A00]/5 transition-colors text-sm"
                   style={{ letterSpacing: "0.1em" }}
                 >
-                  Дізнатися більше
+                  Детальніше
                 </Link>
               </div>
             </div>

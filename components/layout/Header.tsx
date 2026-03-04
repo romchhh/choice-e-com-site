@@ -331,7 +331,7 @@ export default function Header() {
                       Про бренд
                     </Link>
                     <Link
-                      href="/info#partnership"
+                      href="/partnership"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
                       Партнерство

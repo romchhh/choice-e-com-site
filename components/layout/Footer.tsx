@@ -58,7 +58,7 @@ export default function Footer() {
                 Про бренд
               </Link>
               <Link
-                href="/info#partnership"
+                href="/partnership"
                 className="text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 whitespace-nowrap tracking-normal"
               >
                 Партнерство
