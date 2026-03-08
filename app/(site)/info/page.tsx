@@ -44,7 +44,7 @@ export default function InfoPage() {
             </ol>
           </nav>
 
-          {/* Заголовок: Montserrat 600, 96px, 159%, -2% */}
+          {/* Заголовок */}
           <h1
             className="text-center text-[#3D1A00] uppercase mb-14 lg:mb-16"
             style={{
@@ -58,42 +58,155 @@ export default function InfoPage() {
             Про бренд
           </h1>
 
-          {/* Дві колонки: ліва більша (заголовок + фото); права вужча (три абзаци) */}
-          <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 max-w-6xl mx-auto mb-16 lg:mb-20">
-            {/* Ліва — більше місця для заголовка та фото */}
-            <div className="lg:w-[480px] flex-shrink-0 space-y-5">
-              <h2 className="text-[#3D1A00] font-['Montserrat'] font-medium text-3xl sm:text-4xl lg:text-[64px] leading-[159%] tracking-[-0.02em] align-middle uppercase">
-                CHOICE — це
+          {/* Про компанію CHOICE Ukraine — фото + вступ */}
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 max-w-6xl mx-auto mb-14 lg:mb-16">
+            <div className="lg:w-[480px] flex-shrink-0">
+              <div className="relative w-full aspect-[4/3] max-w-[480px] rounded-lg overflow-hidden bg-[#D9D9D9]">
+                <Image
+                  src="/images/choice-features/hf_20260307_174928_45490834-1da6-4ee5-b317-cc4fa3a4fcc1.png"
+                  alt="CHOICE Ukraine — виробництво та продукція"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 480px"
+                  priority
+                />
+              </div>
+            </div>
+            <div className="flex-1 max-w-xl space-y-4 lg:pl-2 font-['Montserrat'] text-[#3D1A00]">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.02em] leading-[140%] text-[#3D1A00]">
+                Про компанію CHOICE Ukraine
               </h2>
-              <div
-                className="w-full rounded-lg bg-[#D9D9D9]"
-                style={{ aspectRatio: "300/170", maxWidth: 400 }}
-                aria-hidden
-              />
+              <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+                CHOICE Ukraine — українська виробнича компанія, що створює натуральні продукти для здоров&apos;я, краси та екологічного способу життя. Компанія працює з 2004 року і поєднує виробництво, розробку продуктів та партнерську бізнес-модель.
+              </p>
+              <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+                Основний напрямок діяльності — розробка фітокомплексів, продуктів здорового харчування, натуральної косметики та екологічних засобів для дому.
+              </p>
             </div>
+          </div>
 
-            {/* Права — вужчий блок тексту */}
-            <div className="flex-1 max-w-xl space-y-5 lg:pl-2">
-              {[
-                "Eco-wellness бренд, який створює продукти для підтримки здоров'я, догляду за тілом і безпечного простору вдома.",
-                "Продукти Choice створені на основі рослинних компонентів і підходять для щоденного використання.",
-                "Філософія бренду базується на зменшенні токсичного навантаження на організм і середовище через усвідомлений вибір продуктів. Цей сайт належить офіційному представнику бренду Choice і створений для консультації та замовлення продукції.",
-              ].map((text, i) => (
-                <p
-                  key={i}
-                  className="text-[#3D1A00]/80"
-                  style={{
-                    fontFamily: "Montserrat, sans-serif",
-                    fontWeight: 400,
-                    fontSize: "clamp(16px, 1.5vw, 24px)",
-                    lineHeight: "159%",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {text}
-                </p>
-              ))}
-            </div>
+          {/* Власне виробництво в Україні */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Власне виробництво в Україні
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Однією з ключових особливостей CHOICE є власне виробництво. Продукція виготовляється на українських підприємствах із контролем усіх етапів — від закупівлі сировини до випуску готового продукту.
+            </p>
+            <p className="text-[#3D1A00]/80 font-semibold mb-2" style={{ fontSize: "clamp(14px, 1.1vw, 16px)", lineHeight: "159%" }}>
+              Основні виробничі майданчики:
+            </p>
+            <ul className="space-y-2 mb-4 list-none">
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>завод Фітобіопродукт — виробництво фітокомплексів та продуктів здорового харчування</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>завод Грінмакс Компані — виробництво екологічних засобів для дому та побуту</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>виробництво натуральної косметики White Mandarin</span>
+              </li>
+            </ul>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Наразі компанія будує сучасний виробничий комплекс CHOICE Manufacture, який дозволить розширити виробничі потужності та забезпечити натуральною продукцією не лише Україну, а й міжнародні ринки.
+            </p>
+          </div>
+
+          {/* Стандарти якості */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Стандарти якості
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Виробництво відповідає міжнародним стандартам GMP та ISO, що гарантує контроль якості на кожному етапі виробництва.
+            </p>
+            <p className="text-[#3D1A00]/80 font-semibold mb-2" style={{ fontSize: "clamp(14px, 1.1vw, 16px)", lineHeight: "159%" }}>
+              Це включає:
+            </p>
+            <ul className="space-y-2 mb-4 list-none">
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>перевірку та відбір натуральної сировини</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>дотримання технологічних процесів</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span>лабораторний контроль готової продукції</span>
+              </li>
+            </ul>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Такий підхід забезпечує стабільну якість, безпечність і ефективність продуктів.
+            </p>
+          </div>
+
+          {/* Унікальна технологія пророщених зерен */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Унікальна технологія пророщених зерен
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Однією з ключових розробок компанії стала запатентована технологія пророщування зерен злаків.
+            </p>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Під час пророщування активуються ферменти, вітаміни, амінокислоти та антиоксиданти. Завдяки цьому поживні речовини переходять у форму, яка легше засвоюється організмом.
+            </p>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Ця технологія використовується в багатьох фітокомплексах компанії та підвищує їхню біодоступність і ефективність.
+            </p>
+          </div>
+
+          {/* Бренди компанії */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Бренди компанії
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              CHOICE розвиває кілька напрямків натуральної продукції:
+            </p>
+            <ul className="space-y-2 mb-4 list-none">
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span><strong>CHOICE PHYTO</strong> — фітокомплекси для здоров&apos;я</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span><strong>PRO HEALTHY</strong> — функціональне харчування</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span><strong>WHITE MANDARIN</strong> — натуральна косметика</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span><strong>GREEN MAX</strong> та <strong>BIOX</strong> — екологічні засоби для дому</span>
+              </li>
+              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                <span><strong>Добра Їжа</strong> — натуральні продукти харчування</span>
+              </li>
+            </ul>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Такий мультибрендовий підхід дозволяє сформувати повноцінний асортимент натуральних продуктів для здорового способу життя.
+            </p>
+          </div>
+
+          {/* Спільнота та партнерство */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Спільнота та партнерство
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              CHOICE — це не лише виробництво продукції, а й партнерська спільнота людей, які розвивають власні проєкти у сфері здоров&apos;я та екологічного способу життя.
+            </p>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Компанія надає партнерам доступ до навчання, бізнес-інструментів та можливості працювати з продукцією безпосередньо від виробника.
+            </p>
           </div>
 
           {/* Фічі бренду — на всю ширину як на головній */}
@@ -199,13 +312,17 @@ export default function InfoPage() {
               </div>
             </div>
 
-            {/* Права: фото/плейсхолдер — 50% на десктопі */}
+            {/* Права: фото — 50% на десктопі */}
             <div className="w-full lg:w-1/2 min-w-0 mt-10 lg:mt-0 lg:pl-5">
-              <div
-                className="w-full h-full min-h-[200px] lg:min-h-[280px] bg-[#D9D9D9] rounded-lg"
-                style={{ aspectRatio: "16/10" }}
-                aria-hidden
-              />
+              <div className="relative w-full aspect-[16/10] min-h-[200px] lg:min-h-[280px] rounded-lg overflow-hidden bg-[#D9D9D9]">
+                <Image
+                  src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
+                  alt="Партнерство з CHOICE"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
             </div>
           </div>
           </div>
