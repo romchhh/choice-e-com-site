@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function AboutChoiceSection() {
   return (
     <section className="w-full bg-[#FFF9F0]">
@@ -24,11 +26,16 @@ export default function AboutChoiceSection() {
             </p>
           </div>
 
-          {/* Права колонка — висота як у текстового блоку */}
-          <div
-            className="w-full h-full min-h-[280px] lg:min-h-0 bg-gray-200 rounded-lg"
-            aria-hidden
-          />
+          {/* Права колонка — фото */}
+          <div className="relative w-full min-h-[280px] lg:min-h-0 aspect-[4/3] lg:aspect-auto lg:h-full rounded-lg overflow-hidden bg-gray-200">
+            <Image
+              src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
+              alt="CHOICE — eco-wellness бренд, рослинні продукти для здоров'я та дому"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
         </div>
       </div>
     </section>
