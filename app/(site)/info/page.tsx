@@ -63,7 +63,7 @@ export default function InfoPage() {
             <div className="lg:w-[480px] flex-shrink-0">
               <div className="relative w-full aspect-[4/3] max-w-[480px] rounded-lg overflow-hidden bg-[#D9D9D9]">
                 <Image
-                  src="/images/choice-features/hf_20260307_174928_45490834-1da6-4ee5-b317-cc4fa3a4fcc1.png"
+                  src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
                   alt="CHOICE Ukraine — виробництво та продукція"
                   fill
                   className="object-cover"
@@ -316,7 +316,7 @@ export default function InfoPage() {
             <div className="w-full lg:w-1/2 min-w-0 mt-10 lg:mt-0 lg:pl-5">
               <div className="relative w-full aspect-[16/10] min-h-[200px] lg:min-h-[280px] rounded-lg overflow-hidden bg-[#D9D9D9]">
                 <Image
-                  src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
+                  src="/images/choice-features/hf_20260307_174928_45490834-1da6-4ee5-b317-cc4fa3a4fcc1.png"
                   alt="Партнерство з CHOICE"
                   fill
                   className="object-cover"
