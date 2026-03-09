@@ -299,75 +299,114 @@ export default function FormElements() {
               <div className="space-y-3 sm:space-y-4">
                 <div>
                   <Label>Назва</Label>
-                  <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                  <Input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
-                <div>
-                  <Label>Підзаголовок</Label>
-                  <Input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Опціонально" />
-                </div>
-                <div>
-                  <Label>Форма випуску</Label>
-                  <Input type="text" value={releaseForm} onChange={(e) => setReleaseForm(e.target.value)} placeholder="Напр. 30 саше по 2 г" />
-                </div>
-                <div>
-                  <Label>Курс</Label>
-                  <Input type="text" value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Напр. 30 днів" />
-                </div>
-                <div>
-                  <Label>Вага упаковки</Label>
-                  <Input type="text" value={packageWeight} onChange={(e) => setPackageWeight(e.target.value)} placeholder="Напр. 60 г" />
-                </div>
-                <div>
-                  <Label>Ціна (грн)</Label>
-                  <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Поточна ціна" />
-                </div>
-                <div>
-                  <Label>Ціна без знижки / стара ціна (опціонально)</Label>
-                  <Input type="number" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} placeholder="Ціна до знижки" />
-                </div>
-                <div>
-                  <Label>Відсоток знижки (опціонально)</Label>
-                  <Input type="number" value={discountPercentage} onChange={(e) => setDiscountPercentage(e.target.value)} placeholder="Наприклад: 20" />
-                </div>
-                <div>
-                  <Label>Категорія</Label>
-                  <select
-                    value={categoryId ?? ""}
-                    onChange={(e) => setCategoryId(Number(e.target.value) || null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  >
-                    <option value="">Виберіть категорію</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {subcategories.length > 0 && (
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <Label>Підкатегорія</Label>
-                    <select
-                      value={subcategoryId ?? ""}
-                      onChange={(e) => setSubcategoryId(Number(e.target.value) || null)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      <option value="">Виберіть підкатегорію</option>
-                      {subcategories.map((sub) => (
-                        <option key={sub.id} value={sub.id}>{sub.name}</option>
-                      ))}
-                    </select>
+                    <Label>Форма випуску</Label>
+                    <Input
+                      type="text"
+                      value={releaseForm}
+                      onChange={(e) => setReleaseForm(e.target.value)}
+                      placeholder="Напр. 30 саше по 2 г"
+                    />
                   </div>
-                )}
+                  <div>
+                    <Label>Курс</Label>
+                    <Input
+                      type="text"
+                      value={course}
+                      onChange={(e) => setCourse(e.target.value)}
+                      placeholder="Напр. 30 днів"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <Label>Основна інформація</Label>
-                  <TextArea value={mainInfo} onChange={setMainInfo} rows={2} placeholder="Короткий блок основної інформації" />
+                  <TextArea
+                    value={mainInfo}
+                    onChange={setMainInfo}
+                    rows={3}
+                    placeholder="Короткий блок основної інформації"
+                  />
                 </div>
+
                 <div>
-                  <Label>Короткий опис</Label>
-                  <TextArea value={shortDescription} onChange={setShortDescription} rows={3} />
+                  <Label>ОПИС</Label>
+                  <TextArea
+                    value={description}
+                    onChange={setDescription}
+                    rows={6}
+                  />
                 </div>
+
                 <div>
-                  <Label>Повний опис</Label>
-                  <TextArea value={description} onChange={setDescription} rows={6} />
+                  <Label>Ціна, стара ціна, знижка</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <Input
+                      type="number"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="Ціна (грн)"
+                    />
+                    <Input
+                      type="number"
+                      value={oldPrice}
+                      onChange={(e) => setOldPrice(e.target.value)}
+                      placeholder="Стара ціна"
+                    />
+                    <Input
+                      type="number"
+                      value={discountPercentage}
+                      onChange={(e) => setDiscountPercentage(e.target.value)}
+                      placeholder="% знижки"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Категорія / Підкатегорія</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <select
+                      value={categoryId ?? ""}
+                      onChange={(e) => {
+                        const id = Number(e.target.value) || null;
+                        setCategoryId(id);
+                        setSubcategoryId(null);
+                      }}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      <option value="">Виберіть категорію</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    {subcategories.length > 0 && (
+                      <select
+                        value={subcategoryId ?? ""}
+                        onChange={(e) =>
+                          setSubcategoryId(Number(e.target.value) || null)
+                        }
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Виберіть підкатегорію</option>
+                        {subcategories.map((sub) => (
+                          <option key={sub.id} value={sub.id}>
+                            {sub.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                 </div>
               </div>
             </ComponentCard>
@@ -375,32 +414,37 @@ export default function FormElements() {
             <ComponentCard title="Деталі товару" className="mt-4 sm:mt-6">
               <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label>Основна дія</Label>
-                  <TextArea value={mainAction} onChange={setMainAction} rows={2} />
+                  <Label>ДІЯ АКТИВНИХ КОМПОНЕНТІВ</Label>
+                  <TextArea
+                    value={mainAction}
+                    onChange={setMainAction}
+                    rows={4}
+                  />
                 </div>
                 <div>
-                  <Label>Показання до використання</Label>
-                  <TextArea value={indicationsForUse} onChange={setIndicationsForUse} rows={3} />
+                  <Label>СКЛАД</Label>
+                  <TextArea
+                    value={fullComposition}
+                    onChange={setFullComposition}
+                    rows={3}
+                    placeholder="Повний склад продукту"
+                  />
                 </div>
                 <div>
-                  <Label>Переваги</Label>
-                  <TextArea value={benefits} onChange={setBenefits} rows={3} />
+                  <Label>СПОСІБ ВИКОРИСТАННЯ</Label>
+                  <TextArea
+                    value={usageMethod}
+                    onChange={setUsageMethod}
+                    rows={3}
+                  />
                 </div>
                 <div>
-                  <Label>Повний склад</Label>
-                  <TextArea value={fullComposition} onChange={setFullComposition} rows={3} placeholder="Повний склад продукту" />
-                </div>
-                <div>
-                  <Label>Спосіб використання</Label>
-                  <TextArea value={usageMethod} onChange={setUsageMethod} rows={3} />
-                </div>
-                <div>
-                  <Label>Протипоказання</Label>
-                  <TextArea value={contraindications} onChange={setContraindications} rows={2} />
-                </div>
-                <div>
-                  <Label>Умови зберігання</Label>
-                  <TextArea value={storageConditions} onChange={setStorageConditions} rows={2} />
+                  <Label>ПРОТИПОКАЗАННЯ</Label>
+                  <TextArea
+                    value={contraindications}
+                    onChange={setContraindications}
+                    rows={2}
+                  />
                 </div>
               </div>
             </ComponentCard>

@@ -330,7 +330,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
 
             {purposeText && (
               <p className="text-sm md:text-base font-['Montserrat'] font-normal leading-[1.59] tracking-[-0.02em] text-[#3D1A00]/90">
-                Призначення: {purposeText}
+                {purposeText}
               </p>
             )}
 

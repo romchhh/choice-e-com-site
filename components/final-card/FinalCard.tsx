@@ -38,7 +38,7 @@ export default function FinalCard() {
   const [deliveryMethod, setDeliveryMethod] = useState("nova_poshta_branch");
   const [city, setCity] = useState("");
   const [postOffice, setPostOffice] = useState("");
-  const DELIVERY_COST_BRANCH = 100; // грн за доставку у відділення
+  const DELIVERY_COST_BRANCH = 0; // доставка оплачується на відділенні, не додаємо до суми
   // Auto-fill showroom address when selected
   useEffect(() => {
     if (deliveryMethod === "showroom_pickup") {
@@ -1168,7 +1168,12 @@ export default function FinalCard() {
                   const total = Math.max(0, subtotal + deliveryCostVal - discount);
                   return (
                     <div className="space-y-2 font-['Montserrat'] text-[#3D1A00] text-sm">
-                      {deliveryMethod === "nova_poshta_branch" && <div className="flex justify-between"><span className="text-gray-600">Доставка у відділення</span><span>100 грн</span></div>}
+                      {deliveryMethod === "nova_poshta_branch" && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Доставка у відділення</span>
+                          <span className="text-gray-600">за тарифами перевізника</span>
+                        </div>
+                      )}
                       {discount > 0 && (
                         <div className="flex justify-between text-green-600">
                           <span>Знижка (промокод)</span>

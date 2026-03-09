@@ -327,104 +327,172 @@ export default function EditProductPage() {
             <div className="w-full min-w-0 md:w-1/2 p-0 sm:p-2 md:p-4">
               <ComponentCard title="Основна інформація">
                 <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <Label>Назва</Label>
-                  <Input type="text" value={formData.name} onChange={(e) => handleChange("name", e.target.value)} />
-                </div>
-                <div>
-                  <Label>Підзаголовок</Label>
-                <Input type="text" value={formData.subtitle} onChange={(e) => handleChange("subtitle", e.target.value)} placeholder="Опціонально" />
-                </div>
-                <div>
-                  <Label>Форма випуску</Label>
-                  <Input type="text" value={formData.releaseForm} onChange={(e) => handleChange("releaseForm", e.target.value)} placeholder="Напр. 30 саше по 2 г" />
-                </div>
-                <div>
-                  <Label>Курс</Label>
-                  <Input type="text" value={formData.course} onChange={(e) => handleChange("course", e.target.value)} placeholder="Напр. 30 днів" />
-                </div>
-                <div>
-                  <Label>Вага упаковки</Label>
-                  <Input type="text" value={formData.packageWeight} onChange={(e) => handleChange("packageWeight", e.target.value)} placeholder="Напр. 60 г" />
-                </div>
-                <div>
-                  <Label>Ціна (грн)</Label>
-                  <Input type="number" value={formData.price} onChange={(e) => handleChange("price", e.target.value)} placeholder="Поточна ціна" />
-                </div>
-                <div>
-                  <Label>Стара ціна / ціна без знижки (опціонально)</Label>
-                  <Input type="number" value={formData.oldPrice} onChange={(e) => handleChange("oldPrice", e.target.value)} placeholder="Ціна до знижки" />
-                </div>
-                <div>
-                  <Label>Відсоток знижки (опціонально)</Label>
-                  <Input type="number" value={formData.discountPercentage} onChange={(e) => handleChange("discountPercentage", e.target.value)} placeholder="20" />
-                </div>
-                <div>
-                  <Label>Категорія</Label>
-                  <select
-                  value={formData.categoryId ?? ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    handleChange("categoryId", v === "" ? null : Number(v));
-                    handleChange("subcategoryId", null);
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="">Виберіть категорію</option>
-                  {categoryOptions.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                </div>
-                {formData.categoryId && (
                   <div>
-                    <Label>Підкатегорія</Label>
-                    <select
-                      value={formData.subcategoryId ?? ""}
-                      onChange={(e) =>
-                        handleChange("subcategoryId", Number(e.target.value))
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      <option value="">Виберіть підкатегорію</option>
-                      {subcategoryOptions
-                        .filter(
-                          (sub) => sub.category_id === formData.categoryId
-                        )
-                        .map((sub) => (
-                          <option key={sub.id} value={sub.id}>
-                            {sub.name}
+                    <Label>Назва</Label>
+                    <Input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleChange("name", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Форма випуску</Label>
+                      <Input
+                        type="text"
+                        value={formData.releaseForm}
+                        onChange={(e) =>
+                          handleChange("releaseForm", e.target.value)
+                        }
+                        placeholder="Напр. 30 саше по 2 г"
+                      />
+                    </div>
+                    <div>
+                      <Label>Курс</Label>
+                      <Input
+                        type="text"
+                        value={formData.course}
+                        onChange={(e) =>
+                          handleChange("course", e.target.value)
+                        }
+                        placeholder="Напр. 30 днів"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Основна інформація</Label>
+                    <TextArea
+                      value={formData.mainInfo}
+                      onChange={(v) => handleChange("mainInfo", v)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>ОПИС</Label>
+                    <TextArea
+                      value={formData.description}
+                      onChange={(v) => handleChange("description", v)}
+                      rows={6}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Ціна, стара ціна, знижка</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) =>
+                          handleChange("price", e.target.value)
+                        }
+                        placeholder="Ціна (грн)"
+                      />
+                      <Input
+                        type="number"
+                        value={formData.oldPrice}
+                        onChange={(e) =>
+                          handleChange("oldPrice", e.target.value)
+                        }
+                        placeholder="Стара ціна"
+                      />
+                      <Input
+                        type="number"
+                        value={formData.discountPercentage}
+                        onChange={(e) =>
+                          handleChange("discountPercentage", e.target.value)
+                        }
+                        placeholder="% знижки"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Категорія / Підкатегорія</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <select
+                        value={formData.categoryId ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          handleChange(
+                            "categoryId",
+                            v === "" ? null : Number(v)
+                          );
+                          handleChange("subcategoryId", null);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Виберіть категорію</option>
+                        {categoryOptions.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
                           </option>
                         ))}
-                    </select>
+                      </select>
+
+                      {formData.categoryId && (
+                        <select
+                          value={formData.subcategoryId ?? ""}
+                          onChange={(e) =>
+                            handleChange("subcategoryId", Number(e.target.value))
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        >
+                          <option value="">Виберіть підкатегорію</option>
+                          {subcategoryOptions
+                            .filter(
+                              (sub) => sub.category_id === formData.categoryId
+                            )
+                            .map((sub) => (
+                              <option key={sub.id} value={sub.id}>
+                                {sub.name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div>
-                  <Label>Основна інформація</Label>
-                  <TextArea value={formData.mainInfo} onChange={(v) => handleChange("mainInfo", v)} rows={2} />
                 </div>
-                <div>
-                  <Label>Короткий опис</Label>
-                  <TextArea value={formData.shortDescription} onChange={(v) => handleChange("shortDescription", v)} rows={3} />
-                </div>
-                <div>
-                  <Label>Повний опис</Label>
-                  <TextArea value={formData.description} onChange={(v) => handleChange("description", v)} rows={6} />
-                </div>
-              </div>
               </ComponentCard>
 
               <ComponentCard title="Деталі товару" className="mt-4 sm:mt-6">
                 <div className="space-y-3 sm:space-y-4">
-                  <div><Label>Основна дія</Label><TextArea value={formData.mainAction} onChange={(v) => handleChange("mainAction", v)} rows={2} /></div>
-                  <div><Label>Показання до використання</Label><TextArea value={formData.indicationsForUse} onChange={(v) => handleChange("indicationsForUse", v)} rows={3} /></div>
-                  <div><Label>Переваги</Label><TextArea value={formData.benefits} onChange={(v) => handleChange("benefits", v)} rows={3} /></div>
-                  <div><Label>Повний склад</Label><TextArea value={formData.fullComposition} onChange={(v) => handleChange("fullComposition", v)} rows={3} /></div>
-                  <div><Label>Спосіб використання</Label><TextArea value={formData.usageMethod} onChange={(v) => handleChange("usageMethod", v)} rows={3} /></div>
-                  <div><Label>Протипоказання</Label><TextArea value={formData.contraindications} onChange={(v) => handleChange("contraindications", v)} rows={2} /></div>
-                  <div><Label>Умови зберігання</Label><TextArea value={formData.storageConditions} onChange={(v) => handleChange("storageConditions", v)} rows={2} /></div>
+                  <div>
+                    <Label>ДІЯ АКТИВНИХ КОМПОНЕНТІВ</Label>
+                    <TextArea
+                      value={formData.mainAction}
+                      onChange={(v) => handleChange("mainAction", v)}
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <Label>СКЛАД</Label>
+                    <TextArea
+                      value={formData.fullComposition}
+                      onChange={(v) => handleChange("fullComposition", v)}
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label>СПОСІБ ВИКОРИСТАННЯ</Label>
+                    <TextArea
+                      value={formData.usageMethod}
+                      onChange={(v) => handleChange("usageMethod", v)}
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label>ПРОТИПОКАЗАННЯ</Label>
+                    <TextArea
+                      value={formData.contraindications}
+                      onChange={(v) =>
+                        handleChange("contraindications", v)
+                      }
+                      rows={2}
+                    />
+                  </div>
                 </div>
               </ComponentCard>
 
