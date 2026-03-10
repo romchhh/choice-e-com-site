@@ -83,6 +83,8 @@ async function _sqlGetAllProducts() {
       ])
     ),
     subcategory_id: p.subcategoryId,
+    stock: p.stock,
+    in_stock: p.inStock,
     created_at: p.createdAt,
     category_name: p.category?.name || null,
     subcategory_name: p.subcategory?.name || null,
@@ -278,6 +280,7 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
         category_id: p.categoryId,
+        subcategory_id: p.subcategoryId,
         category_ids: Array.from(
           new Set([
             ...(((p as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
@@ -286,6 +289,8 @@ export async function sqlGetProductsByCategory(categoryName: string) {
             ...(p.categoryId ? [p.categoryId] : []),
           ])
         ),
+        stock: p.stock,
+        in_stock: p.inStock,
         category_name: p.category?.name || null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
       }));
@@ -379,6 +384,8 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
             ...(p.subcategoryId ? [p.subcategoryId] : []),
           ])
         ),
+        stock: p.stock,
+        in_stock: p.inStock,
         category_name: p.category?.name || null,
         subcategory_name: p.subcategory?.name || null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
