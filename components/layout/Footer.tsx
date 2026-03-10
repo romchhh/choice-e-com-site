@@ -134,11 +134,11 @@ export default function Footer() {
                 <span>Instagram — @my_choice_mari</span>
               </Link>
               <Link
-                href="https://t.me/my_choice_mari"
+                href="https://t.me/m_maksyakova"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 group tracking-normal"
-              >
+                >
                 <svg
                   className="w-6 h-6 opacity-70 group-hover:opacity-100 transition-opacity text-gray-600 group-hover:text-black"
                   fill="currentColor"

@@ -94,6 +94,7 @@ model Category {
   mediaType   String?   @map("media_type") // "photo" or "video"
   mediaUrl    String?   @map("media_url")
   products    Product[]
+  productLinks ProductCategoryLink[]
   subcategories Subcategory[]
   
   @@map("categories")
@@ -106,6 +107,7 @@ model Subcategory {
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   products   Product[]
+  productLinks ProductSubcategoryLink[]
 
   @@map("subcategories")
 }
@@ -149,8 +151,32 @@ model Product {
   media                ProductMedia[]
   orderItems           OrderItem[]
   wishlistedBy         Wishlist[]
+  categoryLinks        ProductCategoryLink[]
+  subcategoryLinks     ProductSubcategoryLink[]
 
   @@map("products")
+}
+
+model ProductCategoryLink {
+  productId Int
+  categoryId Int
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@map("product_category_links")
+}
+
+model ProductSubcategoryLink {
+  productId    Int
+  subcategoryId Int
+
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  subcategory Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, subcategoryId])
+  @@map("product_subcategory_links")
 }
 
 model ProductMedia {

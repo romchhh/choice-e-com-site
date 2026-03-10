@@ -42,7 +42,7 @@ export const sql = Object.assign(
 
 // Get all products - optimized for catalog list (only first photo)
 async function _sqlGetAllProducts() {
-  const products = await prisma.product.findMany({
+  const products = (await prisma.product.findMany({
     orderBy: { id: "desc" },
     include: {
       category: {
@@ -59,10 +59,13 @@ async function _sqlGetAllProducts() {
           url: true,
         },
       },
-    },
-  });
+      categoryLinks: {
+        select: { categoryId: true },
+      },
+    } as any,
+  })) as any[];
 
-  return products.map((p) => ({
+  return products.map((p: any) => ({
     id: p.id,
     name: p.name,
     slug: p.slug ?? null,
@@ -71,6 +74,14 @@ async function _sqlGetAllProducts() {
     old_price: p.oldPrice ? Number(p.oldPrice) : null,
     discount_percentage: p.discountPercentage,
     category_id: p.categoryId,
+    category_ids: Array.from(
+      new Set([
+        ...(((p as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
+          (cl) => cl.categoryId
+        ) ?? []),
+        ...(p.categoryId ? [p.categoryId] : []),
+      ])
+    ),
     subcategory_id: p.subcategoryId,
     created_at: p.createdAt,
     category_name: p.category?.name || null,
@@ -99,7 +110,8 @@ export async function sqlGetProduct(id: number) {
           category: { select: { name: true, slug: true } },
           subcategory: { select: { name: true } },
           media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
-        },
+          categoryLinks: { select: { categoryId: true } },
+        } as any,
       });
 
       if (!product) return null;
@@ -131,14 +143,24 @@ export async function sqlGetProduct(id: number) {
         limited_edition: product.limitedEdition,
         stock: product.stock,
         category_id: product.categoryId,
+        category_ids: Array.from(
+          new Set([
+            ...(((product as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
+              (cl) => cl.categoryId
+            ) ?? []),
+            ...(product.categoryId ? [product.categoryId] : []),
+          ])
+        ),
         subcategory_id: product.subcategoryId,
-        fabric_composition: product.fabricComposition ?? null,
-        has_lining: product.hasLining,
-        lining_description: product.liningDescription ?? null,
-        category_name: product.category?.name || null,
-        category_slug: product.category?.slug ?? null,
-        subcategory_name: product.subcategory?.name || null,
-        media: product.media.map((m: { type: string; url: string }) => ({ type: m.type, url: m.url })),
+        fabric_composition: (product as any).fabricComposition ?? null,
+        has_lining: (product as any).hasLining,
+        lining_description: (product as any).liningDescription ?? null,
+        category_name: (product as any).category?.name || null,
+        category_slug: (product as any).category?.slug ?? null,
+        subcategory_name: (product as any).subcategory?.name || null,
+        media: ((product as any).media as { type: string; url: string }[]).map(
+          (m) => ({ type: m.type, url: m.url })
+        ),
       };
     },
     [`product-${id}`],
@@ -148,14 +170,15 @@ export async function sqlGetProduct(id: number) {
 
 // Get one product by slug (ЧПУ)
 export async function sqlGetProductBySlug(slug: string) {
-  const product = await prisma.product.findUnique({
+  const product = (await prisma.product.findUnique({
     where: { slug: slug || undefined },
     include: {
       category: { select: { name: true, slug: true } },
       subcategory: { select: { name: true } },
       media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
-    },
-  });
+      categoryLinks: { select: { categoryId: true } },
+    } as any,
+  })) as any;
   if (!product) return null;
   return {
     id: product.id,
@@ -184,6 +207,14 @@ export async function sqlGetProductBySlug(slug: string) {
     limited_edition: product.limitedEdition,
     stock: product.stock,
     category_id: product.categoryId,
+    category_ids: Array.from(
+      new Set([
+        ...(((product as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
+          (cl) => cl.categoryId
+        ) ?? []),
+        ...(product.categoryId ? [product.categoryId] : []),
+      ])
+    ),
     subcategory_id: product.subcategoryId,
     fabric_composition: product.fabricComposition ?? null,
     has_lining: product.hasLining,
@@ -191,7 +222,7 @@ export async function sqlGetProductBySlug(slug: string) {
     category_name: product.category?.name || null,
     subcategory_name: product.subcategory?.name || null,
     category_slug: product.category?.slug ?? null,
-    media: product.media.map((m) => ({ type: m.type, url: m.url })),
+    media: product.media.map((m: any) => ({ type: m.type, url: m.url })),
   };
 }
 
@@ -199,16 +230,32 @@ export async function sqlGetProductBySlug(slug: string) {
 export async function sqlGetProductsByCategory(categoryName: string) {
   return unstable_cache(
     async () => {
-      const products = await prisma.product.findMany({
+      const products = (await prisma.product.findMany({
         where: {
-          category: {
-            name: categoryName,
-          },
-        },
+          OR: [
+            {
+              category: {
+                name: categoryName,
+              },
+            },
+            {
+              categoryLinks: {
+                some: {
+                  category: {
+                    name: categoryName,
+                  },
+                },
+              },
+            },
+          ],
+        } as any,
         orderBy: { id: "desc" },
         include: {
           category: {
             select: { name: true },
+          },
+          categoryLinks: {
+            select: { categoryId: true },
           },
           media: {
             take: 1,
@@ -218,10 +265,10 @@ export async function sqlGetProductsByCategory(categoryName: string) {
               url: true,
             },
           },
-        },
-      });
+        } as any,
+      })) as any[];
 
-      return products.map((p) => ({
+      return products.map((p: any) => ({
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
@@ -231,6 +278,14 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
         category_id: p.categoryId,
+        category_ids: Array.from(
+          new Set([
+            ...(((p as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
+              (cl) => cl.categoryId
+            ) ?? []),
+            ...(p.categoryId ? [p.categoryId] : []),
+          ])
+        ),
         category_name: p.category?.name || null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
       }));
@@ -247,15 +302,31 @@ export async function sqlGetProductsByCategory(categoryName: string) {
 export async function sqlGetProductsBySubcategoryName(name: string) {
   return unstable_cache(
     async () => {
-      const products = await prisma.product.findMany({
+      const products = (await prisma.product.findMany({
         where: {
-          subcategory: {
-            name: {
-              equals: name,
-              mode: "insensitive",
+          OR: [
+            {
+              subcategory: {
+                name: {
+                  equals: name,
+                  mode: "insensitive",
+                },
+              },
             },
-          },
-        },
+            {
+              subcategoryLinks: {
+                some: {
+                  subcategory: {
+                    name: {
+                      equals: name,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        } as any,
         orderBy: { id: "desc" },
         include: {
           category: {
@@ -263,6 +334,12 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
           },
           subcategory: {
             select: { name: true },
+          },
+          categoryLinks: {
+            select: { categoryId: true },
+          },
+          subcategoryLinks: {
+            select: { subcategoryId: true },
           },
           media: {
             take: 1,
@@ -272,10 +349,10 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
               url: true,
             },
           },
-        },
-      });
+        } as any,
+      })) as any[];
 
-      return products.map((p) => ({
+      return products.map((p: any) => ({
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
@@ -286,6 +363,22 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         limited_edition: p.limitedEdition,
         category_id: p.categoryId,
         subcategory_id: p.subcategoryId,
+        category_ids: Array.from(
+          new Set([
+            ...(((p as any).categoryLinks as { categoryId: number }[] | undefined)?.map(
+              (cl) => cl.categoryId
+            ) ?? []),
+            ...(p.categoryId ? [p.categoryId] : []),
+          ])
+        ),
+        subcategory_ids: Array.from(
+          new Set([
+            ...(((p as any).subcategoryLinks as { subcategoryId: number }[] | undefined)?.map(
+              (sl) => sl.subcategoryId
+            ) ?? []),
+            ...(p.subcategoryId ? [p.subcategoryId] : []),
+          ])
+        ),
         category_name: p.category?.name || null,
         subcategory_name: p.subcategory?.name || null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
@@ -410,6 +503,8 @@ export async function sqlPostProduct(product: {
   has_lining?: boolean;
   lining_description?: string | null;
   media?: { type: string; url: string }[];
+  category_ids?: number[];
+  subcategory_ids?: number[];
 }) {
   const baseSlug = textToSlug(product.name);
   const slug = await ensureUniqueSlug(baseSlug, (s) =>
@@ -453,6 +548,42 @@ export async function sqlPostProduct(product: {
     },
   });
 
+  // Створюємо зв’язки товар–категорії (включно з основною категорією)
+  const allCategoryIds = Array.from(
+    new Set([
+      ...(product.category_ids ?? []),
+      ...(product.category_id != null ? [product.category_id] : []),
+    ])
+  );
+
+  if (allCategoryIds.length) {
+    await (prisma as any).productCategoryLink.createMany({
+      data: allCategoryIds.map((categoryId) => ({
+        productId: created.id,
+        categoryId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  // Створюємо зв’язки товар–підкатегорії (включно з основною підкатегорією)
+  const allSubcategoryIds = Array.from(
+    new Set([
+      ...(product.subcategory_ids ?? []),
+      ...(product.subcategory_id != null ? [product.subcategory_id] : []),
+    ])
+  );
+
+  if (allSubcategoryIds.length) {
+    await (prisma as any).productSubcategoryLink.createMany({
+      data: allSubcategoryIds.map((subcategoryId) => ({
+        productId: created.id,
+        subcategoryId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   return { id: created.id };
 }
 
@@ -489,6 +620,8 @@ export async function sqlPutProduct(
     has_lining?: boolean;
     lining_description?: string | null;
     media?: { type: string; url: string }[];
+    category_ids?: number[];
+    subcategory_ids?: number[];
   }
 ) {
   const oldMedia = await prisma.productMedia.findMany({
@@ -555,6 +688,54 @@ export async function sqlPutProduct(
           type: m.type,
           url: m.url,
         })),
+      });
+    }
+
+    // Оновлюємо зв’язки товар–категорії
+    const allCategoryIds = Array.from(
+      new Set([
+        ...(update.category_ids ?? []),
+        ...(update.category_id != null ? [update.category_id] : []),
+      ])
+    );
+
+    // Спочатку видаляємо старі зв’язки
+    await (tx as any).productCategoryLink.deleteMany({
+      where: { productId: id },
+    });
+
+    // Створюємо нові, якщо є що зберігати
+    if (allCategoryIds.length) {
+      await (tx as any).productCategoryLink.createMany({
+        data: allCategoryIds.map((categoryId) => ({
+          productId: id,
+          categoryId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    // Оновлюємо зв’язки товар–підкатегорії
+    const allSubcategoryIds = Array.from(
+      new Set([
+        ...(update.subcategory_ids ?? []),
+        ...(update.subcategory_id != null ? [update.subcategory_id] : []),
+      ])
+    );
+
+    // Спочатку видаляємо старі зв’язки з підкатегоріями
+    await (tx as any).productSubcategoryLink.deleteMany({
+      where: { productId: id },
+    });
+
+    // Створюємо нові, якщо є що зберігати
+    if (allSubcategoryIds.length) {
+      await (tx as any).productSubcategoryLink.createMany({
+        data: allSubcategoryIds.map((subcategoryId) => ({
+          productId: id,
+          subcategoryId,
+        })),
+        skipDuplicates: true,
       });
     }
   });

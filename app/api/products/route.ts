@@ -112,6 +112,8 @@ export async function POST(req: Request) {
         fabric_composition,
         has_lining = false,
         lining_description,
+        category_ids = [],
+        subcategory_ids = [],
       } = body || {};
 
       if (!name || typeof price !== "number") {
@@ -152,6 +154,16 @@ export async function POST(req: Request) {
         fabric_composition: fabric_composition ?? null,
         has_lining,
         lining_description: lining_description ?? null,
+        category_ids: Array.isArray(category_ids)
+          ? category_ids
+              .map((id: unknown) => Number(id))
+              .filter((id: number) => Number.isInteger(id) && id > 0)
+          : [],
+        subcategory_ids: Array.isArray(subcategory_ids)
+          ? subcategory_ids
+              .map((id: unknown) => Number(id))
+              .filter((id: number) => Number.isInteger(id) && id > 0)
+          : [],
       });
 
       await revalidateProducts();

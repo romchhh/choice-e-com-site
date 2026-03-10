@@ -34,10 +34,14 @@ export default function FormElements() {
   const [storageConditions, setStorageConditions] = useState("");
   const [bestseller, setBestseller] = useState(false);
   const [inStock, setInStock] = useState(true);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategoryId, setSubcategoryId] = useState<number | null>(null);
-  const [subcategories, setSubcategories] = useState<Category[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [subcategoriesByCategory, setSubcategoriesByCategory] = useState<
+    Record<number, Category[]>
+  >({});
+  const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<
+    number[]
+  >([]);
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
@@ -69,28 +73,24 @@ export default function FormElements() {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    if (!categoryId) {
-      setSubcategories([]);
-      setSubcategoryId(null);
-      return;
-    }
+  const loadSubcategoriesForCategory = async (categoryId: number) => {
+    // Avoid refetching if already loaded
+    if (subcategoriesByCategory[categoryId]) return;
 
-    async function fetchSubcategories() {
-      try {
-        const res = await fetch(
-          `/api/subcategories?parent_category_id=${categoryId}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch subcategories");
-        const data: Category[] = await res.json();
-        setSubcategories(data);
-      } catch (err) {
-        console.error("Error fetching subcategories:", err);
-      }
+    try {
+      const res = await fetch(
+        `/api/subcategories?parent_category_id=${categoryId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch subcategories");
+      const data: Category[] = await res.json();
+      setSubcategoriesByCategory((prev) => ({
+        ...prev,
+        [categoryId]: data,
+      }));
+    } catch (err) {
+      console.error("Error fetching subcategories:", err);
     }
-
-    fetchSubcategories();
-  }, [categoryId]);
+  };
 
   type MediaFile = {
     file: File;
@@ -186,7 +186,12 @@ export default function FormElements() {
         uploadedMedia = uploadData.media || [];
       }
 
-      // 2) Create product via JSON body (no files)
+      // 2) Prepare category / subcategory data
+      const allCategoryIds = Array.from(new Set(selectedCategoryIds));
+      const allSubcategoryIds = Array.from(new Set(selectedSubcategoryIds));
+      const primaryCategoryId = allCategoryIds[0] ?? null;
+      const primarySubcategoryId = allSubcategoryIds[0] ?? null;
+
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -214,12 +219,14 @@ export default function FormElements() {
           top_sale: bestseller,
           in_stock: inStock,
           limited_edition: false,
-          category_id: categoryId,
-          subcategory_id: subcategoryId,
+          category_id: primaryCategoryId,
+          subcategory_id: primarySubcategoryId,
           media: uploadedMedia,
           fabric_composition: fabricComposition || null,
           has_lining: hasLining,
           lining_description: liningDescription || null,
+          category_ids: allCategoryIds,
+          subcategory_ids: allSubcategoryIds,
         }),
       });
 
@@ -249,12 +256,11 @@ export default function FormElements() {
       setMediaFiles([]);
       setBestseller(false);
       setInStock(true);
-      setCategoryId(null);
+      setSelectedCategoryIds([]);
+      setSelectedSubcategoryIds([]);
       setFabricComposition("");
       setHasLining(false);
       setLiningDescription("");
-      setSubcategoryId(null);
-      setSubcategories([]);
       setReleaseForm("");
       setCourse("");
       setPackageWeight("");
@@ -371,42 +377,204 @@ export default function FormElements() {
                 </div>
 
                 <div>
-                  <Label>Категорія / Підкатегорія</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <select
-                      value={categoryId ?? ""}
-                      onChange={(e) => {
-                        const id = Number(e.target.value) || null;
-                        setCategoryId(id);
-                        setSubcategoryId(null);
-                      }}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      <option value="">Виберіть категорію</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
+                  <Label>Категорії показу товару</Label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Спочатку оберіть одну або кілька категорій. Для вибраних
+                    категорій можна також відмітити підкатегорії.
+                  </p>
 
-                    {subcategories.length > 0 && (
-                      <select
-                        value={subcategoryId ?? ""}
-                        onChange={(e) =>
-                          setSubcategoryId(Number(e.target.value) || null)
-                        }
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 min-h-[44px] sm:min-h-0 text-sm bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        <option value="">Виберіть підкатегорію</option>
-                        {subcategories.map((sub) => (
-                          <option key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
+                  {/* Список категорій з галочками */}
+                  {categories.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs text-gray-500">
+                          Категорії
+                        </p>
+                        <button
+                          type="button"
+                          className="text-[11px] text-blue-600 hover:text-blue-800"
+                          onClick={() => {
+                            if (selectedCategoryIds.length) {
+                              setSelectedCategoryIds([]);
+                              setSelectedSubcategoryIds([]);
+                            } else {
+                              const allIds = categories.map((c) => c.id);
+                              setSelectedCategoryIds(allIds);
+                              // Підкатегорії для всіх підвантажимо поступово при відкритті
+                            }
+                          }}
+                        >
+                          {selectedCategoryIds.length ? "Скинути всі" : "Обрати всі"}
+                        </button>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg px-3 py-2 space-y-1">
+                        {categories.map((cat) => {
+                          const checked = selectedCategoryIds.includes(cat.id);
+                          return (
+                            <label
+                              key={cat.id}
+                              className="flex items-center gap-2 text-xs cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#8B9A47] focus:ring-[#8B9A47]"
+                                checked={checked}
+                                onChange={async () => {
+                                  if (checked) {
+                                    // Забираємо категорію та її підкатегорії
+                                    setSelectedCategoryIds((prev) =>
+                                      prev.filter((id) => id !== cat.id)
+                                    );
+                                    setSelectedSubcategoryIds((prev) =>
+                                      prev.filter(
+                                        (sid) =>
+                                          !subcategoriesByCategory[cat.id]?.some(
+                                            (s) => s.id === sid
+                                          )
+                                      )
+                                    );
+                                  } else {
+                                    setSelectedCategoryIds((prev) => [
+                                      ...prev,
+                                      cat.id,
+                                    ]);
+                                    await loadSubcategoriesForCategory(cat.id);
+                                  }
+                                }}
+                              />
+                              <span className="text-gray-700">{cat.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      {selectedCategoryIds.length > 0 && (
+                        <p className="text-[11px] text-gray-500">
+                          Основною вважається перша вибрана категорія. Зараз:{" "}
+                          <span className="font-medium">
+                            {(() => {
+                              const mainCatId = selectedCategoryIds[0];
+                              const mainCat = categories.find(
+                                (c) => c.id === mainCatId
+                              );
+                              return mainCat ? mainCat.name : "не вибрано";
+                            })()}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400">
+                      Категорії ще не створені.
+                    </p>
+                  )}
+
+                  {/* Підкатегорії для вибраних категорій */}
+                  {selectedCategoryIds.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      {selectedCategoryIds.map((catId) => {
+                        const cat = categories.find((c) => c.id === catId);
+                        const subs = subcategoriesByCategory[catId] || [];
+
+                        return (
+                          <div key={catId}>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-xs text-gray-500">
+                                Підкатегорії для{" "}
+                                <span className="font-medium">
+                                  {cat?.name ?? "категорії"}
+                                </span>
+                              </p>
+                              {subs.length > 0 && (
+                                <button
+                                  type="button"
+                                  className="text-[11px] text-blue-600 hover:text-blue-800"
+                                  onClick={() => {
+                                    const allIds = subs.map((s) => s.id);
+                                    const allSelectedForCat = allIds.every((id) =>
+                                      selectedSubcategoryIds.includes(id)
+                                    );
+
+                                    if (allSelectedForCat) {
+                                      // Скинути всі підкатегорії цієї категорії
+                                      setSelectedSubcategoryIds((prev) =>
+                                        prev.filter(
+                                          (id) => !allIds.includes(id)
+                                        )
+                                      );
+                                    } else {
+                                      // Додати всі підкатегорії цієї категорії
+                                      setSelectedSubcategoryIds((prev) =>
+                                        Array.from(new Set([...prev, ...allIds]))
+                                      );
+                                    }
+                                  }}
+                                >
+                                  {(() => {
+                                    const allIds = subs.map((s) => s.id);
+                                    const allSelectedForCat = allIds.length > 0 &&
+                                      allIds.every((id) =>
+                                        selectedSubcategoryIds.includes(id)
+                                      );
+                                    return allSelectedForCat
+                                      ? "Скинути всі"
+                                      : "Обрати всі";
+                                  })()}
+                                </button>
+                              )}
+                            </div>
+
+                            {subs.length > 0 ? (
+                              <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg px-3 py-2 space-y-1">
+                                {subs.map((s) => {
+                                  const checked =
+                                    selectedSubcategoryIds.includes(s.id);
+                                  return (
+                                    <label
+                                      key={s.id}
+                                      className="flex items-center gap-2 text-xs cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        className="w-3.5 h-3.5 rounded border-gray-300 text-[#8B9A47] focus:ring-[#8B9A47]"
+                                        checked={checked}
+                                        onChange={() =>
+                                          setSelectedSubcategoryIds((prev) =>
+                                            checked
+                                              ? prev.filter(
+                                                  (id) => id !== s.id
+                                                )
+                                              : [...prev, s.id]
+                                          )
+                                        }
+                                      />
+                                      <span className="text-gray-700">
+                                        {s.name}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-[11px] text-gray-400 border border-dashed border-gray-200 rounded-lg px-3 py-2">
+                                Для цієї категорії немає підкатегорій або вони ще
+                                не завантажені.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {selectedSubcategoryIds.length > 0 && (
+                        <p className="text-[11px] text-gray-500">
+                          Вибрано підкатегорій:{" "}
+                          <span className="font-medium">
+                            {selectedSubcategoryIds.length}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </ComponentCard>

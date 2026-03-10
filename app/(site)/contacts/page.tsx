@@ -233,7 +233,7 @@ export default function ContactsPage() {
                 Телефон
               </p>
               <a
-                href="tel:+380937537855"
+                href="tel:+380975292173"
                 className="text-[#3D1A00] hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
@@ -242,7 +242,7 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                +380 (93) 753 78 55
+                +380 (97) 529 21 73
               </a>
             </div>
 
@@ -272,7 +272,7 @@ export default function ContactsPage() {
                   </svg>
                 </a>
                 <a
-                  href="https://t.me/my_choice_mari"
+                  href="https://t.me/m_maksyakova"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full border border-[#3D1A00]/30 flex items-center justify-center text-[#3D1A00] hover:border-[#3D1A00] hover:bg-[#3D1A00]/5 transition-all"
@@ -299,7 +299,7 @@ export default function ContactsPage() {
                 E-mail
               </p>
               <a
-                href="mailto:info@choice-ukraine.com"
+                href="mailto:mari.choice26@gmail.com"
                 className="text-[#3D1A00] hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
@@ -308,7 +308,7 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                info@choice-ukraine.com
+                mari.choice26@gmail.com
               </a>
             </div>
 

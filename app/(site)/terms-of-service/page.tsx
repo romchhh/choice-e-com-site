@@ -288,27 +288,27 @@ export default function TermsOfServicePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm font-semibold mb-2 opacity-60">Отримувач</p>
-                  <p className="text-sm opacity-90">[Назва отримувача]</p>
+                  <p className="text-sm opacity-90">ФОП Максякова Марія Олександрівна</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-2 opacity-60">ІПН/ЄДРПОУ</p>
-                  <p className="text-sm opacity-90">[ІПН/ЄДРПОУ]</p>
+                  <p className="text-sm opacity-90">3285005389</p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-sm font-semibold mb-2 opacity-60">IBAN</p>
-                  <p className="text-sm opacity-90">[IBAN]</p>
+                  <p className="text-sm opacity-90">UA443220010000026001350065476</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-2 opacity-60">Акціонерне товариство</p>
-                  <p className="text-sm opacity-90">[Назва банку]</p>
+                  <p className="text-sm opacity-90">Акціонерне Товариство УНІВЕРСАЛ БАНК</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-2 opacity-60">МФО</p>
-                  <p className="text-sm opacity-90">[МФО]</p>
+                  <p className="text-sm opacity-90">322001</p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-2 opacity-60">ЄДРПОУ Банку</p>
-                  <p className="text-sm opacity-90">[ЄДРПОУ Банку]</p>
+                  <p className="text-sm opacity-90">21133352</p>
                 </div>
               </div>
             </div>
@@ -316,7 +316,7 @@ export default function TermsOfServicePage() {
 
           <section className="mt-16 pt-8 border-t border-black/10">
             <p className="text-sm opacity-50">
-              Дата останнього оновлення: 27 жовтня 2025 року
+              Дата останнього оновлення: 10 березня 2026 року
             </p>
           </section>
         </div>

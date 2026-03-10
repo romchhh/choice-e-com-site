@@ -18,6 +18,7 @@ interface Product {
   first_media?: { url: string; type: string } | null;
   discount_percentage?: number | null;
   category_id?: number | null;
+  category_ids?: number[] | null;
   stock?: number;
   in_stock?: boolean;
 }
@@ -78,9 +79,16 @@ export default function CatalogClient({
 
   const filteredProducts = useMemo(() => {
     return initialProducts.filter((product) => {
+      const productCategoryIds =
+        product.category_ids && product.category_ids.length > 0
+          ? product.category_ids
+          : product.category_id != null
+          ? [product.category_id]
+          : [];
+
       const matchesCategory =
         selectedCategories.length === 0 ||
-        (product.category_id && selectedCategories.includes(product.category_id));
+        productCategoryIds.some((id) => selectedCategories.includes(id));
       const matchesMinPrice = minPrice === null || product.price >= minPrice;
       const matchesMaxPrice = maxPrice === null || product.price <= maxPrice;
       return matchesCategory && matchesMinPrice && matchesMaxPrice;

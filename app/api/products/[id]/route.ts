@@ -83,7 +83,24 @@ export async function PUT(
     const priority = body.priority ? Number(body.priority) : 0;
     const hasLining = body.has_lining === true;
     const liningDescription = body.lining_description || "";
-    const stock = typeof body.stock === "number" ? body.stock : body.stock != null ? Number(body.stock) : undefined;
+    const stock =
+      typeof body.stock === "number"
+        ? body.stock
+        : body.stock != null
+        ? Number(body.stock)
+        : undefined;
+
+    const categoryIds: number[] = Array.isArray(body.category_ids)
+      ? body.category_ids
+          .map((id: unknown) => Number(id))
+          .filter((id: number) => Number.isInteger(id) && id > 0)
+      : [];
+
+    const subcategoryIds: number[] = Array.isArray(body.subcategory_ids)
+      ? body.subcategory_ids
+          .map((id: unknown) => Number(id))
+          .filter((id: number) => Number.isInteger(id) && id > 0)
+      : [];
 
     await sqlPutProduct(id, {
       name: body.name,
@@ -115,6 +132,8 @@ export async function PUT(
       has_lining: hasLining,
       fabric_composition: body.fabric_composition ?? undefined,
       lining_description: liningDescription,
+      category_ids: categoryIds,
+      subcategory_ids: subcategoryIds,
     });
 
     // Revalidate cache after updating product
