@@ -2,10 +2,37 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 
+const baseUrl =
+  process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Партнерство з CHOICE | Choice",
+  title: "Партнерство з CHOICE у wellness-напрямку | Choice",
   description:
-    "Деталі співпраці з CHOICE: як працює команда, які можливості партнерства та що ви отримуєте, приєднавшись.",
+    "Партнерство з CHOICE у сфері wellness та натуральної продукції: як працює команда, які можливості заробітку та розвитку ви отримуєте, приєднавшись.",
+  openGraph: {
+    title: "Партнерство з CHOICE у wellness-напрямку | Choice",
+    description:
+      "Приєднайтеся до партнерської програми CHOICE: будуйте дохід на wellness та eco-продукції, працюйте в команді з підтримкою й системним навчанням.",
+    type: "website",
+    locale: "uk_UA",
+    url: `${baseUrl}/partnership`,
+    images: [
+      {
+        url: `${baseUrl}/images/partnership/0068.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "Партнерство з CHOICE у wellness-напрямку",
+      },
+    ],
+    siteName: "Choice",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Партнерство з CHOICE у wellness-напрямку | Choice",
+    description:
+      "Дізнайтеся, як стати партнером CHOICE у сфері wellness та натуральних продуктів і побудувати стабільний дохід.",
+    images: [`${baseUrl}/images/partnership/0068.jpg`],
+  },
 };
 
 export default function PartnershipPage() {

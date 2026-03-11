@@ -1,9 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const baseUrl =
+  process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Політика конфіденційності | Choice",
-  description: "Політика конфіденційності персональних даних Choice",
+  title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
+  description:
+    "Політика конфіденційності інтернет-магазину CHOICE. Як ми збираємо, зберігаємо та захищаємо персональні дані клієнтів при замовленні wellness та eco-продукції.",
+  openGraph: {
+    title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
+    description:
+      "Докладна політика конфіденційності CHOICE: обробка персональних даних клієнтів, захист інформації та використання даних при онлайн-замовленнях.",
+    type: "article",
+    locale: "uk_UA",
+    url: `${baseUrl}/privacy-policy`,
+    images: [
+      {
+        url: `${baseUrl}/images/tg_image_3614117882.png`,
+        width: 1200,
+        height: 630,
+        alt: "CHOICE — політика конфіденційності",
+      },
+    ],
+    siteName: "Choice",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
+    description:
+      "Дізнайтеся, як інтернет-магазин CHOICE працює з персональними даними при замовленні wellness та eco-продукції.",
+    images: [`${baseUrl}/images/tg_image_3614117882.png`],
+  },
 };
 
 export default function PrivacyPolicyPage() {

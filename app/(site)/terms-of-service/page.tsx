@@ -1,9 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const baseUrl =
+  process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Договір публічної оферти | Choice",
-  description: "Договір публічної оферти Choice",
+  title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
+  description:
+    "Офіційний договір публічної оферти інтернет-магазину CHOICE: умови купівлі wellness та eco-продукції, оплати, доставки та повернення товарів.",
+  openGraph: {
+    title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
+    description:
+      "Умови купівлі wellness і eco-продукції CHOICE: правила оформлення замовлень, оплати, доставки та повернення товарів.",
+    type: "article",
+    locale: "uk_UA",
+    url: `${baseUrl}/terms-of-service`,
+    images: [
+      {
+        url: `${baseUrl}/images/tg_image_3614117882.png`,
+        width: 1200,
+        height: 630,
+        alt: "CHOICE — умови публічної оферти",
+      },
+    ],
+    siteName: "Choice",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
+    description:
+      "Прочитайте умови публічної оферти інтернет-магазину CHOICE перед замовленням wellness та eco-продукції.",
+    images: [`${baseUrl}/images/tg_image_3614117882.png`],
+  },
 };
 
 export default function TermsOfServicePage() {

@@ -48,14 +48,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const price = product.discount_percentage
     ? (product.price * (1 - product.discount_percentage / 100)).toFixed(0)
     : product.price.toFixed(0);
+  const categoryName = product.category_name || "wellness-продукція";
+
+  const baseDescription =
+    product.description ||
+    `${product.name} від Choice — натуральний wellness-продукт у категорії "${categoryName}". Ціна: ${price} ₴.`;
+  const fullDescription = `${baseDescription} Підтримка організму на щодень, натуральний склад та eco-підхід.`;
+
+  const keywordParts = [
+    product.name,
+    "Choice",
+    categoryName,
+    "wellness",
+    "фітокомплекс",
+    "натуральний продукт",
+    "eco-продукція",
+    "здоров'я",
+    "детокс",
+    "імунітет",
+    "енергія",
+    "сон",
+  ];
+  const keywords = Array.from(new Set(keywordParts.filter(Boolean))).join(", ");
 
   return {
     title: `${product.name} | Choice`,
-    description: product.description || `${product.name} від Choice. Ціна: ${price} ₴. Індивідуальний пошив під ваші параметри.`,
-    keywords: `${product.name}, Choice, жіночий одяг, ${product.category_name || ""}, український бренд`,
+    description: fullDescription,
+    keywords,
     openGraph: {
       title: `${product.name} | Choice`,
-      description: product.description || `${product.name} від Choice. Ціна: ${price} ₴.`,
+      description: fullDescription,
       type: "website",
       images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
       locale: "uk_UA",
@@ -63,7 +85,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: "summary_large_image",
       title: `${product.name} | Choice`,
-      description: product.description || `${product.name} від Choice`,
+      description: baseDescription,
       images: [imageUrl],
     },
     alternates: { canonical: `${baseUrl}/product/${canonicalSlug}` },

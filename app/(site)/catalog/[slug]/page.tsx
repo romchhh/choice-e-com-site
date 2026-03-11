@@ -29,14 +29,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!category) return { title: "Категорія не знайдена | Choice" };
 
   const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
-  const title = `${category.name} | Каталог | Choice`;
-  const description = `Каталог товарів категорії "${category.name}" від Choice. Якісний жіночий одяг з індивідуальним пошивом.`;
+  const title = `${category.name} | wellness та eco-продукція | Choice`;
+  const description = `Каталог wellness та eco-продукції категорії "${category.name}" від Choice: фітокомплекси, натуральна підтримка організму та засоби для здорового способу життя.`;
   const catalogUrl = `${baseUrl}/catalog/${slug}`;
 
   return {
     title,
     description,
-    keywords: `${category.name}, жіночий одяг, Choice, каталог, український бренд, мінімалізм, лакшері стиль`,
+    keywords: `${category.name}, Choice, wellness, фітокомплекси, натуральна продукція, eco-засоби, здоровий спосіб життя, український бренд`,
     openGraph: {
       title,
       description,
