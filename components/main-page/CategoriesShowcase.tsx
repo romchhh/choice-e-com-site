@@ -81,17 +81,9 @@ export default function CategoriesShowcase() {
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {categories.map((category) => (
-          <Link
+            <Link
               key={category.id}
-              href="/catalog"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.sessionStorage.setItem(
-                    "catalogSelectedCategoryId",
-                    String(category.id)
-                  );
-                }
-              }}
+              href={`/catalog?categoryId=${category.id}`}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
               aria-label={`Категорія ${category.name}`}
             >

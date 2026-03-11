@@ -59,29 +59,6 @@ export default function CatalogClient({
   const searchParams = useSearchParams();
   const initializedFromQueryRef = useRef(false);
 
-  // Apply preselected category from sessionStorage when coming from header/categories navigation
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const storedId = window.sessionStorage.getItem("catalogSelectedCategoryId");
-    if (!storedId) return;
-
-    const idNum = Number(storedId);
-    if (!Number.isNaN(idNum)) {
-      const exists = categories.some((c) => c.id === idNum);
-      if (exists) {
-        // Перемикаємося на категорію з хедера, очищаючи попередній вибір
-        setSelectedCategories([idNum]);
-        setSelectedSubcategories([]);
-        setMinPrice(null);
-        setMaxPrice(null);
-        setMinPriceInput("");
-        setMaxPriceInput("");
-      }
-    }
-    window.sessionStorage.removeItem("catalogSelectedCategoryId");
-  }, [categories]);
-
   // Load all subcategories for filters
   useEffect(() => {
     let cancelled = false;
@@ -104,9 +81,8 @@ export default function CatalogClient({
     };
   }, []);
 
-  // Init selection when приходимо з хедера по підкатегорії (?subcategory=...)
+  // Init/override selection when приходимо з хедера по підкатегорії (?subcategory=...)
   useEffect(() => {
-    if (initializedFromQueryRef.current) return;
     if (!subcategories.length) return;
 
     const subName = searchParams.get("subcategory");
@@ -119,17 +95,34 @@ export default function CatalogClient({
 
     initializedFromQueryRef.current = true;
 
-    setSelectedCategories((prev) =>
-      prev.includes(found.category_id) ? prev : [...prev, found.category_id]
-    );
-    setSelectedSubcategories((prev) =>
-      prev.includes(found.id) ? prev : [...prev, found.id]
-    );
+    // Клік з хедера по підкатегорії завжди повністю перевизначає вибір
+    setSelectedCategories([found.category_id]);
+    setSelectedSubcategories([found.id]);
     setMinPrice(null);
     setMaxPrice(null);
     setMinPriceInput("");
     setMaxPriceInput("");
   }, [searchParams, subcategories]);
+
+  // Init/override selection when приходимо з хедера по категорії (?categoryId=...)
+  useEffect(() => {
+    const catIdParam = searchParams.get("categoryId");
+    if (!catIdParam) return;
+
+    const idNum = Number(catIdParam);
+    if (Number.isNaN(idNum)) return;
+
+    const exists = categories.some((c) => c.id === idNum);
+    if (!exists) return;
+
+    // Клік з хедера по категорії завжди повністю перевизначає вибір
+    setSelectedCategories([idNum]);
+    setSelectedSubcategories([]);
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinPriceInput("");
+    setMaxPriceInput("");
+  }, [searchParams, categories]);
 
   const priceRange = useMemo(() => {
     if (initialProducts.length === 0) return { min: 0, max: 10000 };
