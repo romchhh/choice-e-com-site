@@ -97,6 +97,12 @@ export default function YouMightLike({ suggestedProducts }: YouMightLikeProps = 
             <Link
               key={product.id}
               href={`/product/${(product.slug && String(product.slug).trim()) ? product.slug : product.id}`}
+              scroll={false}
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                }
+              }}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
               aria-label={product.name}
             >

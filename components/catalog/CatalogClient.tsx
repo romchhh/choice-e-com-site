@@ -678,6 +678,12 @@ export default function CatalogClient({
                     <Link
                       href={`/product/${(product.slug && String(product.slug).trim()) ? product.slug : product.id}`}
                       key={product.id}
+                      scroll={false}
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                        }
+                      }}
                       className="group flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                     >
                       {/* Зображення 3:4 */}
