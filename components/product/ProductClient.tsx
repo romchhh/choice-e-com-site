@@ -70,6 +70,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const isAddingToCartRef = useRef(false);
   const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
 
   const handleAddToCart = async () => {
     if (isAddingToCartRef.current) return;
@@ -290,15 +291,23 @@ export default function ProductClient({ product: initialProduct }: ProductClient
               onTouchStart={(e) => {
                 if (!media.length || media.length < 2) return;
                 touchStartXRef.current = e.touches[0]?.clientX ?? null;
+                touchStartYRef.current = e.touches[0]?.clientY ?? null;
               }}
               onTouchEnd={(e) => {
                 if (!media.length || media.length < 2) return;
                 if (touchStartXRef.current === null) return;
                 const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
-                const deltaX = endX - touchStartXRef.current;
-                const threshold = 40; // мінімальна відстань свайпу в px
+                const endY = e.changedTouches[0]?.clientY ?? touchStartYRef.current ?? 0;
+                const startX = touchStartXRef.current;
+                const startY = touchStartYRef.current ?? endY;
+                const deltaX = endX - startX;
+                const deltaY = endY - startY;
+                const threshold = 60; // трохи більший поріг для більш «плавного» свайпу
                 touchStartXRef.current = null;
+                touchStartYRef.current = null;
 
+                // ігноруємо переважно вертикальні жести
+                if (Math.abs(deltaX) < Math.abs(deltaY)) return;
                 if (Math.abs(deltaX) < threshold) return;
 
                 if (deltaX < 0) {
