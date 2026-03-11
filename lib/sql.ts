@@ -62,6 +62,9 @@ async function _sqlGetAllProducts() {
       categoryLinks: {
         select: { categoryId: true },
       },
+      subcategoryLinks: {
+        select: { subcategoryId: true },
+      },
     } as any,
   })) as any[];
 
@@ -83,6 +86,14 @@ async function _sqlGetAllProducts() {
       ])
     ),
     subcategory_id: p.subcategoryId,
+    subcategory_ids: Array.from(
+      new Set([
+        ...(((p as any).subcategoryLinks as { subcategoryId: number }[] | undefined)?.map(
+          (sl) => sl.subcategoryId
+        ) ?? []),
+        ...(p.subcategoryId ? [p.subcategoryId] : []),
+      ])
+    ),
     stock: p.stock,
     in_stock: p.inStock,
     created_at: p.createdAt,

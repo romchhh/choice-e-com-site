@@ -1,34 +1,54 @@
 // /app/api/subcategories/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { sqlGetSubcategoriesByCategory, sqlPostSubcategory } from "@/lib/sql";
+import { sqlGetSubcategoriesByCategory, sqlPostSubcategory, sqlGetAllSubcategories } from "@/lib/sql";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const categoryIdParam = searchParams.get("parent_category_id");
+  const categoryId = categoryIdParam ? Number(categoryIdParam) : null;
 
-  const categoryId = Number(categoryIdParam);
-  if (!categoryIdParam || isNaN(categoryId)) {
-    return NextResponse.json(
-      { error: "Invalid or missing parent_category_id" },
-      { status: 400 }
-    );
+  // Якщо передано конкретну категорію – повертаємо підкатегорії тільки для неї
+  if (categoryIdParam) {
+    if (isNaN(Number(categoryId))) {
+      return NextResponse.json(
+        { error: "Invalid parent_category_id" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const subcategories = await sqlGetSubcategoriesByCategory(categoryId!);
+
+      // Add cache headers: cache for 5 minutes
+      return NextResponse.json(subcategories, {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to get subcategories:", error);
+      // Для фронта безпечніше повернути порожній список, ніж 500
+      return NextResponse.json([], {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        },
+      });
+    }
   }
 
+  // Якщо parent_category_id не передано – повертаємо всі підкатегорії (для фільтрів каталогу)
   try {
-    const subcategories = await sqlGetSubcategoriesByCategory(categoryId);
-    
-    // Add cache headers: cache for 5 minutes
-    return NextResponse.json(subcategories, {
+    const all = await sqlGetAllSubcategories();
+    return NextResponse.json(all, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
   } catch (error) {
-    console.error("Failed to get subcategories:", error);
-    // Для фронта безпечніше повернути порожній список, ніж 500
+    console.error("Failed to get all subcategories:", error);
     return NextResponse.json([], {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
       },
     });
   }

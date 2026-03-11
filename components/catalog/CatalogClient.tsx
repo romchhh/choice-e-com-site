@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAppContext } from "@/lib/GeneralProvider";
@@ -8,6 +8,7 @@ import { useBasket } from "@/lib/BasketProvider";
 import SidebarMenu from "../layout/SidebarMenu";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import ProductSkeleton from "./ProductSkeleton";
+import { useSearchParams } from "next/navigation";
 
 interface Product {
   id: number;
@@ -19,6 +20,8 @@ interface Product {
   discount_percentage?: number | null;
   category_id?: number | null;
   category_ids?: number[] | null;
+   subcategory_id?: number | null;
+   subcategory_ids?: number[] | null;
   stock?: number;
   in_stock?: boolean;
 }
@@ -43,17 +46,22 @@ export default function CatalogClient({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recommended" | "newest" | "asc" | "desc" | "sale">("recommended");
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [subcategories, setSubcategories] = useState<
+    { id: number; name: string; category_id: number }[]
+  >([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minPriceInput, setMinPriceInput] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
   const [basketError, setBasketError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const initializedFromQueryRef = useRef(false);
 
   // Apply preselected category from sessionStorage when coming from header/categories navigation
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (selectedCategories.length > 0) return;
 
     const storedId = window.sessionStorage.getItem("catalogSelectedCategoryId");
     if (!storedId) return;
@@ -62,11 +70,66 @@ export default function CatalogClient({
     if (!Number.isNaN(idNum)) {
       const exists = categories.some((c) => c.id === idNum);
       if (exists) {
+        // Перемикаємося на категорію з хедера, очищаючи попередній вибір
         setSelectedCategories([idNum]);
+        setSelectedSubcategories([]);
+        setMinPrice(null);
+        setMaxPrice(null);
+        setMinPriceInput("");
+        setMaxPriceInput("");
       }
     }
     window.sessionStorage.removeItem("catalogSelectedCategoryId");
-  }, [categories, selectedCategories.length]);
+  }, [categories]);
+
+  // Load all subcategories for filters
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSubcategories() {
+      try {
+        const res = await fetch("/api/subcategories");
+        if (!res.ok) return;
+        const data: { id: number; name: string; category_id: number }[] =
+          await res.json();
+        if (!cancelled) {
+          setSubcategories(data);
+        }
+      } catch {
+        // тихо ігноруємо помилку — фільтр за підкатегоріями просто не з'явиться
+      }
+    }
+    loadSubcategories();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Init selection when приходимо з хедера по підкатегорії (?subcategory=...)
+  useEffect(() => {
+    if (initializedFromQueryRef.current) return;
+    if (!subcategories.length) return;
+
+    const subName = searchParams.get("subcategory");
+    if (!subName) return;
+
+    const found = subcategories.find(
+      (s) => s.name.toLowerCase() === subName.toLowerCase()
+    );
+    if (!found) return;
+
+    initializedFromQueryRef.current = true;
+
+    setSelectedCategories((prev) =>
+      prev.includes(found.category_id) ? prev : [...prev, found.category_id]
+    );
+    setSelectedSubcategories((prev) =>
+      prev.includes(found.id) ? prev : [...prev, found.id]
+    );
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinPriceInput("");
+    setMaxPriceInput("");
+  }, [searchParams, subcategories]);
 
   const priceRange = useMemo(() => {
     if (initialProducts.length === 0) return { min: 0, max: 10000 };
@@ -86,20 +149,32 @@ export default function CatalogClient({
           ? [product.category_id]
           : [];
 
+      const productSubcategoryIds =
+        product.subcategory_ids && product.subcategory_ids.length > 0
+          ? product.subcategory_ids
+          : product.subcategory_id != null
+          ? [product.subcategory_id]
+          : [];
+
       const matchesCategory =
         selectedCategories.length === 0 ||
         productCategoryIds.some((id) => selectedCategories.includes(id));
+      const matchesSubcategory =
+        selectedSubcategories.length === 0 ||
+        productSubcategoryIds.some((id) => selectedSubcategories.includes(id));
       const matchesMinPrice = minPrice === null || product.price >= minPrice;
       const matchesMaxPrice = maxPrice === null || product.price <= maxPrice;
-      return matchesCategory && matchesMinPrice && matchesMaxPrice;
+      return (
+        matchesCategory && matchesSubcategory && matchesMinPrice && matchesMaxPrice
+      );
     });
-  }, [initialProducts, minPrice, maxPrice, selectedCategories]);
+  }, [initialProducts, minPrice, maxPrice, selectedCategories, selectedSubcategories]);
 
   useEffect(() => {
     setIsFiltering(true);
     const timer = setTimeout(() => setIsFiltering(false), 200);
     return () => clearTimeout(timer);
-  }, [selectedCategories, minPrice, maxPrice, sortOrder]);
+  }, [selectedCategories, selectedSubcategories, minPrice, maxPrice, sortOrder]);
 
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];
@@ -162,6 +237,7 @@ export default function CatalogClient({
 
   const handleClearFilters = () => {
     setSelectedCategories([]);
+    setSelectedSubcategories([]);
     setMinPrice(null);
     setMaxPrice(null);
     setMinPriceInput("");
@@ -169,10 +245,36 @@ export default function CatalogClient({
   };
 
   const toggleCategory = (id: number) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    setSelectedCategories((prev) => {
+      // Якщо категорія вже вибрана — знімаємо її і чистимо її підкатегорії
+      if (prev.includes(id)) {
+        setSelectedSubcategories((prevSubs) =>
+          prevSubs.filter((scId) => {
+            const sc = subcategories.find((s) => s.id === scId);
+            return !sc || sc.category_id !== id;
+          })
+        );
+        return prev.filter((c) => c !== id);
+      }
+      // Якщо не вибрана — додаємо до списку (можна кілька категорій)
+      return [...prev, id];
+    });
+  };
+
+  const toggleSubcategory = (id: number) => {
+    setSelectedSubcategories((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );
   };
+
+  const visibleSubcategories = useMemo(() => {
+    if (selectedCategories.length === 1) {
+      return subcategories.filter(
+        (sc) => sc.category_id === selectedCategories[0]
+      );
+    }
+    return subcategories;
+  }, [subcategories, selectedCategories]);
 
   return (
     <>
@@ -254,38 +356,101 @@ export default function CatalogClient({
                     </div>
                   </div>
                 </div>
-                {/* Категорія товару */}
+                {/* Категорія товару + підкатегорії під вибраною категорією */}
                 <div>
                   <h3 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
                     Категорія товару
                   </h3>
                   <ul className="flex flex-col gap-2">
-                    {categories.map((cat) => (
-                      <li key={cat.id}>
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                          <span
-                            className={`w-4 h-4 flex-shrink-0 border rounded-sm transition-colors ${
-                              selectedCategories.includes(cat.id)
-                                ? "bg-[#8B9A47] border-[#8B9A47]"
-                                : "border-gray-300 group-hover:border-gray-500"
-                            }`}
-                            onClick={() => toggleCategory(cat.id)}
-                          >
-                            {selectedCategories.includes(cat.id) && (
-                              <svg viewBox="0 0 12 10" fill="none" className="w-full h-full p-0.5">
-                                <path d="M1 5l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                          </span>
-                          <span
-                            className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
-                            onClick={() => toggleCategory(cat.id)}
-                          >
-                            {cat.name}
-                          </span>
-                        </label>
-                      </li>
-                    ))}
+                    {categories.map((cat) => {
+                      const isActive = selectedCategories.includes(cat.id);
+                      const catSubcategories = subcategories.filter(
+                        (sc) => sc.category_id === cat.id
+                      );
+                      return (
+                        <li key={cat.id} className="flex flex-col gap-1">
+                          <label className="flex items-center gap-3 cursor-pointer group">
+                            <span
+                              className={`w-4 h-4 flex-shrink-0 border rounded-sm transition-colors ${
+                                isActive
+                                  ? "bg-[#8B9A47] border-[#8B9A47]"
+                                  : "border-gray-300 group-hover:border-gray-500"
+                              }`}
+                              onClick={() => toggleCategory(cat.id)}
+                            >
+                              {isActive && (
+                                <svg
+                                  viewBox="0 0 12 10"
+                                  fill="none"
+                                  className="w-full h-full p-0.5"
+                                >
+                                  <path
+                                    d="M1 5l3 3 7-7"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </span>
+                            <span
+                              className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
+                              onClick={() => toggleCategory(cat.id)}
+                            >
+                              {cat.name}
+                            </span>
+                          </label>
+
+                          {/* Підкатегорії цієї категорії під вибраною категорією */}
+                          {isActive && catSubcategories.length > 0 && (
+                            <ul className="ml-6 mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto">
+                              {catSubcategories.map((sc) => {
+                                const scActive = selectedSubcategories.includes(
+                                  sc.id
+                                );
+                                return (
+                                  <li key={sc.id}>
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                      <span
+                                        className={`w-3.5 h-3.5 flex-shrink-0 border rounded-sm transition-colors ${
+                                          scActive
+                                            ? "bg-[#8B9A47] border-[#8B9A47]"
+                                            : "border-gray-300 group-hover:border-gray-500"
+                                        }`}
+                                        onClick={() => toggleSubcategory(sc.id)}
+                                      >
+                                        {scActive && (
+                                          <svg
+                                            viewBox="0 0 12 10"
+                                            fill="none"
+                                            className="w-full h-full p-[1px]"
+                                          >
+                                            <path
+                                              d="M1 5l3 3 7-7"
+                                              stroke="white"
+                                              strokeWidth="2"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            />
+                                          </svg>
+                                        )}
+                                      </span>
+                                      <span
+                                        className="text-xs font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
+                                        onClick={() => toggleSubcategory(sc.id)}
+                                      >
+                                        {sc.name}
+                                      </span>
+                                    </label>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
                 {/* Кнопки */}
@@ -341,38 +506,101 @@ export default function CatalogClient({
               </div>
             </div>
 
-            {/* Категорії */}
+            {/* Категорії + підкатегорії під вибраною категорією */}
             <div>
               <h2 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
                 Категорія товару
               </h2>
               <ul className="flex flex-col gap-2">
-                {categories.map((cat) => (
-                  <li key={cat.id}>
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <span
-                        className={`w-4 h-4 flex-shrink-0 border rounded-sm transition-colors ${
-                          selectedCategories.includes(cat.id)
-                            ? "bg-[#8B9A47] border-[#8B9A47]"
-                            : "border-gray-300 group-hover:border-gray-500"
-                        }`}
-                        onClick={() => toggleCategory(cat.id)}
-                      >
-                        {selectedCategories.includes(cat.id) && (
-                          <svg viewBox="0 0 12 10" fill="none" className="w-full h-full p-0.5">
-                            <path d="M1 5l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        )}
-                      </span>
-                      <span
-                        className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
-                        onClick={() => toggleCategory(cat.id)}
-                      >
-                        {cat.name}
-                      </span>
-                    </label>
-                  </li>
-                ))}
+                {categories.map((cat) => {
+                  const isActive = selectedCategories.includes(cat.id);
+                  const catSubcategories = subcategories.filter(
+                    (sc) => sc.category_id === cat.id
+                  );
+                  return (
+                    <li key={cat.id} className="flex flex-col gap-1">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <span
+                          className={`w-4 h-4 flex-shrink-0 border rounded-sm transition-colors ${
+                            isActive
+                              ? "bg-[#8B9A47] border-[#8B9A47]"
+                              : "border-gray-300 group-hover:border-gray-500"
+                          }`}
+                          onClick={() => toggleCategory(cat.id)}
+                        >
+                          {isActive && (
+                            <svg
+                              viewBox="0 0 12 10"
+                              fill="none"
+                              className="w-full h-full p-0.5"
+                            >
+                              <path
+                                d="M1 5l3 3 7-7"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </span>
+                        <span
+                          className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
+                          onClick={() => toggleCategory(cat.id)}
+                        >
+                          {cat.name}
+                        </span>
+                      </label>
+
+                      {/* Підкатегорії цієї категорії під вибраною категорією */}
+                      {isActive && catSubcategories.length > 0 && (
+                        <ul className="ml-6 mt-1 flex flex-col gap-1 max-h-40 overflow-y-auto">
+                          {catSubcategories.map((sc) => {
+                            const scActive = selectedSubcategories.includes(
+                              sc.id
+                            );
+                            return (
+                              <li key={sc.id}>
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                  <span
+                                    className={`w-3.5 h-3.5 flex-shrink-0 border rounded-sm transition-colors ${
+                                      scActive
+                                        ? "bg-[#8B9A47] border-[#8B9A47]"
+                                        : "border-gray-300 group-hover:border-gray-500"
+                                    }`}
+                                    onClick={() => toggleSubcategory(sc.id)}
+                                  >
+                                    {scActive && (
+                                      <svg
+                                        viewBox="0 0 12 10"
+                                        fill="none"
+                                        className="w-full h-full p-[1px]"
+                                      >
+                                        <path
+                                          d="M1 5l3 3 7-7"
+                                          stroke="white"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                    )}
+                                  </span>
+                                  <span
+                                    className="text-xs font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
+                                    onClick={() => toggleSubcategory(sc.id)}
+                                  >
+                                    {sc.name}
+                                  </span>
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 

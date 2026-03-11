@@ -16,6 +16,11 @@ interface Product {
   first_media?: { url: string; type: string } | null;
   discount_percentage?: number | null;
   category_id?: number | null;
+  category_ids?: number[] | null;
+  subcategory_id?: number | null;
+  subcategory_ids?: number[] | null;
+  stock?: number;
+  in_stock?: boolean;
 }
 
 interface CatalogServerProps {
