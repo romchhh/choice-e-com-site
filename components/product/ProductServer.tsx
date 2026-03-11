@@ -34,7 +34,9 @@ export default async function ProductServer({ product }: ProductServerProps) {
     <>
       <ProductStructuredData product={productForStructuredData} baseUrl={baseUrl} slug={productSlug} />
       <BreadcrumbStructuredData items={breadcrumbs} />
-      <ProductClientWrapper product={product} />
+      {/* key змушує клієнтську обгортку перемонтовуватись при переході на інший товар,
+          щоб скрол завжди повертався на початок сторінки */}
+      <ProductClientWrapper key={product.id} product={product} />
     </>
   );
 }

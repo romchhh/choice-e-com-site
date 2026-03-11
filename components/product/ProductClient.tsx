@@ -69,6 +69,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
   >("info");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const isAddingToCartRef = useRef(false);
+  const touchStartXRef = useRef<number | null>(null);
 
   const handleAddToCart = async () => {
     if (isAddingToCartRef.current) return;
@@ -249,7 +250,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
         </nav>
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 lg:items-start mt-6 lg:mt-8">
-          {/* Left: Thumbnails + Main image */}
+          {/* Left: Thumbnails + Main image (з можливістю свайпу між фото) */}
           <div className="flex flex-row gap-4 w-full lg:w-[58%] lg:max-w-[58%]">
             {media.length > 1 && (
               <div className="flex flex-col gap-2 w-16 md:w-20 flex-shrink-0 order-2 lg:order-1">
@@ -284,7 +285,35 @@ export default function ProductClient({ product: initialProduct }: ProductClient
                 ))}
               </div>
             )}
-            <div className="relative flex-1 min-h-[420px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[620px] xl:min-h-[700px] bg-[#fafafa] rounded overflow-hidden order-1 lg:order-2">
+            <div
+              className="relative flex-1 min-h-[420px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[620px] xl:min-h-[700px] bg-[#fafafa] rounded overflow-hidden order-1 lg:order-2 touch-pan-y"
+              onTouchStart={(e) => {
+                if (!media.length || media.length < 2) return;
+                touchStartXRef.current = e.touches[0]?.clientX ?? null;
+              }}
+              onTouchEnd={(e) => {
+                if (!media.length || media.length < 2) return;
+                if (touchStartXRef.current === null) return;
+                const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
+                const deltaX = endX - touchStartXRef.current;
+                const threshold = 40; // мінімальна відстань свайпу в px
+                touchStartXRef.current = null;
+
+                if (Math.abs(deltaX) < threshold) return;
+
+                if (deltaX < 0) {
+                  // свайп вліво -> наступне фото
+                  setActiveImageIndex((prev) =>
+                    prev < media.length - 1 ? prev + 1 : prev
+                  );
+                } else {
+                  // свайп вправо -> попереднє фото
+                  setActiveImageIndex((prev) =>
+                    prev > 0 ? prev - 1 : prev
+                  );
+                }
+              }}
+            >
               {media[activeImageIndex]?.type === "video" ? (
                 <video
                   className="w-full h-full object-contain"
