@@ -351,14 +351,55 @@ export async function POST(req: NextRequest) {
     }
 
     const amountInMinorUnits = Math.round(amountToPay * 100);
-    const basketOrder = normalizedItems.map((item) => ({
-      name: item.color ? `${item.product_name} (${item.color})` : item.product_name,
-      qty: item.quantity,
-      sum: Math.round(item.price * item.quantity * 100),
-      total: Math.round(item.price * item.quantity * 100),
-      unit: "шт.",
-      code: item.color ? `${item.product_id}-${item.size}-${item.color}` : `${item.product_id}-${item.size}`,
-    }));
+
+    // Monobank validates: amount === Σ(sum * qty) - discount.
+    // In Monobank basketOrder items, `sum` is per-unit price in minor units (копійки),
+    // and the gateway multiplies it by `qty`. If we charge only a prepayment, sending
+    // full basket will be treated as a discount and is easy to mismatch; use a single
+    // line item equal to `amount` for that flow.
+    const basketOrder =
+      payment_type === "prepay"
+        ? [
+            {
+              name: "Передоплата за замовлення",
+              qty: 1,
+              sum: amountInMinorUnits,
+              total: amountInMinorUnits,
+              unit: "послуга",
+              code: `prepay-${orderId}`,
+            },
+          ]
+        : [
+            ...normalizedItems.map((item) => {
+              const unitSum = Math.round(item.price * 100);
+              const qty = Math.round(item.quantity);
+              const lineTotal = unitSum * qty;
+              return {
+                name: item.color
+                  ? `${item.product_name} (${item.color})`
+                  : item.product_name,
+                qty,
+                sum: unitSum,
+                total: lineTotal,
+                unit: "шт.",
+                code: item.color
+                  ? `${item.product_id}-${item.size}-${item.color}`
+                  : `${item.product_id}-${item.size}`,
+              };
+            }),
+            ...(deliveryCost > 0
+              ? [
+                  {
+                    name: "Доставка",
+                    qty: 1,
+                    sum: Math.round(deliveryCost * 100),
+                    total: Math.round(deliveryCost * 100),
+                    unit: "послуга",
+                    code: `delivery-${orderId}`,
+                  },
+                ]
+              : []),
+          ];
 
     const invoicePayload = {
       amount: amountInMinorUnits,
