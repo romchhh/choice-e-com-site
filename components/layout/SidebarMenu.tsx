@@ -211,11 +211,18 @@ export default function SidebarMenu({
                 ПАРТНЕРСТВО
               </Link>
               <Link
-                href="/info#delivery"
+                href="/delivery-and-payment"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
                 ДОСТАВКА ТА ОПЛАТА
+              </Link>
+              <Link
+                href="/returns-and-exchange"
+                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
+                onClick={() => setIsOpen(false)}
+              >
+                ПОВЕРНЕННЯ ТА ОБМІН
               </Link>
               <Link
                 href="/info#faq"
@@ -259,7 +266,7 @@ export default function SidebarMenu({
                 <span>Instagram</span>
               </Link>
               <Link
-                href="https://t.me/my_choice_mari"
+                href="https://t.me/m_maksyakova"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"

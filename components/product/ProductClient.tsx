@@ -9,6 +9,13 @@ import Link from "next/link";
 import Alert from "@/components/shared/Alert";
 import CartAlert from "@/components/shared/CartAlert";
 import { getFirstProductImage } from "@/lib/getFirstProductImage";
+import { getDiscountedPrice } from "@/lib/pricing";
+import {
+  GA4_BRAND,
+  GA4_CURRENCY,
+  GA4_VERTICAL,
+  pushGA4EcommerceEvent,
+} from "@/lib/ga4Ecommerce";
 
 const DEFAULT_SIZE = "—";
 
@@ -50,6 +57,7 @@ interface ProductClientProps {
     has_lining?: boolean;
     lining_description?: string | null;
     category_name?: string | null;
+    subcategory_name?: string | null;
     category_slug?: string | null;
   };
 }
@@ -99,6 +107,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
         imageUrl: getFirstProductImage(media),
         discount_percentage: product.discount_percentage ?? undefined,
         subtitle: product.main_info || product.short_description || undefined,
+        category_name: analyticsCategory,
       });
       setShowCartAlert(true);
       setTimeout(() => setShowCartAlert(false), 5000);
@@ -141,6 +150,7 @@ export default function ProductClient({ product: initialProduct }: ProductClient
         imageUrl: getFirstProductImage(media),
         discount_percentage: product.discount_percentage ?? undefined,
         subtitle: product.main_info || product.short_description || undefined,
+        category_name: analyticsCategory,
       });
       router.push("/final");
     } catch (error) {
@@ -163,11 +173,39 @@ export default function ProductClient({ product: initialProduct }: ProductClient
     ? Math.round(product.price * (1 - product.discount_percentage / 100))
     : product.price;
 
+  const analyticsCategory = product.subcategory_name ?? product.category_name ?? null;
+
   const categorySlug = product.category_slug ?? (product.category_name ? encodeURIComponent(product.category_name) : null);
   const categoryUrl = categorySlug ? `/catalog/${categorySlug}` : "/catalog";
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
+
+  const hasTrackedViewItemRef = useRef(false);
+  useEffect(() => {
+    if (!isMounted) return;
+    if (hasTrackedViewItemRef.current) return;
+    if (!product?.id) return;
+
+    hasTrackedViewItemRef.current = true;
+    const unitPrice = getDiscountedPrice(product.price, product.discount_percentage);
+
+    pushGA4EcommerceEvent("view_item", {
+      currency: GA4_CURRENCY,
+      value: unitPrice,
+      items: [
+        {
+          item_id: String(product.id),
+          item_name: product.name,
+          item_brand: GA4_BRAND,
+          item_category: analyticsCategory ?? "Каталог",
+          price: unitPrice,
+          quantity: 1,
+          google_business_vertical: GA4_VERTICAL,
+        },
+      ],
+    });
+  }, [analyticsCategory, isMounted, product.discount_percentage, product.id, product.name, product.price]);
 
   if (!isMounted) return null;
 

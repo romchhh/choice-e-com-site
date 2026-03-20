@@ -31,7 +31,7 @@ export default function ContactsSection() {
         <div className="flex-1 max-w-4xl space-y-8">
           <div className="space-y-6">
             <a
-              href="mailto:info@choice-ukraine.com"
+              href="mailto:maksyakovamasha@gmail.com"
               className="flex items-center gap-4 group hover:opacity-80 transition-all duration-200 p-3 -m-3 rounded-lg hover:bg-black/5"
             >
               <div className="flex items-center justify-center flex-shrink-0">
@@ -59,7 +59,7 @@ export default function ContactsSection() {
               </span>
             </a>
             <a
-              href="https://t.me/my_choice_mari"
+              href="https://t.me/m_maksyakova"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 group hover:opacity-80 transition-all duration-200 p-3 -m-3 rounded-lg hover:bg-black/5"

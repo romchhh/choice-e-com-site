@@ -177,7 +177,7 @@ export function buildOrderConfirmationHtml(
               <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#3D1A00;">Ми в соцмережах</p>
               <p style="margin:0 0 20px;">
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener" style="display:inline-block;margin-right:12px;color:#8B9A47;font-size:14px;font-weight:500;text-decoration:none;">Instagram</a>
-                <a href="https://t.me/my_choice_mari" target="_blank" rel="noopener" style="display:inline-block;color:#8B9A47;font-size:14px;font-weight:500;text-decoration:none;">Telegram</a>
+                <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener" style="display:inline-block;color:#8B9A47;font-size:14px;font-weight:500;text-decoration:none;">Telegram</a>
               </p>
               <p style="margin:0;font-size:12px;color:#3D1A00;opacity:0.6;">
                 Choice — eco та wellness рішення для здоров'я і дому.<br />

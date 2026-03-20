@@ -36,7 +36,8 @@ export default function Product() {
         size: "—",
         quantity,
         imageUrl: getFirstProductImage(media),
-        discount_percentage: product.discount_percentage
+        discount_percentage: product.discount_percentage,
+        category_name: product.category_name ?? null,
       });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -165,7 +166,7 @@ export default function Product() {
 
           {/* Telegram Manager Link */}
           <a
-            href="https://t.me/my_choice_mari"
+            href="https://t.me/m_maksyakova"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full text-center border border-gray-400 text-gray-600 hover:border-black hover:text-black py-2 px-3 text-sm md:text-base font-light font-['Montserrat'] cursor-pointer transition-all duration-200"

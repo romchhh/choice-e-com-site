@@ -1113,7 +1113,10 @@ export async function sqlGetOrderByInvoiceId(invoiceId: string) {
         include: {
           product: {
             select: {
+              id: true,
               name: true,
+              category: { select: { name: true } },
+              subcategory: { select: { name: true } },
               media: {
                 orderBy: { id: "asc" },
                 take: 5,
@@ -1142,11 +1145,22 @@ export async function sqlGetOrderByInvoiceId(invoiceId: string) {
     payment_status: order.paymentStatus,
     created_at: order.createdAt,
     items: order.items.map((item) => {
-      const product = item.product as { name: string; media?: { url: string; type: string }[] } | null;
+      const product = item.product as
+        | {
+            id: number;
+            name: string;
+            category?: { name: string } | null;
+            subcategory?: { name: string } | null;
+            media?: { url: string; type: string }[];
+          }
+        | null;
       const firstPhoto = product?.media?.find((m) => m.type === "photo");
       const imageUrl = firstPhoto?.url ?? product?.media?.[0]?.url ?? null;
       return {
         product_name: item.productName ?? product?.name ?? (item.productId != null ? `Товар #${item.productId}` : "Товар"),
+        product_id: item.productId ?? product?.id ?? null,
+        category_name:
+          product?.subcategory?.name ?? product?.category?.name ?? null,
         size: item.size,
         quantity: item.quantity,
         price: Number(item.price),

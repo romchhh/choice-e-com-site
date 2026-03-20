@@ -285,6 +285,33 @@ export default function ContactsPage() {
               </div>
             </div>
 
+            {/* Юридична адреса (ФОП) */}
+            <div className="col-span-2">
+              <p
+                className="text-[#3D1A00]/50 uppercase mb-3"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 500,
+                  fontSize: "clamp(13px, 1.2vw, 16px)",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Юридична адреса (ФОП)
+              </p>
+              <div
+                className="text-[#3D1A00] space-y-1"
+                style={{
+                  fontFamily: "Montserrat, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "clamp(13px, 1.1vw, 15px)",
+                  lineHeight: "159%",
+                }}
+              >
+                <p>Україна, 49069, Дніпропетровська обл., місто Дніпро</p>
+                <p>вулиця Січових Стрільців, будинок 127а</p>
+              </div>
+            </div>
+
             {/* E-mail */}
             <div>
               <p
@@ -299,7 +326,7 @@ export default function ContactsPage() {
                 E-mail
               </p>
               <a
-                href="mailto:mari.choice26@gmail.com"
+                href="mailto:maksyakovamasha@gmail.com"
                 className="text-[#3D1A00] hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
@@ -308,7 +335,7 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                mari.choice26@gmail.com
+                maksyakovamasha@gmail.com
               </a>
             </div>
 

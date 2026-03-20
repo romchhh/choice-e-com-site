@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useBasket } from "@/lib/BasketProvider";
 import Image from "next/image";
 import Link from "next/link";
+import { getDiscountedPrice } from "@/lib/pricing";
+import {
+  GA4_BRAND,
+  GA4_CURRENCY,
+  GA4_VERTICAL,
+  pushGA4EcommerceEvent,
+} from "@/lib/ga4Ecommerce";
 
 /** Calculate order subtotal from basket items */
 function getSubtotal(items: { price: number | string; quantity: number; discount_percentage?: number | string }[]) {
@@ -28,6 +35,8 @@ export default function FinalCard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const hasTrackedBeginCheckoutRef = useRef(false);
 
   // CUSTOMER (Ім'я та Прізвище окремо для макета)
   const [firstName, setFirstName] = useState("");
@@ -72,6 +81,44 @@ export default function FinalCard() {
       });
     }
   }, [items]); // Track when basket changes
+
+  // GA4 eCommerce begin_checkout - send once per checkout session
+  useEffect(() => {
+    if (!mounted) return;
+    if (items.length === 0) {
+      hasTrackedBeginCheckoutRef.current = false;
+      return;
+    }
+    if (hasTrackedBeginCheckoutRef.current) return;
+    if (typeof window === "undefined") return;
+
+    const itemsForGA4 = items.map((item) => {
+      const unitPrice = getDiscountedPrice(item.price, item.discount_percentage);
+      return {
+        item_id: String(item.id),
+        item_name: item.name,
+        item_brand: GA4_BRAND,
+        item_category: item.category_name ?? "Каталог",
+        item_variant: item.size,
+        price: unitPrice,
+        quantity: item.quantity,
+        google_business_vertical: GA4_VERTICAL,
+      };
+    });
+
+    const totalValue = itemsForGA4.reduce(
+      (sum, i) => sum + Number(i.price) * Number(i.quantity),
+      0
+    );
+
+    pushGA4EcommerceEvent("begin_checkout", {
+      currency: GA4_CURRENCY,
+      value: totalValue,
+      items: itemsForGA4,
+    });
+
+    hasTrackedBeginCheckoutRef.current = true;
+  }, [items, mounted]);
 
   const [comment, setComment] = useState("");
   const [paymentType, setPaymentType] = useState("");
@@ -981,7 +1028,7 @@ export default function FinalCard() {
 
               {deliveryMethod === "showroom_pickup" && (
                 <div className="text-sm font-['Montserrat'] text-[#3D1A00]/80 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                  Самовивіз: Київ, вул. Костянтинівська, 21 (13:00–19:00)
+                  Самовивіз: Україна, 49069, Дніпропетровська обл., місто Дніпро, вулиця Січових Стрільців, будинок 127а
                 </div>
               )}
 

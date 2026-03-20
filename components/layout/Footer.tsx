@@ -64,7 +64,7 @@ export default function Footer() {
                 Партнерство
               </Link>
               <Link
-                href="/info#delivery"
+                href="/delivery-and-payment"
                 className="text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 whitespace-nowrap tracking-normal"
               >
                 Доставка та оплата
@@ -98,6 +98,12 @@ export default function Footer() {
                 className="text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 tracking-normal"
               >
                 Договір оферти
+              </Link>
+              <Link
+                href="/returns-and-exchange"
+                className="text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 tracking-normal"
+              >
+                Повернення та обмін
               </Link>
             </nav>
           </div>

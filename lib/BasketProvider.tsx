@@ -8,7 +8,13 @@ import React, {
   ReactNode,
   useRef,
 } from "react";
-import { getItemSubtotal } from "@/lib/pricing";
+import { getDiscountedPrice, getItemSubtotal } from "@/lib/pricing";
+import {
+  GA4_BRAND,
+  GA4_CURRENCY,
+  GA4_VERTICAL,
+  pushGA4EcommerceEvent,
+} from "@/lib/ga4Ecommerce";
 
 interface BasketItem {
   id: number;
@@ -19,6 +25,7 @@ interface BasketItem {
   imageUrl: string;
   color?: string;
   discount_percentage?: number;
+  category_name?: string | null;
   /** Короткий опис для відображення в кошику (напр. з product.main_info) */
   subtitle?: string;
 }
@@ -145,6 +152,28 @@ export function BasketProvider({ children }: { children: ReactNode }) {
             currency: "UAH",
           });
         }
+
+        // GA4 eCommerce via GTM dataLayer
+        const unitPrice = getDiscountedPrice(
+          newItem.price,
+          newItem.discount_percentage
+        );
+        pushGA4EcommerceEvent("add_to_cart", {
+          currency: GA4_CURRENCY,
+          value: unitPrice * newItem.quantity,
+          items: [
+            {
+              item_id: String(newItem.id),
+              item_name: newItem.name,
+              item_brand: GA4_BRAND,
+              item_category: newItem.category_name ?? "Каталог",
+              item_variant: newItem.size,
+              price: unitPrice,
+              quantity: newItem.quantity,
+              google_business_vertical: GA4_VERTICAL,
+            },
+          ],
+        });
       };
 
       setItems((prevItems) => {
@@ -225,6 +254,28 @@ export function BasketProvider({ children }: { children: ReactNode }) {
             currency: "UAH",
           });
         }
+
+        // GA4 eCommerce via GTM dataLayer
+        const unitPrice = getDiscountedPrice(
+          newItem.price,
+          newItem.discount_percentage
+        );
+        pushGA4EcommerceEvent("add_to_cart", {
+          currency: GA4_CURRENCY,
+          value: unitPrice * newItem.quantity,
+          items: [
+            {
+              item_id: String(newItem.id),
+              item_name: newItem.name,
+              item_brand: GA4_BRAND,
+              item_category: newItem.category_name ?? "Каталог",
+              item_variant: newItem.size,
+              price: unitPrice,
+              quantity: newItem.quantity,
+              google_business_vertical: GA4_VERTICAL,
+            },
+          ],
+        });
       };
 
       setItems((prevItems) => {
@@ -277,9 +328,31 @@ export function BasketProvider({ children }: { children: ReactNode }) {
   }
 
   function removeItem(id: number, size: string) {
-    setItems((prev) =>
-      prev.filter((item) => item.id !== id || item.size !== size)
-    );
+    const removed = items.find((item) => item.id === id && item.size === size);
+    if (removed) {
+      const unitPrice = getDiscountedPrice(
+        removed.price,
+        removed.discount_percentage
+      );
+      pushGA4EcommerceEvent("remove_from_cart", {
+        currency: GA4_CURRENCY,
+        value: unitPrice * removed.quantity,
+        items: [
+          {
+            item_id: String(removed.id),
+            item_name: removed.name,
+            item_brand: GA4_BRAND,
+            item_category: removed.category_name ?? "Каталог",
+            item_variant: removed.size,
+            price: unitPrice,
+            quantity: removed.quantity,
+            google_business_vertical: GA4_VERTICAL,
+          },
+        ],
+      });
+    }
+
+    setItems((prev) => prev.filter((item) => item.id !== id || item.size !== size));
   }
 
   async function updateQuantity(id: number, size: string, quantity: number): Promise<void> {

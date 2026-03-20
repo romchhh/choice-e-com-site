@@ -9,6 +9,13 @@ import SidebarMenu from "../layout/SidebarMenu";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import ProductSkeleton from "./ProductSkeleton";
 import { useSearchParams } from "next/navigation";
+import { getDiscountedPrice } from "@/lib/pricing";
+import {
+  GA4_BRAND,
+  GA4_CURRENCY,
+  GA4_VERTICAL,
+  pushGA4EcommerceEvent,
+} from "@/lib/ga4Ecommerce";
 
 interface Product {
   id: number;
@@ -22,6 +29,8 @@ interface Product {
   category_ids?: number[] | null;
    subcategory_id?: number | null;
    subcategory_ids?: number[] | null;
+  category_name?: string | null;
+  subcategory_name?: string | null;
   stock?: number;
   in_stock?: boolean;
 }
@@ -195,6 +204,37 @@ export default function CatalogClient({
     [sortedProducts, visibleCount]
   );
 
+  const lastViewItemListSignatureRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isFiltering) return;
+    if (visibleProducts.length === 0) return;
+
+    const itemsForGA4 = visibleProducts.map((p) => {
+      const unitPrice = getDiscountedPrice(p.price, p.discount_percentage);
+      return {
+        item_id: String(p.id),
+        item_name: p.name,
+        item_brand: GA4_BRAND,
+        item_category: p.subcategory_name ?? p.category_name ?? "Каталог",
+        price: unitPrice,
+        quantity: 1,
+        google_business_vertical: GA4_VERTICAL,
+      };
+    });
+
+    // Simple dedupe to avoid firing on the same render
+    const signature = JSON.stringify(itemsForGA4.map((i) => i.item_id));
+    if (lastViewItemListSignatureRef.current === signature) return;
+    lastViewItemListSignatureRef.current = signature;
+
+    pushGA4EcommerceEvent("view_item_list", {
+      currency: GA4_CURRENCY,
+      items: itemsForGA4,
+      value: itemsForGA4.reduce((sum, i) => sum + Number(i.price) * Number(i.quantity), 0),
+    });
+  }, [isFiltering, visibleProducts]);
+
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
     e.stopPropagation();
@@ -214,6 +254,7 @@ export default function CatalogClient({
         // В кошику / оформленні це перетворюється у `/api/images/<filename>`
         imageUrl: firstMediaUrl,
         discount_percentage: product.discount_percentage ?? undefined,
+        category_name: product.subcategory_name ?? product.category_name ?? null,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Недостатньо товару в наявності";

@@ -187,7 +187,7 @@ export default function Header() {
               <div className="flex items-center gap-4">
                 <Link href="/contacts" className="hover:opacity-80 transition-colors">Зв&apos;язатися з Choice</Link>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Instagram</a>
-                <a href="https://t.me/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
+                <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function Header() {
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 <Link href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">Зв&apos;язатися з Choice</Link>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Instagram</a>
-                <a href="https://t.me/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Telegram</a>
+                <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Telegram</a>
               </div>
             </div>
           </div>
@@ -321,10 +321,16 @@ export default function Header() {
                       Партнерство
                     </Link>
                     <Link
-                      href="/info#delivery"
+                      href="/delivery-and-payment"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
                       Доставка та оплата
+                    </Link>
+                    <Link
+                      href="/returns-and-exchange"
+                      className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
+                    >
+                      Повернення та обмін
                     </Link>
                     <Link
                       href="/info#faq"

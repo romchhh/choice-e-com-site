@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useBasket } from "@/lib/BasketProvider";
+import { GA4_BRAND, GA4_CURRENCY, GA4_VERTICAL, pushGA4EcommerceEvent } from "@/lib/ga4Ecommerce";
 
 interface OrderItem {
   id?: number;
+  product_id?: number | null;
   product_name: string;
   size: string;
   color?: string | null;
   quantity: number;
   price: number;
+  category_name?: string | null;
   imageUrl?: string | null;
 }
 
@@ -32,6 +35,7 @@ function PaymentSuccessContent() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [state, setState] = useState<PageState>("loading");
   const [refreshing, setRefreshing] = useState(false);
+  const hasTrackedPurchaseRef = useRef(false);
 
   const orderRef = searchParams.get("orderReference");
 
@@ -121,6 +125,38 @@ function PaymentSuccessContent() {
       cancelled = true;
     };
   }, [orderRef]);
+
+  // GA4 eCommerce purchase - send once when payment is confirmed
+  useEffect(() => {
+    if (state !== "paid") return;
+    if (!order?.invoice_id) return;
+    if (hasTrackedPurchaseRef.current) return;
+
+    hasTrackedPurchaseRef.current = true;
+
+    const itemsForGA4 = (order.items ?? []).map((it) => ({
+      item_id: String(it.product_id ?? `${it.product_name}-${it.size}`),
+      item_name: it.product_name,
+      item_brand: GA4_BRAND,
+      item_category: it.category_name ?? "Каталог",
+      item_variant: it.color ?? undefined,
+      price: it.price,
+      quantity: it.quantity,
+      google_business_vertical: GA4_VERTICAL,
+    }));
+
+    const value = (order.items ?? []).reduce(
+      (sum, it) => sum + it.price * it.quantity,
+      0
+    );
+
+    pushGA4EcommerceEvent("purchase", {
+      transaction_id: order.invoice_id,
+      currency: GA4_CURRENCY,
+      value,
+      items: itemsForGA4,
+    });
+  }, [order, state]);
 
   function handleRetry() {
     setRefreshing(true);

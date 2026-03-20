@@ -43,7 +43,7 @@ export default function AboutUs() {
             Instagram
           </Link>
           <Link
-            href="https://t.me/my_choice_mari"
+            href="https://t.me/m_maksyakova"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-black hover:opacity-70 transition-opacity font-['Montserrat'] font-medium"
