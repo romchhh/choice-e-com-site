@@ -452,7 +452,8 @@ export default function FinalCard() {
           });
         }
 
-        const requiresPayment = paymentType !== "test_payment";
+        const requiresPayment =
+          paymentType !== "test_payment" && paymentType !== "prepay";
         if (invoiceUrl) {
           // Зберігаємо orderId для сторінки success (після повернення з Mono без query)
           localStorage.setItem(
@@ -472,10 +473,14 @@ export default function FinalCard() {
               paymentType,
             })
           );
-          setSuccess(paymentType === "test_payment" ? "Замовлення оформлено. Переходимо на сторінку підтвердження..." : "Переходимо до оплати...");
+          setSuccess(
+            paymentType === "test_payment" || paymentType === "prepay"
+              ? "Замовлення оформлено. Переходимо на сторінку підтвердження..."
+              : "Переходимо до оплати..."
+          );
           setTimeout(() => {
             window.location.href = invoiceUrl;
-          }, paymentType === "test_payment" ? 800 : 1500);
+          }, paymentType === "test_payment" || paymentType === "prepay" ? 800 : 1500);
         } else if (requiresPayment) {
           setError(
             data.message ||
@@ -1048,7 +1053,7 @@ export default function FinalCard() {
                     <span className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${paymentType === "prepay" ? "border-[#3D1A00] bg-[#3D1A00]" : "border-[#3D1A00]/40 group-hover:border-[#3D1A00]"}`}>
                       {paymentType === "prepay" && <span className="w-2 h-2 rounded-full bg-white" />}
                     </span>
-                    <span className="font-['Montserrat'] text-sm text-[#3D1A00]">Накладений платіж (мінімальна передоплата 200 грн)</span>
+                    <span className="font-['Montserrat'] text-sm text-[#3D1A00]">Накладений платіж (оплата при отриманні)</span>
                   </label>
                 </div>
                 {fieldErrors.paymentType && <p className="text-red-500 text-xs mt-1">{fieldErrors.paymentType}</p>}

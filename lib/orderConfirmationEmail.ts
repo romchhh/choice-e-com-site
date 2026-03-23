@@ -7,7 +7,7 @@ import { sendEmail } from "@/lib/email";
 
 const PAYMENT_LABELS: Record<string, string> = {
   full: "Повна оплата",
-  prepay: "Накладений платіж (мінімальна передоплата 200 грн)",
+  prepay: "Накладений платіж (оплата при отриманні)",
   pay_after: "Оплата при отриманні",
   test_payment: "Тест оплата",
   installment: "Розстрочка",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sqlGetAllOrders, sqlPostOrder } from "@/lib/sql";
 import { getOrCreateOrderCustomer } from "@/lib/orderCustomer";
 import { sendOrderConfirmationEmail } from "@/lib/orderConfirmationEmail";
+import { sendOrderNotification } from "@/lib/telegram";
 import { createLogger } from "@/lib/logger";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
@@ -217,15 +218,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderTotal = Math.max(0, fullAmount - promoDiscountAmount);
-
-    let amountToPay = orderTotal;
-    if (payment_type === "prepay") {
-      amountToPay = 200; // передоплата 200 грн
-    } else if (payment_type === "test_payment") {
-      amountToPay = orderTotal;
-    } else if (payment_type === "installment") {
-      amountToPay = orderTotal;
-    }
+    const amountToPay = orderTotal;
 
     log.debug(" Amount calculation:", {
       fullAmount,
@@ -251,6 +244,7 @@ export async function POST(req: NextRequest) {
 
     const orderId = crypto.randomUUID();
     const isTestPayment = payment_type === "test_payment";
+    const isPrepayCod = payment_type === "prepay";
     const PUBLIC_URL_FULL = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
     const orderPayload = {
@@ -340,6 +334,100 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Накладений платіж без онлайн-передоплати — одразу в БД, склад, Telegram, лист
+    if (isPrepayCod) {
+      log.debug(" Saving order (prepay, без онлайн-оплати)...");
+      const { orderId: dbOrderId } = await sqlPostOrder({
+        ...orderPayload,
+        invoice_id: orderId,
+        payment_status: "paid",
+        decrement_stock: true,
+      });
+
+      try {
+        await sendOrderNotification(
+          {
+            id: dbOrderId,
+            invoice_id: orderId,
+            customer_name,
+            phone_number,
+            email: email || null,
+            delivery_method,
+            city,
+            post_office,
+            comment: comment ?? null,
+            payment_type: "prepay",
+            payment_status: "paid",
+            status: null,
+            items: normalizedItems.map((item) => ({
+              product_name: item.product_name,
+              size: item.size,
+              quantity: item.quantity,
+              price: item.price,
+              color: item.color,
+            })),
+            created_at: new Date(),
+          },
+          true
+        );
+      } catch (e) {
+        log.warn("Telegram notification (prepay) failed:", e);
+      }
+
+      if (email && String(email).trim()) {
+        try {
+          const productIds = [...new Set(normalizedItems.map((i) => i.product_id))];
+          const mediaList =
+            productIds.length > 0
+              ? await prisma.productMedia.findMany({
+                  where: { productId: { in: productIds } },
+                  orderBy: [{ productId: "asc" }, { id: "asc" }],
+                  select: { productId: true, url: true },
+                })
+              : [];
+          const productImageUrls = new Map<number, string>();
+          const seen = new Set<number>();
+          for (const m of mediaList) {
+            if (seen.has(m.productId)) continue;
+            seen.add(m.productId);
+            const fullUrl = m.url.startsWith("http") ? m.url : `${PUBLIC_URL_FULL}/api/images/${m.url}`;
+            productImageUrls.set(m.productId, fullUrl);
+          }
+          await sendOrderConfirmationEmail(
+            {
+              customer_name,
+              email: String(email).trim(),
+              phone_number: phone_number,
+              delivery_method,
+              city,
+              post_office,
+              payment_type,
+              comment: comment ?? null,
+              invoice_id: orderId,
+              created_at: new Date(),
+              items: normalizedItems.map((item) => ({
+                product_id: item.product_id,
+                product_name: item.product_name,
+                size: item.size,
+                quantity: item.quantity,
+                price: item.price,
+                color: item.color,
+              })),
+            },
+            productImageUrls
+          );
+        } catch (e) {
+          log.warn("Order confirmation email (prepay) failed:", e);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        orderId,
+        invoiceUrl: `${PUBLIC_URL_FULL}/success?orderReference=${orderId}`,
+      });
+    }
+
     // Оплата через Monobank (Mono)
     const monoToken = process.env.NEXT_PUBLIC_MONO_TOKEN;
     if (!monoToken) {
@@ -353,53 +441,37 @@ export async function POST(req: NextRequest) {
     const amountInMinorUnits = Math.round(amountToPay * 100);
 
     // Monobank validates: amount === Σ(sum * qty) - discount.
-    // In Monobank basketOrder items, `sum` is per-unit price in minor units (копійки),
-    // and the gateway multiplies it by `qty`. If we charge only a prepayment, sending
-    // full basket will be treated as a discount and is easy to mismatch; use a single
-    // line item equal to `amount` for that flow.
-    const basketOrder =
-      payment_type === "prepay"
+    const basketOrder = [
+      ...normalizedItems.map((item) => {
+        const unitSum = Math.round(item.price * 100);
+        const qty = Math.round(item.quantity);
+        const lineTotal = unitSum * qty;
+        return {
+          name: item.color
+            ? `${item.product_name} (${item.color})`
+            : item.product_name,
+          qty,
+          sum: unitSum,
+          total: lineTotal,
+          unit: "шт.",
+          code: item.color
+            ? `${item.product_id}-${item.size}-${item.color}`
+            : `${item.product_id}-${item.size}`,
+        };
+      }),
+      ...(deliveryCost > 0
         ? [
             {
-              name: "Передоплата за замовлення",
+              name: "Доставка",
               qty: 1,
-              sum: amountInMinorUnits,
-              total: amountInMinorUnits,
+              sum: Math.round(deliveryCost * 100),
+              total: Math.round(deliveryCost * 100),
               unit: "послуга",
-              code: `prepay-${orderId}`,
+              code: `delivery-${orderId}`,
             },
           ]
-        : [
-            ...normalizedItems.map((item) => {
-              const unitSum = Math.round(item.price * 100);
-              const qty = Math.round(item.quantity);
-              const lineTotal = unitSum * qty;
-              return {
-                name: item.color
-                  ? `${item.product_name} (${item.color})`
-                  : item.product_name,
-                qty,
-                sum: unitSum,
-                total: lineTotal,
-                unit: "шт.",
-                code: item.color
-                  ? `${item.product_id}-${item.size}-${item.color}`
-                  : `${item.product_id}-${item.size}`,
-              };
-            }),
-            ...(deliveryCost > 0
-              ? [
-                  {
-                    name: "Доставка",
-                    qty: 1,
-                    sum: Math.round(deliveryCost * 100),
-                    total: Math.round(deliveryCost * 100),
-                    unit: "послуга",
-                    code: `delivery-${orderId}`,
-                  },
-                ]
-              : []),
-          ];
+        : []),
+    ];
 
     const invoicePayload = {
       amount: amountInMinorUnits,

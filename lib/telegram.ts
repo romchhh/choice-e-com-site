@@ -31,7 +31,7 @@ interface OrderData {
 function formatOrderMessage(order: OrderData, isPaid: boolean = false): string {
   const paymentTypeMap: Record<string, string> = {
     full: "Повна оплата",
-    prepay: "Передоплата 200 грн",
+    prepay: "Накладений платіж (без онлайн-оплати)",
     pay_after: "Оплата після (при отриманні)",
     test_payment: "Тест оплата (імітація)",
     installment: "Розстрочка",
@@ -39,7 +39,7 @@ function formatOrderMessage(order: OrderData, isPaid: boolean = false): string {
   };
 
   const paymentStatusEmoji = isPaid ? "✅" : "⏳";
-  const paymentStatusText = isPaid ? "ОПЛАЧЕНО" : "ОЧІКУЄ ОПЛАТИ";
+  const paymentStatusText = isPaid ? "ОФОРМЛЕНО" : "ОЧІКУЄ ОПЛАТИ";
 
   // Calculate total
   const total = order.items.reduce(

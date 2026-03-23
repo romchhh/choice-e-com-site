@@ -899,6 +899,8 @@ type OrderInput = {
     price: number;
     color?: string | null;
   }[];
+  /** Після створення замовлення зменшити залишок на складі (накладений платіж без онлайн-оплати тощо). */
+  decrement_stock?: boolean;
 };
 
 export async function sqlPostOrder(order: OrderInput) {
@@ -964,6 +966,24 @@ export async function sqlPostOrder(order: OrderInput) {
         await tx.$executeRaw`UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ${order.promo_code_id}`;
       } catch {
         // Колонки promo можуть відсутня
+      }
+    }
+
+    if (order.decrement_stock) {
+      for (const item of order.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.product_id },
+          select: { stock: true },
+        });
+        if (!product || product.stock < item.quantity) {
+          throw new Error(
+            `Недостатньо товару на складі для товару #${item.product_id} (потрібно ${item.quantity}, доступно ${product?.stock ?? 0})`
+          );
+        }
+        await tx.product.update({
+          where: { id: item.product_id },
+          data: { stock: { decrement: item.quantity } },
+        });
       }
     }
 

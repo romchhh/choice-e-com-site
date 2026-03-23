@@ -93,7 +93,7 @@ export default function EditOrderPage() {
     if (formData.payment_type === "full" || formData.payment_type === "crypto") {
       return 0;
     } else if (formData.payment_type === "prepay") {
-      return Math.max(0, total - 200);
+      return total;
     } else if (formData.payment_type === "pay_after") {
       return total; // оплата при отриманні — вся сума ще не сплачена
     } else if (formData.payment_type === "test_payment") {
@@ -178,7 +178,7 @@ export default function EditOrderPage() {
                   formData.payment_type === "full"
                     ? "Повна оплата"
                     : formData.payment_type === "prepay"
-                    ? "Передоплата 200 грн"
+                    ? "Накладений платіж (оплата при отриманні)"
                     : formData.payment_type === "pay_after"
                     ? "Оплата після (при отриманні)"
                     : formData.payment_type === "test_payment"

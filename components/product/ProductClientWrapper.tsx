@@ -35,6 +35,6 @@ export default function ProductClientWrapper({ product }: ProductClientWrapperPr
     );
   }
 
-  return <ProductClient product={product} />;
+  return <ProductClient key={product.id} product={product} />;
 }
 

@@ -62,8 +62,7 @@ interface ProductClientProps {
   };
 }
 
-export default function ProductClient({ product: initialProduct }: ProductClientProps) {
-  const [product] = useState(initialProduct);
+export default function ProductClient({ product }: ProductClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>("description");
@@ -181,13 +180,14 @@ export default function ProductClient({ product: initialProduct }: ProductClient
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
 
-  const hasTrackedViewItemRef = useRef(false);
+  /** Один view_item на item_id; скидається при зміні товару (клієнтська навігація / схожі товари). */
+  const lastViewItemIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (!isMounted) return;
-    if (hasTrackedViewItemRef.current) return;
     if (!product?.id) return;
+    if (lastViewItemIdRef.current === product.id) return;
 
-    hasTrackedViewItemRef.current = true;
+    lastViewItemIdRef.current = product.id;
     const unitPrice = getDiscountedPrice(product.price, product.discount_percentage);
 
     pushGA4EcommerceEvent("view_item", {
@@ -205,7 +205,14 @@ export default function ProductClient({ product: initialProduct }: ProductClient
         },
       ],
     });
-  }, [analyticsCategory, isMounted, product.discount_percentage, product.id, product.name, product.price]);
+  }, [
+    analyticsCategory,
+    isMounted,
+    product.discount_percentage,
+    product.id,
+    product.name,
+    product.price,
+  ]);
 
   if (!isMounted) return null;
 
