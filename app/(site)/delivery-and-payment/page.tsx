@@ -7,11 +7,11 @@ const baseUrl =
 export const metadata: Metadata = {
   title: "Доставка та оплата | Choice",
   description:
-    "Способи доставки та оплати для замовлень в інтернет-магазині Choice: Нова Пошта, Укрпошта, самовивіз, а також доступні варіанти оплати.",
+    "Доставка Новою Поштою та Укрпоштою по Україні, самовивіз за домовленістю, накладений платіж, безкоштовна доставка від 2000 грн.",
   openGraph: {
     title: "Доставка та оплата | Choice",
     description:
-      "Способи доставки та оплати для замовлень в інтернет-магазині Choice.",
+      "Умови доставки Новою Поштою та Укрпоштою, оплата при отриманні та правила безкоштовної доставки.",
     type: "article",
     locale: "uk_UA",
     url: `${baseUrl}/delivery-and-payment`,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Доставка та оплата | Choice",
     description:
-      "Способи доставки та оплати для замовлень в інтернет-магазині Choice.",
+      "Умови доставки та оплати для замовлень в інтернет-магазині Choice.",
     images: [`${baseUrl}/images/tg_image_3614117882.png`],
   },
 };
@@ -53,103 +53,72 @@ export default function DeliveryAndPaymentPage() {
 
         <div className="space-y-12 text-base leading-relaxed">
           <section className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-semibold">
-              Способи доставки
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold">Доставка</h2>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold">
-                Адресна доставка кур'єром Нової Пошти
-              </h3>
+              <h3 className="text-xl font-semibold">Нова Пошта (відділення або кур&apos;єр)</h3>
               <p className="opacity-80">
-                По всій Україні. Вартість і умови доставки згідно тарифів
-                Нової пошти.
+                Доставка по всій Україні відповідно до тарифів перевізника. Термін:{" "}
+                <strong>1–3 робочі дні</strong>. Відправлення здійснюються щодня. Номер ТТН ви
+                отримуєте після відправки.
               </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Доставка Укрпошта</h3>
+              <h3 className="text-xl font-semibold">Укрпошта</h3>
               <p className="opacity-80">
-                Вартість доставки: Укрпошта згідно тарифів перевізника.
-              </p>
-              <p className="opacity-80">
-                При виборі Укрпошта передбачена тільки ПОВНА ПЕРЕДОПЛАТА
-                товару! При терміні доставки по Україні від 3 до 5 днів
-                стільки ж виходить і зворотна доставка коштів. Дякуємо за
-                розуміння!
+                Доставка по Україні згідно тарифів перевізника. Термін:{" "}
+                <strong>3–5 робочих днів</strong>.
               </p>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Самовивіз</h3>
-              <p className="opacity-80">
-                Самовивіз здійснюється кожен день з 09:00 до 18:00 (крім
-                неділі з 09:00 до 15:00).
-              </p>
-              <p className="opacity-80">
-                Адреса самовивозу: <strong>Україна, 49069, Дніпропетровська обл., місто Дніпро, вулиця Січових Стрільців, будинок 127а, квартира 5</strong>.
-              </p>
-              <p className="opacity-80">
-                Як оформити замовлення: Оформіть замовлення на самовивіз на сайті.
-                Про готовність вашого замовлення ми проінформуємо по електронній
-                пошті і SMS.
-              </p>
-              <p className="opacity-80">
-                Як отримати замовлення: приїжджайте в пункт самовивозу, повідомте номер
-                замовлення, оплачуйте та забирайте своє замовлення. Перед тим як їхати,
-                переконайтеся, що у Вас є номер замовлення (він є в листі замовлення або в SMS-повідомленні).
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Доставка Нова Пошта</h3>
-              <p className="opacity-80">
-                Вартість доставки Нова Пошта становить від 40 грн залежно від ваги і
-                габаритів вантажу.
-              </p>
-              <p className="opacity-80">
-                При виборі післяплати Ви доплачуєте 20 грн + 2% від вартості замовлення
-                за повернення грошових коштів нам.
-              </p>
-              <p className="opacity-80">
-                Термін доставки: від 1 до 3 робочих днів. Посилки Нової Пошти відправляються
-                щодня. Номери декларацій надсилаються SMS-повідомленням.
-              </p>
+              <p className="opacity-80">Можливий за попередньою домовленістю.</p>
             </div>
           </section>
 
           <section className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-semibold">
-              Способи оплати
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold">Оплата</h2>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Передоплата</h3>
+              <h3 className="text-xl font-semibold">Накладений платіж (Нова Пошта)</h3>
+              <p className="opacity-80">Оплата при отриманні у відділенні.</p>
               <p className="opacity-80">
-                Онлайн-оплата через MonoPay (після оформлення замовлення).
+                Комісія перевізника: <strong>20 грн + 2%</strong> від суми замовлення.
               </p>
             </div>
+          </section>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Післяплата “Нова Пошта”</h3>
-              <p className="opacity-80">
-                Накладений платіж — оплата при отриманні посилки у відділенні Нової Пошти, без
-                обов’язкової онлайн-передоплати при оформленні. Повну вартість замовлення можна
-                сплатити заздалегідь через MonoPay (повна оплата при оформленні).
-              </p>
-            </div>
+          <section className="space-y-4">
+            <h2 className="text-2xl md:text-3xl font-semibold">Безкоштовна доставка</h2>
+            <p className="opacity-80">
+              При замовленні від <strong>2000 грн</strong> — доставка безкоштовна (Нова Пошта або
+              Укрпошта).
+            </p>
+            <p className="opacity-80 font-semibold">Не враховуються:</p>
+            <ul className="space-y-2 opacity-80 list-disc pl-5">
+              <li>пробники;</li>
+              <li>мірні ємності;</li>
+              <li>розпилювачі.</li>
+            </ul>
+          </section>
 
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">
-                Оплата картою Visa, Mastercard — MonoPay
-              </h3>
-            </div>
+          <section className="space-y-4">
+            <h2 className="text-2xl md:text-3xl font-semibold">Важливо</h2>
+            <ul className="space-y-3 opacity-80 list-disc pl-5">
+              <li>При замовленні до 2000 грн — доставку оплачує отримувач.</li>
+              <li>
+                Стартові бокси та акційні набори зі знижками відправляються за рахунок отримувача
+                незалежно від суми замовлення.
+              </li>
+            </ul>
           </section>
 
           <section className="mt-16 pt-8 border-t border-black/10">
             <p className="text-sm opacity-50">
-              Актуальність інформації щодо доставки та оплат: за відображеними умовами при оформленні замовлення.
+              Актуальність інформації щодо доставки та оплат: за відображеними умовами при оформленні
+              замовлення.
             </p>
           </section>
         </div>
@@ -157,4 +126,3 @@ export default function DeliveryAndPaymentPage() {
     </div>
   );
 }
-
