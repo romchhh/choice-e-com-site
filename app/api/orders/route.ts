@@ -58,7 +58,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     log.debug("Received body:", JSON.stringify(body, null, 2));
 
-    const {
+    const one_click = body.one_click === true;
+
+    let {
       user_id,
       customer_name,
       phone_number,
@@ -73,6 +75,24 @@ export async function POST(req: NextRequest) {
       delivery_cost: deliveryCostFromBody,
     } = body;
 
+    if (one_click) {
+      delivery_method = "one_click";
+      city =
+        typeof city === "string" && city.trim()
+          ? city.trim()
+          : "—";
+      post_office =
+        typeof post_office === "string" && post_office.trim()
+          ? post_office.trim()
+          : "Уточнити у менеджера (замовлення в 1 клік)";
+      payment_type = "prepay";
+      const tag = "Замовлення в 1 клік";
+      comment =
+        typeof comment === "string" && comment.trim()
+          ? `${tag}. ${comment.trim()}`
+          : tag;
+    }
+
     log.debug("Extracted data:", {
       customer_name,
       phone_number,
@@ -82,24 +102,27 @@ export async function POST(req: NextRequest) {
       post_office,
       payment_type,
       itemsCount: items?.length,
+      one_click,
     });
 
     // ✅ Basic validation
-    if (
-      !customer_name ||
-      !phone_number ||
-      !delivery_method ||
-      !city ||
-      !post_office ||
-      !items?.length
-    ) {
+    if (!customer_name || !phone_number || !items?.length) {
       log.warn("Validation failed:", {
         hasCustomerName: !!customer_name,
         hasPhoneNumber: !!phone_number,
+        hasItems: !!items?.length,
+      });
+      return NextResponse.json(
+        { error: "Missing required order fields" },
+        { status: 400 }
+      );
+    }
+
+    if (!one_click && (!delivery_method || !city || !post_office)) {
+      log.warn("Validation failed:", {
         hasDeliveryMethod: !!delivery_method,
         hasCity: !!city,
         hasPostOffice: !!post_office,
-        hasItems: !!items?.length,
       });
       return NextResponse.json(
         { error: "Missing required order fields" },
@@ -190,7 +213,7 @@ export async function POST(req: NextRequest) {
       (total: number, item) => total + item.price * item.quantity,
       0
     );
-    const deliveryCost = Number(deliveryCostFromBody) || 0;
+    const deliveryCost = one_click ? 0 : Number(deliveryCostFromBody) || 0;
     const fullAmount = subtotal + deliveryCost;
 
     let promoCodeId: number | null = null;

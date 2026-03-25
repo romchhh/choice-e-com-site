@@ -38,6 +38,15 @@ function formatOrderMessage(order: OrderData, isPaid: boolean = false): string {
     crypto: "Криптовалюта",
   };
 
+  const deliveryMethodMap: Record<string, string> = {
+    one_click: "Нова пошта — уточнити у клієнта (1 клік)",
+    nova_poshta_branch: "Нова пошта (відділення)",
+    nova_poshta_courier: "Нова пошта (кур'єр)",
+    nova_poshta_locker: "Нова пошта (поштомат)",
+    showroom_pickup: "Самовивіз з шоуруму",
+    ukrposhta: "Укрпошта",
+  };
+
   const paymentStatusEmoji = isPaid ? "✅" : "⏳";
   const paymentStatusText = isPaid ? "ОФОРМЛЕНО" : "ОЧІКУЄ ОПЛАТИ";
 
@@ -61,7 +70,7 @@ function formatOrderMessage(order: OrderData, isPaid: boolean = false): string {
   }
 
   message += `\n💳 <b>Спосіб оплати:</b> ${paymentTypeMap[order.payment_type] || order.payment_type}\n`;
-  message += `📦 <b>Доставка:</b> ${order.delivery_method}\n`;
+  message += `📦 <b>Доставка:</b> ${deliveryMethodMap[order.delivery_method] || order.delivery_method}\n`;
   message += `🏙️ <b>Місто:</b> ${order.city}\n`;
   message += `📍 <b>Відділення:</b> ${order.post_office}\n`;
 

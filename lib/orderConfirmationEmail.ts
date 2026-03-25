@@ -20,6 +20,7 @@ const DELIVERY_LABELS: Record<string, string> = {
   nova_poshta_locker: "Нова пошта (поштомат)",
   showroom_pickup: "Самовивіз з шоуруму",
   ukrposhta: "Укрпошта",
+  one_click: "Нова пошта — уточнити у клієнта (замовлення в 1 клік)",
 };
 
 export type OrderItemForEmail = {

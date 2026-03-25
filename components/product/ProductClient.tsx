@@ -2,7 +2,6 @@
 
 import { useAppContext } from "@/lib/GeneralProvider";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useBasket } from "@/lib/BasketProvider";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +15,7 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
+import OneClickOrderModal from "@/components/product/OneClickOrderModal";
 
 const DEFAULT_SIZE = "—";
 
@@ -66,7 +66,6 @@ export default function ProductClient({ product }: ProductClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>("description");
-  const router = useRouter();
   const { addItem } = useBasket();
   const { setIsBasketOpen } = useAppContext();
   const [showCartAlert, setShowCartAlert] = useState(false);
@@ -75,6 +74,7 @@ export default function ProductClient({ product }: ProductClientProps) {
     "success" | "error" | "warning" | "info"
   >("info");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [oneClickOpen, setOneClickOpen] = useState(false);
   const isAddingToCartRef = useRef(false);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
@@ -122,10 +122,9 @@ export default function ProductClient({ product }: ProductClientProps) {
     }
   };
 
-  const handleBuyInOneClick = async () => {
-    if (isAddingToCartRef.current) return;
-    if (!product || !addItem) {
-      setAlertMessage(product ? "Кошик недоступний. Спробуйте оновити сторінку." : "Товар не завантажений");
+  const handleBuyInOneClick = () => {
+    if (!product) {
+      setAlertMessage("Товар не завантажений");
       setAlertType("error");
       setTimeout(() => setAlertMessage(null), 3000);
       return;
@@ -136,32 +135,7 @@ export default function ProductClient({ product }: ProductClientProps) {
       setTimeout(() => setAlertMessage(null), 3000);
       return;
     }
-    isAddingToCartRef.current = true;
-    setIsAddingToCart(true);
-    try {
-      const media = product.media || [];
-      await addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        size: DEFAULT_SIZE,
-        quantity,
-        imageUrl: getFirstProductImage(media),
-        discount_percentage: product.discount_percentage ?? undefined,
-        subtitle: product.main_info || product.short_description || undefined,
-        category_name: analyticsCategory,
-      });
-      router.push("/final");
-    } catch (error) {
-      setAlertMessage(
-        error instanceof Error ? error.message : "Недостатньо товару в наявності"
-      );
-      setAlertType("error");
-      setTimeout(() => setAlertMessage(null), 5000);
-    } finally {
-      isAddingToCartRef.current = false;
-      setIsAddingToCart(false);
-    }
+    setOneClickOpen(true);
   };
 
   const media = product.media || [];
@@ -482,6 +456,20 @@ export default function ProductClient({ product }: ProductClientProps) {
               message={alertMessage || ""}
               isVisible={!!alertMessage}
               onClose={() => setAlertMessage(null)}
+            />
+
+            <OneClickOrderModal
+              open={oneClickOpen}
+              onClose={() => setOneClickOpen(false)}
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                discount_percentage: product.discount_percentage,
+                in_stock: product.in_stock,
+                stock: product.stock,
+              }}
+              quantity={quantity}
             />
           </div>
         </div>
