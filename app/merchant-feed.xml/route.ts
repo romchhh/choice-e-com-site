@@ -1,4 +1,4 @@
-import { sqlGetAllProducts } from "@/lib/sql";
+import { prisma } from "@/lib/prisma";
 
 function escapeXml(value: string): string {
   return value
@@ -13,45 +13,88 @@ function formatPriceUAH(value: number): string {
   return `${value.toFixed(2)} UAH`;
 }
 
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
+function joinUrl(base: string, path: string): string {
+  const safeBase = normalizeBaseUrl(base);
+  const safePath = path.startsWith("/") ? path : `/${path}`;
+  return `${safeBase}${safePath}`;
+}
+
+function stripHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export async function GET() {
-  const baseUrl =
+  const baseUrlRaw =
     process.env.PUBLIC_URL ||
     process.env.NEXT_PUBLIC_PUBLIC_URL ||
     "http://localhost:3000";
+  const baseUrl = normalizeBaseUrl(baseUrlRaw);
 
-  const products = await sqlGetAllProducts();
+  const products = await prisma.product.findMany({
+    where: {
+      inStock: true,
+    },
+    orderBy: { id: "desc" },
+    include: {
+      category: { select: { name: true } },
+      subcategory: { select: { name: true } },
+      media: {
+        orderBy: { id: "asc" },
+        select: { url: true, type: true },
+      },
+    },
+  });
 
   const itemsXml = products
-    .filter((p) => p && p.id && p.name)
+    .filter((p) => p && p.id && p.name && Number(p.price) > 0)
     .map((p) => {
-      const productUrl = `${baseUrl}/product/${p.slug ?? p.id}`;
-      const imageUrl = p.first_media?.url
-        ? p.first_media.url.startsWith("http")
-          ? p.first_media.url
-          : `${baseUrl}/api/images/${p.first_media.url}`
-        : `${baseUrl}/images/tg_image_3614117882.png`;
+      const productSlug = p.slug ?? String(p.id);
+      const productUrl = joinUrl(baseUrl, `/product/${productSlug}`);
+      const mainPhoto = p.media.find((m) => m.type === "photo") ?? p.media[0];
+      const imageUrl = mainPhoto?.url
+        ? mainPhoto.url.startsWith("http")
+          ? mainPhoto.url
+          : joinUrl(baseUrl, `/api/images/${mainPhoto.url}`)
+        : joinUrl(baseUrl, "/images/tg_image_3614117882.png");
+      const additionalImages = p.media
+        .filter((m) => m.url !== mainPhoto?.url)
+        .slice(0, 10)
+        .map((m) => (m.url.startsWith("http") ? m.url : joinUrl(baseUrl, `/api/images/${m.url}`)));
 
-      const hasDiscount = Number(p.discount_percentage ?? 0) > 0;
+      const hasDiscount = Number(p.discountPercentage ?? 0) > 0;
       const basePrice = Number(p.price ?? 0);
       const salePrice = hasDiscount
-        ? basePrice * (1 - Number(p.discount_percentage) / 100)
+        ? basePrice * (1 - Number(p.discountPercentage) / 100)
         : null;
-      const availability = p.in_stock && Number(p.stock ?? 0) > 0 ? "in stock" : "out of stock";
-      const description = (p.description || p.name || "").slice(0, 4500);
+      const categoryParts = [p.category?.name, p.subcategory?.name].filter(Boolean) as string[];
+      const productType = categoryParts.join(" > ");
+      const formAndCourse = [p.releaseForm, p.course].filter(Boolean).join(" | ");
+      const mainInfoText = p.mainInfo ? stripHtml(String(p.mainInfo)) : "";
+      const descriptionText = p.description ? stripHtml(String(p.description)) : "";
+      const description = (mainInfoText || descriptionText || p.name).slice(0, 4500);
+      const salePriceEffective = salePrice !== null && salePrice < basePrice ? salePrice : null;
 
       return [
         "<item>",
         `<g:id>${p.id}</g:id>`,
         `<g:title>${escapeXml(p.name)}</g:title>`,
         `<g:description>${escapeXml(description)}</g:description>`,
+        formAndCourse ? `<release_form_and_course>${escapeXml(stripHtml(formAndCourse))}</release_form_and_course>` : "",
+        mainInfoText ? `<main_info>${escapeXml(mainInfoText.slice(0, 4500))}</main_info>` : "",
+        descriptionText ? `<full_description>${escapeXml(descriptionText.slice(0, 4500))}</full_description>` : "",
         `<g:link>${escapeXml(productUrl)}</g:link>`,
         `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
-        `<g:availability>${availability}</g:availability>`,
-        "<g:condition>new</g:condition>",
         "<g:brand>Forbody Space</g:brand>",
         `<g:price>${formatPriceUAH(basePrice)}</g:price>`,
-        salePrice !== null ? `<g:sale_price>${formatPriceUAH(salePrice)}</g:sale_price>` : "",
-        p.category_name ? `<g:product_type>${escapeXml(p.category_name)}</g:product_type>` : "",
+        salePriceEffective !== null ? `<g:sale_price>${formatPriceUAH(salePriceEffective)}</g:sale_price>` : "",
+        productType ? `<g:product_type>${escapeXml(productType)}</g:product_type>` : "",
+        ...additionalImages.map((img) => `<g:additional_image_link>${escapeXml(img)}</g:additional_image_link>`),
+        "<g:identifier_exists>no</g:identifier_exists>",
+        "<g:adult>no</g:adult>",
         "</item>",
       ]
         .filter(Boolean)
