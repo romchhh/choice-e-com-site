@@ -21,12 +21,21 @@ interface OrderItem {
 interface OrderData {
   id: number;
   invoice_id: string;
+  email?: string | null;
+  phone_number?: string | null;
   items: OrderItem[];
   payment_type: string;
   payment_status: string;
 }
 
 type PageState = "loading" | "paid" | "pending" | "not_found" | "invalid";
+
+function normalizePhoneForAds(phone?: string | null): string {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  return `+${digits}`;
+}
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -36,6 +45,7 @@ function PaymentSuccessContent() {
   const [state, setState] = useState<PageState>("loading");
   const [refreshing, setRefreshing] = useState(false);
   const hasTrackedPurchaseRef = useRef(false);
+  const hasTrackedConvAdsRef = useRef(false);
 
   const orderRef = searchParams.get("orderReference");
 
@@ -126,13 +136,26 @@ function PaymentSuccessContent() {
     };
   }, [orderRef]);
 
-  // GA4 eCommerce purchase - send once when payment is confirmed
+  // GA4 eCommerce purchase + Google Ads enhanced conversions (1x per transaction)
   useEffect(() => {
     if (state !== "paid") return;
     if (!order?.invoice_id) return;
-    if (hasTrackedPurchaseRef.current) return;
+    const txId = order.invoice_id;
+    const purchaseStorageKey = `tracked_purchase:${txId}`;
+    const convStorageKey = `tracked_conv_google_ads:${txId}`;
 
-    hasTrackedPurchaseRef.current = true;
+    let purchaseAlreadyTracked = hasTrackedPurchaseRef.current;
+    let convAlreadyTracked = hasTrackedConvAdsRef.current;
+    try {
+      if (typeof window !== "undefined") {
+        purchaseAlreadyTracked =
+          purchaseAlreadyTracked || localStorage.getItem(purchaseStorageKey) === "1";
+        convAlreadyTracked =
+          convAlreadyTracked || localStorage.getItem(convStorageKey) === "1";
+      }
+    } catch {
+      // ignore storage read errors
+    }
 
     const itemsForGA4 = (order.items ?? []).map((it) => ({
       item_id: String(it.product_id ?? `${it.product_name}-${it.size}`),
@@ -150,12 +173,41 @@ function PaymentSuccessContent() {
       0
     );
 
-    pushGA4EcommerceEvent("purchase", {
-      transaction_id: order.invoice_id,
-      currency: GA4_CURRENCY,
-      value,
-      items: itemsForGA4,
-    });
+    if (!purchaseAlreadyTracked) {
+      pushGA4EcommerceEvent("purchase", {
+        transaction_id: txId,
+        currency: GA4_CURRENCY,
+        value,
+        items: itemsForGA4,
+      });
+      hasTrackedPurchaseRef.current = true;
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(purchaseStorageKey, "1");
+        }
+      } catch {
+        // ignore storage write errors
+      }
+    }
+
+    if (!convAlreadyTracked) {
+      const w = window as Window & { dataLayer?: Array<Record<string, unknown>> };
+      w.dataLayer = w.dataLayer ?? [];
+      w.dataLayer.push({
+        event: "convGoogleAds",
+        email: (order.email ?? "").trim(),
+        phone: normalizePhoneForAds(order.phone_number),
+      });
+
+      hasTrackedConvAdsRef.current = true;
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(convStorageKey, "1");
+        }
+      } catch {
+        // ignore storage write errors
+      }
+    }
   }, [order, state]);
 
   function handleRetry() {
