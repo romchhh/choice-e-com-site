@@ -296,7 +296,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                Юридична адреса (ФОП)
+                Адреса
               </p>
               <div
                 className="text-[#3D1A00] space-y-1"
