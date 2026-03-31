@@ -81,14 +81,32 @@ export async function GET() {
       const salePriceEffective = salePrice !== null && salePrice < basePrice ? salePrice : null;
       const gAvailability = availability === "in stock" ? "in_stock" : "out_of_stock";
 
+      const detailsXml = [
+        formAndCourse
+          ? `<g:product_detail><g:section_name>Опис</g:section_name><g:attribute_name>Форма випуску / Курс</g:attribute_name><g:attribute_value>${escapeXml(
+              stripHtml(formAndCourse).slice(0, 1000)
+            )}</g:attribute_value></g:product_detail>`
+          : "",
+        mainInfoText
+          ? `<g:product_detail><g:section_name>Опис</g:section_name><g:attribute_name>Основна інформація</g:attribute_name><g:attribute_value>${escapeXml(
+              mainInfoText.slice(0, 1000)
+            )}</g:attribute_value></g:product_detail>`
+          : "",
+        descriptionText
+          ? `<g:product_detail><g:section_name>Опис</g:section_name><g:attribute_name>Опис</g:attribute_name><g:attribute_value>${escapeXml(
+              descriptionText.slice(0, 1000)
+            )}</g:attribute_value></g:product_detail>`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("");
+
       return [
         "<item>",
         `<g:id>${p.id}</g:id>`,
         `<g:title>${escapeXml(p.name)}</g:title>`,
         `<g:description>${escapeXml(description)}</g:description>`,
-        formAndCourse ? `<release_form_and_course>${escapeXml(stripHtml(formAndCourse))}</release_form_and_course>` : "",
-        mainInfoText ? `<main_info>${escapeXml(mainInfoText.slice(0, 4500))}</main_info>` : "",
-        descriptionText ? `<full_description>${escapeXml(descriptionText.slice(0, 4500))}</full_description>` : "",
+        detailsXml,
         `<g:link>${escapeXml(productUrl)}</g:link>`,
         `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
         `<g:availability>${gAvailability}</g:availability>`,
