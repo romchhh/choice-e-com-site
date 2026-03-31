@@ -7,6 +7,8 @@ interface ProductStructuredDataProps {
     description?: string | null;
     price: number;
     discount_percentage?: number | null;
+    in_stock?: boolean | null;
+    stock?: number | null;
     first_media?: { url: string; type: string } | null;
     category_name?: string | null;
   };
@@ -23,6 +25,10 @@ interface OrganizationStructuredDataProps {
 
 const defaultBaseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
 /** Schema.org WebSite — для пошукових систем і rich results */
 export function WebSiteStructuredData({
   name = "Choice Україна",
@@ -35,18 +41,19 @@ export function WebSiteStructuredData({
   baseUrl?: string;
   locale?: string;
 }) {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name,
     description,
-    url: baseUrl,
+    url: normalizedBaseUrl,
     inLanguage: locale,
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/catalog?q={search_term_string}`,
+        urlTemplate: `${normalizedBaseUrl}/catalog?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -55,7 +62,7 @@ export function WebSiteStructuredData({
       name: "Choice Україна",
       logo: {
         "@type": "ImageObject",
-        url: `${baseUrl}/images/browser-open.png`,
+        url: `${normalizedBaseUrl}/images/browser-open.png`,
       },
     },
   };
@@ -69,10 +76,15 @@ export function WebSiteStructuredData({
 }
 
 export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug }: ProductStructuredDataProps) {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const imageUrl = product.first_media
-    ? `${baseUrl}/api/images/${product.first_media.url}`
-    : `${baseUrl}/images/browser-open.png`;
-  const productUrl = slug ? `${baseUrl}/product/${slug}` : `${baseUrl}/product/${product.id}`;
+    ? `${normalizedBaseUrl}/api/images/${product.first_media.url}`
+    : `${normalizedBaseUrl}/images/browser-open.png`;
+  const productUrl = slug ? `${normalizedBaseUrl}/product/${slug}` : `${normalizedBaseUrl}/product/${product.id}`;
+
+  const isInStock =
+    product.in_stock !== false &&
+    (typeof product.stock !== "number" || product.stock > 0);
 
   const offer = {
     "@type": "Offer",
@@ -80,7 +92,7 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
       ? (product.price * (1 - product.discount_percentage / 100)).toFixed(2)
       : product.price.toFixed(2),
     priceCurrency: "UAH",
-    availability: "https://schema.org/InStock",
+    availability: isInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     url: productUrl,
   };
 
@@ -92,11 +104,11 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
     image: imageUrl,
     brand: {
       "@type": "Brand",
-      name: "Choice",
+      name: "Forbody Space",
     },
     category: product.category_name || "Wellness",
     offers: offer,
-    sku: `choice-${product.id}`,
+    sku: `forbodyspace-${product.id}`,
   };
 
   return (

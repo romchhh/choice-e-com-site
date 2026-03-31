@@ -70,6 +70,8 @@ export async function GET() {
       const salePrice = hasDiscount
         ? basePrice * (1 - Number(p.discountPercentage) / 100)
         : null;
+      const availability =
+        p.inStock && Number(p.stock ?? 0) > 0 ? "in stock" : "out of stock";
       const categoryParts = [p.category?.name, p.subcategory?.name].filter(Boolean) as string[];
       const productType = categoryParts.join(" > ");
       const formAndCourse = [p.releaseForm, p.course].filter(Boolean).join(" | ");
@@ -77,6 +79,7 @@ export async function GET() {
       const descriptionText = p.description ? stripHtml(String(p.description)) : "";
       const description = (mainInfoText || descriptionText || p.name).slice(0, 4500);
       const salePriceEffective = salePrice !== null && salePrice < basePrice ? salePrice : null;
+      const gAvailability = availability === "in stock" ? "in_stock" : "out_of_stock";
 
       return [
         "<item>",
@@ -88,6 +91,8 @@ export async function GET() {
         descriptionText ? `<full_description>${escapeXml(descriptionText.slice(0, 4500))}</full_description>` : "",
         `<g:link>${escapeXml(productUrl)}</g:link>`,
         `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
+        `<g:availability>${gAvailability}</g:availability>`,
+        "<g:condition>new</g:condition>",
         "<g:brand>Forbody Space</g:brand>",
         `<g:price>${formatPriceUAH(basePrice)}</g:price>`,
         salePriceEffective !== null ? `<g:sale_price>${formatPriceUAH(salePriceEffective)}</g:sale_price>` : "",

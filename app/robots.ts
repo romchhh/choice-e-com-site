@@ -10,6 +10,17 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/admin/", "/api/", "/_next/", "/private/"],
       },
+      // Allow Google to crawl product pages and product images served via /api/images/*
+      {
+        userAgent: "Googlebot",
+        allow: ["/", "/api/images/"],
+        disallow: ["/admin/", "/api/", "/_next/", "/private/"],
+      },
+      {
+        userAgent: "Googlebot-Image",
+        allow: ["/", "/api/images/"],
+        disallow: ["/admin/", "/api/", "/_next/", "/private/"],
+      },
       { userAgent: "GPTBot", allow: "/", disallow: ["/admin/", "/api/"] },
       { userAgent: "ChatGPT-User", allow: "/", disallow: ["/admin/", "/api/"] },
       { userAgent: "OAI-SearchBot", allow: "/", disallow: ["/admin/", "/api/"] },

@@ -26,6 +26,8 @@ export default async function ProductServer({ product }: ProductServerProps) {
     description: product.description,
     price: product.price,
     discount_percentage: product.discount_percentage,
+    in_stock: (product as any).in_stock ?? null,
+    stock: (product as any).stock ?? null,
     first_media: product.media?.length ? product.media[0] : null,
     category_name: product.category_name,
   };
