@@ -47,7 +47,7 @@ export default function Hero() {
           aria-hidden
         />
 
-        <div className="relative z-10 flex flex-col justify-center items-start p-10 md:p-16 lg:p-20 gap-8 md:gap-12 h-full pt-[5.75rem] lg:pt-[7.75rem] min-h-screen max-w-[1920px] mx-auto">
+        <div className="relative z-10 flex flex-col justify-center items-start p-10 md:p-16 lg:p-20 gap-8 md:gap-12 h-full pt-[7.75rem] lg:pt-[9.75rem] min-h-screen max-w-[1920px] mx-auto">
           {/* Headline & subheadline — зліва */}
           <div className="flex flex-col items-start gap-5 md:gap-7 max-w-2xl">
             <h1

@@ -30,7 +30,7 @@ export default function MainContent({ children, id }: MainContentProps) {
   }, [pathname]);
 
   return (
-    <main id={id} className={`bg-[var(--background-warm-yellow)] ${isHomePage ? "" : "mt-[5.75rem] lg:mt-[7.75rem]"}`}>
+    <main id={id} className={`bg-[var(--background-warm-yellow)] ${isHomePage ? "" : "mt-[7.75rem] lg:mt-[9.75rem]"}`}>
       {children}
     </main>
   );

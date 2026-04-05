@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
-const scrollClass = "scroll-mt-[7.75rem]";
+const scrollClass = "scroll-mt-[7.75rem] lg:scroll-mt-[9.75rem]";
 
 const faqItems = [
   { number: "01", title: "Чи це оригінальна продукція Choice?", content: "Так. Всі продукти є оригінальною продукцією Choice." },
