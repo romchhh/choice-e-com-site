@@ -170,7 +170,7 @@ export default function RootLayout({
             <BasketProvider>
               <CategoriesProvider>
                 <Header />
-                <Suspense fallback={<main id="main-content" className="bg-[var(--background-warm-yellow)] mt-[7.75rem] lg:mt-[9.75rem] min-h-screen" />}>
+                <Suspense fallback={<main id="main-content" className="bg-[var(--background-warm-yellow)] mt-[var(--site-header-offset)] min-h-screen" />}>
                   <MainContent id="main-content">{children}</MainContent>
                 </Suspense>
                 <Footer />

@@ -181,8 +181,8 @@ export default function Header() {
         {/* === WRAPPER: everything inside shares same bg and styles === */}
         <div className={`w-full transition-all duration-300 ${headerTransparent ? "shadow-none" : "shadow-md"}`}>
           {/* Промо-смуга — однакова на мобільній та десктопній версії */}
-          <div className="flex justify-center bg-[#3D1A00] text-white border-b border-white/10">
-            <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-10 flex items-center justify-center min-h-8 py-1">
+          <div className="flex justify-center bg-white text-[#3D1A00] border-b border-[#3D1A00]/10">
+            <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-10 flex items-center justify-center min-h-8 py-1.5">
               <p className="text-[10px] sm:text-xs font-['Montserrat'] font-semibold tracking-wide text-center uppercase leading-tight">
                 Безкоштовна доставка від 2&nbsp;000 грн
               </p>
@@ -262,7 +262,7 @@ export default function Header() {
                   {hoveredCategoryId === category.id &&
                     subcategories.length > 0 && (
                       <div
-                        className="fixed top-[9.75rem] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto"
+                        className="fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto"
                       >
                         <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${categoryLeftPositions.get(category.id) || 0}px` }}>
                         {subcategories.map((subcat) => (
@@ -309,7 +309,7 @@ export default function Header() {
                 </span>
 
                 <div
-                  className={`fixed top-[9.75rem] left-0 w-full bg-white shadow-md px-4 py-2 z-50 transition-opacity duration-200 ${
+                  className={`fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-2 z-50 transition-opacity duration-200 ${
                     infoMenuOpen
                       ? "opacity-100 pointer-events-auto"
                       : "opacity-0 pointer-events-none"

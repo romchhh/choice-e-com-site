@@ -83,6 +83,16 @@
   --z-modal: 1050;
   --z-popover: 1060;
   --z-tooltip: 1070;
+
+  /* Висота фіксованого хедера (промо + верхня смуга + навігація). Змінювати разом із layout у Header.tsx */
+  --site-header-offset: 10.5rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    /* Десктоп: та сама структура, h-11 + h-20 трохи компактніші за мобільну смугу */
+    --site-header-offset: 10.25rem;
+  }
 }
 
 body {

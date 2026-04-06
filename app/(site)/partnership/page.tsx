@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function PartnershipPage() {
   return (
     <div className="min-h-screen w-full bg-[#FFFFFF]">
-      <section className="w-full max-w-[1920px] mx-auto scroll-mt-[7.75rem] lg:scroll-mt-[9.75rem]">
+      <section className="w-full max-w-[1920px] mx-auto scroll-mt-[var(--site-header-offset)]">
         <div className="pt-4 lg:pt-6 pb-20 px-3 lg:px-8">
           {/* Хлібні крихти */}
           <nav className="mb-4" aria-label="Breadcrumb">

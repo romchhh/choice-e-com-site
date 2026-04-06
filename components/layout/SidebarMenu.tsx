@@ -94,16 +94,16 @@ export default function SidebarMenu({
       {/* Overlay - only below header */}
       {isOpen && (
         <div
-          className="fixed top-[8.5rem] left-0 right-0 bottom-0 bg-black/40 z-30 lg:top-[9.75rem]"
+          className="fixed top-[var(--site-header-offset)] left-0 right-0 bottom-0 bg-black/40 z-30"
           onClick={() => {
             setIsOpen(false);
           }}
         />
       )}
 
-      {/* Sidebar — below header on mobile (8.5rem) and desktop (9.75rem) */}
+      {/* Sidebar — одразу під фіксованим хедером (висота = --site-header-offset) */}
       <div
-        className={`fixed top-[8.5rem] left-0 h-[calc(100vh-8.5rem)] lg:top-[9.75rem] lg:h-[calc(100vh-9.75rem)] w-full sm:w-4/5 sm:max-w-md bg-white shadow-md z-40 transform transition-transform duration-300 ${
+        className={`fixed top-[var(--site-header-offset)] left-0 h-[calc(100vh-var(--site-header-offset))] w-full sm:w-4/5 sm:max-w-md bg-white shadow-md z-40 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } overflow-hidden flex flex-col`}
       >
