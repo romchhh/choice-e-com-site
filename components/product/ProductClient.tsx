@@ -15,6 +15,10 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
+import {
+  LABEL_PRODUCT_COURSE,
+  LABEL_PRODUCT_PACKAGE,
+} from "@/lib/siteBrand";
 import OneClickOrderModal from "@/components/product/OneClickOrderModal";
 
 const DEFAULT_SIZE = "—";
@@ -191,7 +195,12 @@ export default function ProductClient({ product }: ProductClientProps) {
   if (!isMounted) return null;
 
   const attributesLine1 = product.release_form || product.subtitle || null;
-  const attributesLine2 = [product.package_weight, product.course].filter(Boolean).join(" / ") || null;
+  const packageLine = product.package_weight
+    ? `${LABEL_PRODUCT_PACKAGE}: ${product.package_weight}`
+    : null;
+  const courseLine = product.course
+    ? `${LABEL_PRODUCT_COURSE}: ${product.course}`
+    : null;
   const purposeText = product.main_info || product.short_description || product.description;
 
   const renderTabContent = () => {
@@ -378,10 +387,11 @@ export default function ProductClient({ product }: ProductClientProps) {
               {outOfStock ? "Немає в наявності" : "В наявності"}
             </p>
 
-            {(attributesLine1 || attributesLine2) && (
+            {(attributesLine1 || packageLine || courseLine) && (
               <div className="flex flex-col gap-0.5 text-sm font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-[#3D1A00]/80">
                 {attributesLine1 && <span>{attributesLine1}</span>}
-                {attributesLine2 && <span>{attributesLine2}</span>}
+                {packageLine && <span>{packageLine}</span>}
+                {courseLine && <span>{courseLine}</span>}
               </div>
             )}
 

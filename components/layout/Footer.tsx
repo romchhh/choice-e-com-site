@@ -3,6 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { siteContact } from "@/lib/siteContact";
+import {
+  SITE_STORE_NAME,
+  siteFooterLead,
+  siteFooterLegalNote,
+} from "@/lib/siteBrand";
 
 export default function Footer() {
   const router = useRouter();
@@ -32,13 +38,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 items-center md:items-start text-center md:text-left">
           <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0">
             <Link href="/" className="inline-block">
-              <span className="text-2xl lg:text-3xl font-bold font-['Montserrat'] tracking-wide text-black">Choice</span>
+              <span className="text-2xl lg:text-3xl font-bold font-['Montserrat'] tracking-wide text-black">
+                {SITE_STORE_NAME}
+              </span>
             </Link>
             <p className="text-sm lg:text-base text-gray-600 leading-relaxed w-full text-left tracking-normal">
-              Офіційний представник бренду Choice в Україні. Wellness-комплекси, натуральний догляд та eco-засоби для здоров&apos;я і дому.
+              {siteFooterLead}
             </p>
             <p className="text-xs text-gray-500 text-left tracking-normal">
-              Сайт належить офіційному представнику бренду Choice. Всі продукти є оригінальною продукцією Choice.
+              {siteFooterLegalNote}
             </p>
           </div>
 
@@ -108,7 +116,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0">
+          <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0 lg:max-w-none">
             <h3 className="text-base lg:text-lg font-semibold uppercase tracking-wider">Зв&apos;язок</h3>
             <Link
               href="/contacts"
@@ -121,11 +129,57 @@ export default function Footer() {
                 letterSpacing: "0%",
               }}
             >
-              ЗВ&apos;ЯЗАТИСЯ З CHOICE
+              ЗВ&apos;ЯЗОК З {SITE_STORE_NAME.toUpperCase()}
             </Link>
-            <div className="flex flex-row md:flex-col gap-3 flex-wrap justify-center md:justify-start">
+
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-left">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-1.5 font-['Montserrat']">
+                  Адреса
+                </p>
+                <address className="not-italic text-sm text-gray-700 font-['Montserrat'] leading-relaxed space-y-0.5">
+                  {siteContact.addressLines.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </address>
+              </div>
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-1.5 font-['Montserrat']">
+                  Телефон
+                </p>
+                <a
+                  href={`tel:${siteContact.phoneTel}`}
+                  className="text-sm text-gray-700 hover:text-[#3D1A00] transition-colors font-['Montserrat']"
+                >
+                  {siteContact.phoneDisplay}
+                </a>
+              </div>
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-1.5 font-['Montserrat']">
+                  E-mail
+                </p>
+                <a
+                  href={`mailto:${siteContact.email}`}
+                  className="text-sm text-gray-700 hover:text-[#3D1A00] transition-colors font-['Montserrat'] break-all"
+                >
+                  {siteContact.email}
+                </a>
+              </div>
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-1.5 font-['Montserrat']">
+                  Графік роботи
+                </p>
+                <div className="text-sm text-gray-700 font-['Montserrat'] leading-relaxed space-y-0.5">
+                  {siteContact.scheduleLines.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-row md:flex-col gap-3 flex-wrap justify-center md:justify-start pt-1">
               <Link
-                href="https://www.instagram.com/my_choice_mari"
+                href={siteContact.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 group tracking-normal"
@@ -137,10 +191,10 @@ export default function Footer() {
                   height={24}
                   className="w-6 h-6 opacity-70 group-hover:opacity-100 transition-opacity"
                 />
-                <span>Instagram — @my_choice_mari</span>
+                <span>Instagram — {siteContact.instagramHandle}</span>
               </Link>
               <Link
-                href="https://t.me/m_maksyakova"
+                href={siteContact.telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 group tracking-normal"
@@ -164,7 +218,7 @@ export default function Footer() {
         <div className="max-w-[1920px] mx-auto px-6 py-5">
           <div className="flex flex-col items-center justify-center gap-2 text-center">
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs lg:text-sm text-gray-500">
-              <span className="tracking-normal">Сайт належить офіційному представнику бренду Choice. Всі продукти є оригінальною продукцією Choice.</span>
+              <span className="tracking-normal">{siteFooterLegalNote}</span>
             </div>
             <div>
               <Link

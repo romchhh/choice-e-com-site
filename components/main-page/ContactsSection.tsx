@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 export default function ContactsSection() {
   return (
@@ -21,7 +22,7 @@ export default function ContactsSection() {
               letterSpacing: "0%",
             }}
           >
-            ЗВ&apos;ЯЗАТИСЯ З CHOICE
+            ЗВ&apos;ЯЗОК З {SITE_STORE_NAME.toUpperCase()}
           </Link>
           <p className="text-lg lg:text-xl font-normal font-['Montserrat'] text-black/70 leading-relaxed">
             Зв&apos;яжіться з нами зручним способом або напишіть через форму на сторінці контактів
@@ -90,7 +91,7 @@ export default function ContactsSection() {
                 letterSpacing: "0%",
               }}
             >
-              ЗВ&apos;ЯЗАТИСЯ З CHOICE
+              ЗВ&apos;ЯЗОК З {SITE_STORE_NAME.toUpperCase()}
             </Link>
           </div>
         </div>

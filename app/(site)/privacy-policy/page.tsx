@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 const baseUrl =
   process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
-  description:
-    "Політика конфіденційності інтернет-магазину CHOICE. Як ми збираємо, зберігаємо та захищаємо персональні дані клієнтів при замовленні wellness та eco-продукції.",
+  title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
+  description: `Політика конфіденційності інтернет-магазину ${SITE_STORE_NAME}. Як ми збираємо, зберігаємо та захищаємо персональні дані клієнтів при замовленні wellness та eco-продукції.`,
   openGraph: {
-    title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
-    description:
-      "Докладна політика конфіденційності CHOICE: обробка персональних даних клієнтів, захист інформації та використання даних при онлайн-замовленнях.",
+    title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
+    description: `Докладна політика конфіденційності ${SITE_STORE_NAME}: обробка персональних даних, захист інформації та використання даних при онлайн-замовленнях.`,
     type: "article",
     locale: "uk_UA",
     url: `${baseUrl}/privacy-policy`,
@@ -20,16 +19,15 @@ export const metadata: Metadata = {
         url: `${baseUrl}/images/tg_image_3614117882.png`,
         width: 1200,
         height: 630,
-        alt: "CHOICE — політика конфіденційності",
+        alt: `${SITE_STORE_NAME} — політика конфіденційності`,
       },
     ],
-    siteName: "Choice",
+    siteName: SITE_STORE_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Політика конфіденційності інтернет-магазину CHOICE | Choice",
-    description:
-      "Дізнайтеся, як інтернет-магазин CHOICE працює з персональними даними при замовленні wellness та eco-продукції.",
+    title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
+    description: `Як інтернет-магазин ${SITE_STORE_NAME} працює з персональними даними при замовленні wellness та eco-продукції.`,
     images: [`${baseUrl}/images/tg_image_3614117882.png`],
   },
 };
@@ -58,7 +56,7 @@ export default function PrivacyPolicyPage() {
             <p className="text-lg opacity-80">
               Ця Політика конфіденційності персональних даних (далі – Політика
               конфіденційності) діє щодо всієї інформації, яку Інтернет-магазин
-              «Choice», може отримати про Користувача під час використання сайту
+              «{SITE_STORE_NAME}», може отримати про Користувача під час використання сайту
               Інтернет-магазину, програм та продуктів Інтернет-магазину.
             </p>
           </section>

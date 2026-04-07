@@ -10,6 +10,7 @@ import { useCategories } from "@/lib/CategoriesProvider";
 import SidebarBasket from "./SidebarBasket";
 import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
+import { siteOfficialRepLine, SITE_STORE_NAME } from "@/lib/siteBrand";
 
 interface Subcategory {
   id: number;
@@ -194,9 +195,9 @@ export default function Header() {
           {/* Top info bar — роздільна лінія тільки в межах контенту (не на весь екран) */}
           <div className={`hidden lg:flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
             <div className="w-full max-w-[1920px] mx-auto px-10 flex justify-between items-center h-11 text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span>Офіційний представник бренду Choice в Україні</span>
+              <span>{siteOfficialRepLine}</span>
               <div className="flex items-center gap-4">
-                <Link href="/contacts" className="hover:opacity-80 transition-colors">Зв&apos;язатися з Choice</Link>
+                <Link href="/contacts" className="hover:opacity-80 transition-colors">Контакти</Link>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Instagram</a>
                 <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
               </div>
@@ -205,9 +206,9 @@ export default function Header() {
           {/* Top info bar — mobile */}
           <div className={`lg:hidden flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center min-h-10 py-2.5 px-3 sm:px-4 text-[10px] sm:text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span className="truncate mr-2 max-w-[55%] sm:max-w-none">Офіційний представник бренду Choice в Україні</span>
+              <span className="truncate mr-2 max-w-[55%] sm:max-w-none">{siteOfficialRepLine}</span>
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <Link href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">Зв&apos;язатися з Choice</Link>
+                <Link href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">Контакти</Link>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Instagram</a>
                 <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Telegram</a>
               </div>
@@ -216,14 +217,13 @@ export default function Header() {
           {/* Top nav — трохи вищий */}
           <div className="hidden lg:flex justify-center">
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center h-20 px-10">
-            <Link href="/" className="flex items-center pt-1">
-              <Image
-                src={headerTransparent ? "/images/logos/choice-logo-white.png" : "/images/logos/choice-logo-dark.png"}
-                alt="Choice"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
-              />
+            <Link
+              href="/"
+              className={`flex items-center pt-1 font-['Montserrat'] font-bold text-xl lg:text-2xl tracking-tight whitespace-nowrap ${
+                headerTransparent ? "text-white" : "text-[#3D1A00]"
+              }`}
+            >
+              {SITE_STORE_NAME}
             </Link>
 
             <div className="flex items-center gap-4 text-xs font-bold font-['Montserrat']">
@@ -458,14 +458,15 @@ export default function Header() {
                 </svg>
               )}
             </button>
-            <Link 
-              href="/" 
-              className="flex items-center pt-0.5"
+            <Link
+              href="/"
+              className={`flex items-center pt-0.5 font-['Montserrat'] font-bold text-base sm:text-lg tracking-tight whitespace-nowrap ${
+                headerTransparent ? "text-white" : "text-[#3D1A00]"
+              }`}
               onClick={(e) => {
                 if (isSidebarOpen) {
                   e.preventDefault();
                   setIsSidebarOpen(false);
-                  // Scroll to hero after menu closes
                   setTimeout(() => {
                     const heroElement = document.getElementById("hero");
                     if (heroElement) {
@@ -475,13 +476,7 @@ export default function Header() {
                 }
               }}
             >
-              <Image
-                src={headerTransparent ? "/images/logos/choice-logo-white.png" : "/images/logos/choice-logo-dark.png"}
-                alt="Choice"
-                width={100}
-                height={26}
-                className="h-6 w-auto"
-              />
+              {SITE_STORE_NAME}
             </Link>
           </div>
 

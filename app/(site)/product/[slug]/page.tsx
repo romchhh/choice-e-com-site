@@ -3,6 +3,7 @@ import YouMightLike from "@/components/product/YouMightLike";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { sqlGetProductBySlug, sqlGetProduct, sqlGetAllProducts } from "@/lib/sql";
+import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
 import { redirect, notFound } from "next/navigation";
 
 interface PageProps {
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     product = await sqlGetProduct(Number(slug));
   }
   if (!product) {
-    return { title: "Товар не знайдено | Choice" };
+    return { title: `Товар не знайдено | ${SITE_STORE_NAME}` };
   }
 
   const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
@@ -52,12 +53,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const baseDescription =
     product.description ||
-    `${product.name} від Choice — натуральний wellness-продукт у категорії "${categoryName}". Ціна: ${price} ₴.`;
+    `${product.name} — оригінальна продукція ${SITE_PRODUCT_BRAND} у каталозі ${SITE_STORE_NAME}, категорія «${categoryName}». Ціна: ${price} ₴.`;
   const fullDescription = `${baseDescription} Підтримка організму на щодень, натуральний склад та eco-підхід.`;
 
   const keywordParts = [
     product.name,
-    "Choice",
+    SITE_PRODUCT_BRAND,
+    SITE_STORE_NAME,
     categoryName,
     "wellness",
     "фітокомплекс",
@@ -72,11 +74,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const keywords = Array.from(new Set(keywordParts.filter(Boolean))).join(", ");
 
   return {
-    title: `${product.name} | Choice`,
+    title: `${product.name} | ${SITE_STORE_NAME}`,
     description: fullDescription,
     keywords,
     openGraph: {
-      title: `${product.name} | Choice`,
+      title: `${product.name} | ${SITE_STORE_NAME}`,
       description: fullDescription,
       type: "website",
       images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
@@ -84,7 +86,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | Choice`,
+      title: `${product.name} | ${SITE_STORE_NAME}`,
       description: baseDescription,
       images: [imageUrl],
     },

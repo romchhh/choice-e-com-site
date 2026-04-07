@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  SITE_PRODUCT_BRAND,
+  SITE_STORE_NAME,
+  siteFooterLead,
+} from "@/lib/siteBrand";
+
 interface ProductStructuredDataProps {
   product: {
     id: number;
@@ -31,8 +37,8 @@ function normalizeBaseUrl(url: string): string {
 
 /** Schema.org WebSite — для пошукових систем і rich results */
 export function WebSiteStructuredData({
-  name = "Choice Україна",
-  description = "Офіційний представник бренду Choice в Україні. Wellness-комплекси, натуральний догляд та eco-засоби для здоров'я і дому.",
+  name = SITE_STORE_NAME,
+  description = siteFooterLead,
   baseUrl = defaultBaseUrl,
   locale = "uk_UA",
 }: {
@@ -59,7 +65,7 @@ export function WebSiteStructuredData({
     },
     publisher: {
       "@type": "Organization",
-      name: "Choice Україна",
+      name: SITE_STORE_NAME,
       logo: {
         "@type": "ImageObject",
         url: `${normalizedBaseUrl}/images/browser-open.png`,
@@ -100,11 +106,18 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description || `${product.name} — Choice`,
+    description:
+      product.description ||
+      `${product.name} — оригінальна продукція ${SITE_PRODUCT_BRAND}, ${SITE_STORE_NAME}`,
     image: imageUrl,
     brand: {
       "@type": "Brand",
-      name: "Forbody Space",
+      name: SITE_PRODUCT_BRAND,
+    },
+    seller: {
+      "@type": "Organization",
+      name: SITE_STORE_NAME,
+      url: normalizedBaseUrl,
     },
     category: product.category_name || "Wellness",
     offers: offer,
@@ -120,7 +133,7 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
 }
 
 export function OrganizationStructuredData({
-  name = "Choice Україна",
+  name = SITE_STORE_NAME,
   url,
   logo,
   baseUrl = defaultBaseUrl,

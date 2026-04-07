@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 const baseUrl =
   process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Доставка та оплата | Choice",
+  title: `Доставка та оплата | ${SITE_STORE_NAME}`,
   description:
     "Доставка Новою Поштою та Укрпоштою по Україні, самовивіз за домовленістю, накладений платіж, безкоштовна доставка від 2000 грн.",
   openGraph: {
@@ -20,16 +21,15 @@ export const metadata: Metadata = {
         url: `${baseUrl}/images/tg_image_3614117882.png`,
         width: 1200,
         height: 630,
-        alt: "CHOICE — доставка та оплата",
+        alt: `${SITE_STORE_NAME} — доставка та оплата`,
       },
     ],
-    siteName: "Choice",
+    siteName: SITE_STORE_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Доставка та оплата | Choice",
-    description:
-      "Умови доставки та оплати для замовлень в інтернет-магазині Choice.",
+    title: `Доставка та оплата | ${SITE_STORE_NAME}`,
+    description: `Умови доставки та оплати для замовлень в інтернет-магазині ${SITE_STORE_NAME}.`,
     images: [`${baseUrl}/images/tg_image_3614117882.png`],
   },
 };

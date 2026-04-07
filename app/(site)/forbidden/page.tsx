@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 export const metadata = {
-  title: "Доступ обмежено | Choice",
+  title: `Доступ обмежено | ${SITE_STORE_NAME}`,
   description: "У вас немає доступу до цієї сторінки.",
 };
 
@@ -41,7 +42,7 @@ export default function ForbiddenPage() {
         </div>
 
         <p className="mt-12 text-xs font-['Montserrat'] text-[#3D1A00]/50">
-          Choice — eco та wellness для вас
+          {SITE_STORE_NAME} — eco та wellness
         </p>
       </div>
     </div>

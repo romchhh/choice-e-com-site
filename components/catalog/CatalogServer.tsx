@@ -1,4 +1,5 @@
 import CatalogClient from "./CatalogClient";
+import { SITE_STORE_NAME, SITE_PRODUCT_BRAND } from "@/lib/siteBrand";
 import { 
   sqlGetAllProducts, 
   sqlGetProductsByCategory, 
@@ -21,6 +22,8 @@ interface Product {
   subcategory_ids?: number[] | null;
   stock?: number;
   in_stock?: boolean;
+  package_weight?: string | null;
+  course?: string | null;
 }
 
 interface CatalogServerProps {
@@ -66,8 +69,8 @@ export default async function CatalogServer(props: CatalogServerProps) {
   const catalogUrl = `${baseUrl}/catalog${categoryName ? `?category=${encodeURIComponent(categoryName)}` : ""}`;
   const pageName = categoryName || "Каталог товарів";
   const pageDescription = categoryName
-    ? `Каталог товарів категорії "${categoryName}" від Choice. Якісний жіночий одяг з індивідуальним пошивом.`
-    : "Перегляньте весь каталог жіночого одягу від Choice. Повсякденний одяг, домашній одяг та купальники в мінімалістичному лакшері стилі.";
+    ? `Каталог товарів категорії «${categoryName}» у ${SITE_STORE_NAME}. Оригінальна продукція ${SITE_PRODUCT_BRAND}, wellness та eco-засоби.`
+    : `Каталог оригінальної продукції ${SITE_PRODUCT_BRAND} в інтернет-магазині ${SITE_STORE_NAME}: wellness-комплекси, натуральний догляд та eco-товари.`;
 
   const breadcrumbs = [
     { name: "Головна", url: baseUrl },

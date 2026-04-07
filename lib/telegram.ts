@@ -57,7 +57,7 @@ function formatOrderMessage(order: OrderData, isPaid: boolean = false): string {
   );
 
   // Get base URL for order link
-  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "https://choice-site.com";
+  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "https://forbody.space";
   const orderLink = `${baseUrl}/admin/orders/${order.id}/edit`;
   
   let message = `${paymentStatusEmoji} <b>НОВЕ ЗАМОВЛЕННЯ ${paymentStatusText}</b>\n\n`;

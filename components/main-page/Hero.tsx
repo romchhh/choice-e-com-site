@@ -4,6 +4,7 @@ import SidebarMenu from "@/components/layout/SidebarMenu";
 import { useAppContext } from "@/lib/GeneralProvider";
 import Image from "next/image";
 import Link from "next/link";
+import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
 
 const HERO_IMAGE_DESKTOP =
   "/images/hf_20260222_063745_3c9c7bbc-82d2-4f3f-8c11-4216792e4995.jpeg";
@@ -18,7 +19,7 @@ export default function Hero() {
         {/* Hero image — mobile */}
         <Image
           src={HERO_IMAGE_MOBILE}
-          alt="Choice — eco та wellness"
+          alt={`${SITE_STORE_NAME} — eco та wellness`}
           fill
           className="object-cover object-center sm:hidden"
           priority
@@ -28,7 +29,7 @@ export default function Hero() {
         {/* Hero image — desktop */}
         <Image
           src={HERO_IMAGE_DESKTOP}
-          alt="Choice — eco та wellness"
+          alt={`${SITE_STORE_NAME} — eco та wellness`}
           fill
           className="hidden sm:block object-cover object-right"
           priority
@@ -62,10 +63,10 @@ export default function Hero() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Choice — eco та wellness рішення для здоров&apos;я і дому
+              {SITE_STORE_NAME} — eco та wellness для здоров&apos;я і дому
             </h1>
             <p className="text-white text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-2xl font-['Montserrat'] text-left opacity-90 max-w-xl drop-shadow-md" style={{ letterSpacing: "0.02em" }}>
-              Оригінальна продукція Choice від офіційного представника: wellness-комплекси, натуральний догляд та eco-засоби для щоденного життя.
+              Інтернет-магазин офіційного представника бренду {SITE_PRODUCT_BRAND}: wellness-комплекси, натуральний догляд та eco-засоби для щоденного життя.
             </p>
           </div>
 
@@ -81,7 +82,7 @@ export default function Hero() {
               href="/info#partnership"
               className="cursor-pointer w-full sm:w-52 md:w-60 h-12 md:h-14 p-2 bg-transparent border-2 border-white text-white inline-flex justify-center items-center gap-2 hover:bg-white hover:text-black transition-all duration-300 font-['Montserrat'] font-semibold"
             >
-              <span className="text-center text-sm sm:text-base md:text-lg">Співпраця з CHOICE</span>
+              <span className="text-center text-sm sm:text-base md:text-lg">Співпраця з {SITE_PRODUCT_BRAND}</span>
             </Link>
           </div>
         </div>

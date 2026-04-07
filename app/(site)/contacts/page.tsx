@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { siteContact } from "@/lib/siteContact";
 
 export default function ContactsPage() {
   const [agreed, setAgreed] = useState(false);
@@ -233,7 +234,7 @@ export default function ContactsPage() {
                 Телефон
               </p>
               <a
-                href="tel:+380975292173"
+                href={`tel:${siteContact.phoneTel}`}
                 className="text-[#3D1A00] hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
@@ -242,7 +243,7 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                +380 (97) 529 21 73
+                {siteContact.phoneDisplay}
               </a>
             </div>
 
@@ -261,7 +262,7 @@ export default function ContactsPage() {
               </p>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://www.instagram.com/my_choice_mari"
+                  href={siteContact.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full border border-[#3D1A00]/30 flex items-center justify-center text-[#3D1A00] hover:border-[#3D1A00] hover:bg-[#3D1A00]/5 transition-all"
@@ -272,7 +273,7 @@ export default function ContactsPage() {
                   </svg>
                 </a>
                 <a
-                  href="https://t.me/m_maksyakova"
+                  href={siteContact.telegramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full border border-[#3D1A00]/30 flex items-center justify-center text-[#3D1A00] hover:border-[#3D1A00] hover:bg-[#3D1A00]/5 transition-all"
@@ -307,8 +308,9 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                <p>Україна, 49069, Дніпропетровська обл., місто Дніпро</p>
-                <p>вулиця Січових Стрільців, будинок 127а</p>
+                {siteContact.addressLines.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
               </div>
             </div>
 
@@ -326,7 +328,7 @@ export default function ContactsPage() {
                 E-mail
               </p>
               <a
-                href="mailto:maksyakovamasha@gmail.com"
+                href={`mailto:${siteContact.email}`}
                 className="text-[#3D1A00] hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "Montserrat, sans-serif",
@@ -335,7 +337,7 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                maksyakovamasha@gmail.com
+                {siteContact.email}
               </a>
             </div>
 
@@ -361,8 +363,9 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                <p>Пн.-Пт.:&nbsp;&nbsp;11.00 - 18.00</p>
-                <p>Сб.-Нд.:&nbsp;&nbsp;за попередньою домовленістю</p>
+                {siteContact.scheduleLines.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
               </div>
             </div>
           </div>

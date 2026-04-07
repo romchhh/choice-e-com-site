@@ -99,6 +99,8 @@ async function _sqlGetAllProducts() {
     created_at: p.createdAt,
     category_name: p.category?.name || null,
     subcategory_name: p.subcategory?.name || null,
+    package_weight: p.packageWeight ?? null,
+    course: p.course ?? null,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
   }));
 }
@@ -321,6 +323,8 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         stock: p.stock,
         in_stock: p.inStock,
         category_name: p.category?.name || null,
+        package_weight: p.packageWeight ?? null,
+        course: p.course ?? null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
       }));
     },
@@ -417,6 +421,8 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         in_stock: p.inStock,
         category_name: p.category?.name || null,
         subcategory_name: p.subcategory?.name || null,
+        package_weight: p.packageWeight ?? null,
+        course: p.course ?? null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
       }));
     },

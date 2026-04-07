@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import Hero from "@/components/main-page/Hero";
+import { SITE_STORE_NAME, siteFooterLead, siteOfficialRepLine } from "@/lib/siteBrand";
 import CategoriesShowcase from "@/components/main-page/CategoriesShowcase";
 
 // Lazy load components that are below the fold
@@ -22,8 +23,8 @@ export const runtime = 'nodejs';
 
 // Metadata for SEO
 export const metadata = {
-  title: "Choice — Офіційний представник в Україні | Eco та wellness",
-  description: "Офіційний представник бренду Choice в Україні. Wellness-комплекси, натуральний догляд та eco-засоби для здоров'я і дому.",
+  title: `${SITE_STORE_NAME} — ${siteOfficialRepLine} | Eco та wellness`,
+  description: siteFooterLead,
   alternates: {
     canonical: '/',
   },

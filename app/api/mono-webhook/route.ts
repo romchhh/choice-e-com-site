@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
               select: { productId: true, url: true },
             })
           : [];
-        const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "https://choice-site.com";
+        const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "https://forbody.space";
         const productImageUrls = new Map<number, string>();
         const seen = new Set<number>();
         for (const m of mediaList) {

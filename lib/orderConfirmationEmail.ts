@@ -207,7 +207,7 @@ export async function sendOrderConfirmationEmail(
   const baseUrl =
     process.env.PUBLIC_URL ||
     process.env.NEXT_PUBLIC_PUBLIC_URL ||
-    "https://choice-site.com";
+    "https://forbody.space";
   const html = buildOrderConfirmationHtml(order, baseUrl, productImageUrls);
   return sendEmail({
     to: order.email.trim(),

@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 const baseUrl =
   process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
-  description:
-    "Офіційний договір публічної оферти інтернет-магазину CHOICE: умови купівлі wellness та eco-продукції, оплати, доставки та повернення товарів.",
+  title: `Договір публічної оферти | ${SITE_STORE_NAME}`,
+  description: `Умови купівлі wellness та eco-продукції в інтернет-магазині ${SITE_STORE_NAME}: оформлення замовлень, оплата, доставка та повернення.`,
   openGraph: {
-    title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
-    description:
-      "Умови купівлі wellness і eco-продукції CHOICE: правила оформлення замовлень, оплати, доставки та повернення товарів.",
+    title: `Договір публічної оферти | ${SITE_STORE_NAME}`,
+    description: `Публічна оферта ${SITE_STORE_NAME}: правила замовлень, оплати, доставки та повернення товарів.`,
     type: "article",
     locale: "uk_UA",
     url: `${baseUrl}/terms-of-service`,
@@ -20,16 +19,15 @@ export const metadata: Metadata = {
         url: `${baseUrl}/images/tg_image_3614117882.png`,
         width: 1200,
         height: 630,
-        alt: "CHOICE — умови публічної оферти",
+        alt: `${SITE_STORE_NAME} — умови публічної оферти`,
       },
     ],
-    siteName: "Choice",
+    siteName: SITE_STORE_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Договір публічної оферти інтернет-магазину CHOICE | Choice",
-    description:
-      "Прочитайте умови публічної оферти інтернет-магазину CHOICE перед замовленням wellness та eco-продукції.",
+    title: `Договір публічної оферти | ${SITE_STORE_NAME}`,
+    description: `Умови публічної оферти інтернет-магазину ${SITE_STORE_NAME}.`,
     images: [`${baseUrl}/images/tg_image_3614117882.png`],
   },
 };
@@ -78,8 +76,9 @@ export default function TermsOfServicePage() {
               <div className="p-5 border border-black/10 rounded-lg space-y-2">
                 <p className="font-semibold">Сайт</p>
                 <p className="text-sm opacity-70">
-                  Веб-сайт, що розміщений в мережі Інтернет за адресою:
-                  https://Choice (офіційний представник), включаючи всі його веб-сторінки.
+                  Веб-сайт інтернет-магазину «{SITE_STORE_NAME}», розміщений у мережі Інтернет за адресою{" "}
+                  <a href={baseUrl} className="underline break-all">{baseUrl}</a>
+                  , включаючи всі його веб-сторінки.
                 </p>
               </div>
               <div className="p-5 border border-black/10 rounded-lg space-y-2">

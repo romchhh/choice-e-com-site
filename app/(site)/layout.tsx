@@ -15,6 +15,12 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { WebVitals } from "@/components/shared/WebVitals";
 import MainContent from "@/components/shared/MainContent";
 import { OrganizationStructuredData, WebSiteStructuredData } from "@/components/shared/StructuredData";
+import {
+  SITE_PRODUCT_BRAND,
+  SITE_STORE_NAME,
+  siteFooterLead,
+  siteOfficialRepLine,
+} from "@/lib/siteBrand";
 
 const montserrat = Montserrat({
   subsets: ["latin", "cyrillic"],
@@ -31,20 +37,17 @@ const baseUrlForMeta = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrlForMeta),
-  title: "Choice — Офіційний представник в Україні | Eco та wellness для здоров'я і дому",
-  description:
-    "Офіційний представник бренду Choice в Україні. Wellness-комплекси, натуральний догляд та eco-засоби для щоденного життя. Консультація та замовлення оригінальної продукції.",
-  keywords:
-    "Choice, Choice Україна, wellness, eco, фітокомплекси, вітаміни, корекція ваги, догляд за тілом, eco-засоби для дому, офіційний представник Choice",
+  title: `${SITE_STORE_NAME} — ${siteOfficialRepLine} | Eco та wellness`,
+  description: `${siteFooterLead} Замовлення та консультація оригінальної продукції ${SITE_PRODUCT_BRAND}.`,
+  keywords: `ForBody Space, ${SITE_PRODUCT_BRAND}, wellness, eco, фітокомплекси, офіційний представник ${SITE_PRODUCT_BRAND}, натуральна продукція, Україна`,
   icons: {
     icon: "/images/choice-features/open-browser.png",
     shortcut: "/images/choice-features/open-browser.png",
     apple: "/images/choice-features/open-browser.png",
   },
   openGraph: {
-    title: "Choice — Офіційний представник в Україні | Eco та wellness",
-    description:
-      "Оригінальна продукція Choice: wellness-комплекси, натуральний догляд та eco-засоби для здоров'я і дому.",
+    title: `${SITE_STORE_NAME} — ${siteOfficialRepLine}`,
+    description: siteFooterLead,
     type: "website",
     locale: "uk_UA",
   },

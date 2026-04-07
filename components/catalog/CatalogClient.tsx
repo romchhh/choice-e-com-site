@@ -16,6 +16,11 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
+import {
+  LABEL_PRODUCT_COURSE,
+  LABEL_PRODUCT_PACKAGE,
+  SITE_STORE_NAME,
+} from "@/lib/siteBrand";
 
 interface Product {
   id: number;
@@ -33,6 +38,8 @@ interface Product {
   subcategory_name?: string | null;
   stock?: number;
   in_stock?: boolean;
+  package_weight?: string | null;
+  course?: string | null;
 }
 
 interface Category {
@@ -742,7 +749,7 @@ export default function CatalogClient({
                         ) : (
                           <Image
                             src={getProductImageSrc(product.first_media)}
-                            alt={`${product.name} від Choice`}
+                            alt={`${product.name} — ${SITE_STORE_NAME}`}
                             className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                             fill
                             sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
@@ -770,6 +777,26 @@ export default function CatalogClient({
                           <p className="font-['Montserrat'] font-light text-[11px] leading-[194%] tracking-[-0.02em] text-[#3D1A00] align-middle line-clamp-2">
                             {shortDesc}
                           </p>
+                        )}
+                        {(product.package_weight || product.course) && (
+                          <div className="font-['Montserrat'] text-[10px] sm:text-[11px] leading-snug text-[#3D1A00]/75 space-y-0.5">
+                            {product.package_weight ? (
+                              <p>
+                                <span className="font-semibold text-[#3D1A00]/90">
+                                  {LABEL_PRODUCT_PACKAGE}:
+                                </span>{" "}
+                                {product.package_weight}
+                              </p>
+                            ) : null}
+                            {product.course ? (
+                              <p>
+                                <span className="font-semibold text-[#3D1A00]/90">
+                                  {LABEL_PRODUCT_COURSE}:
+                                </span>{" "}
+                                {product.course}
+                              </p>
+                            ) : null}
+                          </div>
                         )}
                         <div className="mt-auto pt-3 flex items-center justify-between gap-2">
                           <div className="flex flex-col leading-none space-y-0.5">
