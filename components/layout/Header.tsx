@@ -16,6 +16,9 @@ interface Subcategory {
   name: string;
 }
 
+/** Затримка перед закриттям меню категорій — щоб встигнути перевести курсор на підкатегорії (fixed-панель не в межах hit-area батька). */
+const NAV_MENU_LEAVE_DELAY_MS = 420;
+
 export default function Header() {
   const {
     isSidebarOpen,
@@ -174,7 +177,7 @@ export default function Header() {
           if (!pinnedCatalog) {
             hoverTimeout.current = setTimeout(() => {
               setHoveredCategoryId(null);
-            }, 200); // Small delay
+            }, NAV_MENU_LEAVE_DELAY_MS);
           }
         }}
       >
@@ -235,7 +238,7 @@ export default function Header() {
                       categoryRefs.current.delete(category.id);
                     }
                   }}
-                  className="relative group"
+                  className="relative group after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-14 after:content-['']"
                   onMouseEnter={() => {
                     if (hoverTimeout.current)
                       clearTimeout(hoverTimeout.current);
@@ -245,13 +248,13 @@ export default function Header() {
                     if (!pinnedCatalog) {
                       hoverTimeout.current = setTimeout(() => {
                         setHoveredCategoryId(null);
-                      }, 200);
+                      }, NAV_MENU_LEAVE_DELAY_MS);
                     }
                   }}
                 >
                   <Link
                     href={`/catalog?categoryId=${category.id}`}
-                    className={`cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
+                    className={`relative z-10 cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
                       headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                     }`}
                   >
@@ -263,6 +266,17 @@ export default function Header() {
                     subcategories.length > 0 && (
                       <div
                         className="fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto"
+                        onMouseEnter={() => {
+                          if (hoverTimeout.current)
+                            clearTimeout(hoverTimeout.current);
+                        }}
+                        onMouseLeave={() => {
+                          if (!pinnedCatalog) {
+                            hoverTimeout.current = setTimeout(() => {
+                              setHoveredCategoryId(null);
+                            }, NAV_MENU_LEAVE_DELAY_MS);
+                          }
+                        }}
                       >
                         <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${categoryLeftPositions.get(category.id) || 0}px` }}>
                         {subcategories.map((subcat) => (
@@ -291,7 +305,7 @@ export default function Header() {
               {/* Information dropdown */}
               <div
                 ref={infoRef}
-                className="relative"
+                className="relative after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-14 after:content-['']"
                 onMouseEnter={() => {
                   if (infoTimeout.current) clearTimeout(infoTimeout.current);
                   setInfoMenuOpen(true);
@@ -299,10 +313,10 @@ export default function Header() {
                 onMouseLeave={() => {
                   infoTimeout.current = setTimeout(() => {
                     setInfoMenuOpen(false);
-                  }, 200); // delay in ms
+                  }, NAV_MENU_LEAVE_DELAY_MS);
                 }}
               >
-                <span className={`cursor-default whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
+                <span className={`relative z-10 cursor-default whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
                   headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                 } ${infoMenuOpen ? (headerTransparent ? "bg-white text-[#3D1A00] rounded-full px-3 py-1.5" : "bg-[#3D1A00] text-white rounded-full px-3 py-1.5") : ""}`}>
                   ІНФО
@@ -314,6 +328,14 @@ export default function Header() {
                       ? "opacity-100 pointer-events-auto"
                       : "opacity-0 pointer-events-none"
                   }`}
+                  onMouseEnter={() => {
+                    if (infoTimeout.current) clearTimeout(infoTimeout.current);
+                  }}
+                  onMouseLeave={() => {
+                    infoTimeout.current = setTimeout(() => {
+                      setInfoMenuOpen(false);
+                    }, NAV_MENU_LEAVE_DELAY_MS);
+                  }}
                 >
                   <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${infoLeftPosition}px` }}>
                     <Link

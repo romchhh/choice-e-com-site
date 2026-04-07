@@ -72,8 +72,9 @@ export default function EditProductPage() {
       setLoadingData(true);
       try {
         const [productRes, categoriesRes] = await Promise.all([
-          fetch(`/api/products/${productId}`),
-          fetch(`/api/categories`),
+          // Без кешу: інакше можна отримати застарілі category_ids і при наступному збереженні перезаписати БД старими галочками
+          fetch(`/api/products/${productId}`, { cache: "no-store" }),
+          fetch(`/api/categories`, { cache: "no-store" }),
         ]);
 
         const productData = await productRes.json();

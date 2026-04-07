@@ -689,8 +689,13 @@ export async function sqlPutProduct(
         inStock: update.in_stock ?? undefined,
         limitedEdition: update.limited_edition === true ? true : update.limited_edition === false ? false : undefined,
         stock: update.stock ?? undefined,
-        categoryId: update.category_id ?? undefined,
-        subcategoryId: update.subcategory_id ?? undefined,
+        // null має явно записуватись у БД; ?? undefined перетворював null на «не змінювати» і лишав старий categoryId
+        categoryId:
+          update.category_id === undefined ? undefined : update.category_id,
+        subcategoryId:
+          update.subcategory_id === undefined
+            ? undefined
+            : update.subcategory_id,
         fabricComposition: update.fabric_composition ?? undefined,
         hasLining: update.has_lining ?? undefined,
         liningDescription: update.lining_description ?? undefined,
