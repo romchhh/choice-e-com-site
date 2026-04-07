@@ -146,7 +146,8 @@ export default function EditProductPage() {
         for (const catId of allCategoryIds) {
           try {
             const res = await fetch(
-              `/api/subcategories?parent_category_id=${catId}`
+              `/api/subcategories?parent_category_id=${catId}`,
+              { cache: "no-store" }
             );
             if (!res.ok) continue;
             const data = await res.json();
@@ -174,7 +175,8 @@ export default function EditProductPage() {
 
     try {
       const res = await fetch(
-        `/api/subcategories?parent_category_id=${categoryId}`
+        `/api/subcategories?parent_category_id=${categoryId}`,
+        { cache: "no-store" }
       );
       if (!res.ok) throw new Error("Failed to fetch subcategories");
       const data = await res.json();

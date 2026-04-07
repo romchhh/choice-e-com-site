@@ -124,6 +124,7 @@ export async function sqlGetProduct(id: number) {
           subcategory: { select: { name: true } },
           media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
           categoryLinks: { select: { categoryId: true } },
+          subcategoryLinks: { select: { subcategoryId: true } },
         } as any,
       });
 
@@ -165,6 +166,14 @@ export async function sqlGetProduct(id: number) {
           ])
         ),
         subcategory_id: product.subcategoryId,
+        subcategory_ids: Array.from(
+          new Set([
+            ...(((product as any).subcategoryLinks as { subcategoryId: number }[] | undefined)?.map(
+              (sl) => sl.subcategoryId
+            ) ?? []),
+            ...(product.subcategoryId ? [product.subcategoryId] : []),
+          ])
+        ),
         fabric_composition: (product as any).fabricComposition ?? null,
         has_lining: (product as any).hasLining,
         lining_description: (product as any).liningDescription ?? null,
@@ -190,6 +199,7 @@ export async function sqlGetProductBySlug(slug: string) {
       subcategory: { select: { name: true } },
       media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
       categoryLinks: { select: { categoryId: true } },
+      subcategoryLinks: { select: { subcategoryId: true } },
     } as any,
   })) as any;
   if (!product) return null;
@@ -229,6 +239,14 @@ export async function sqlGetProductBySlug(slug: string) {
       ])
     ),
     subcategory_id: product.subcategoryId,
+    subcategory_ids: Array.from(
+      new Set([
+        ...(((product as any).subcategoryLinks as { subcategoryId: number }[] | undefined)?.map(
+          (sl) => sl.subcategoryId
+        ) ?? []),
+        ...(product.subcategoryId ? [product.subcategoryId] : []),
+      ])
+    ),
     fabric_composition: product.fabricComposition ?? null,
     has_lining: product.hasLining,
     lining_description: product.liningDescription ?? null,
