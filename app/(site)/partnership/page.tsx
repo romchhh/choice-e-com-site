@@ -70,7 +70,7 @@ export default function PartnershipPage() {
               letterSpacing: "-0.02em",
             }}
           >
-            Співпраця з CHOICE
+            Стати партнером
           </h1>
 
           {/* Вступний блок: текст + колаж фото */}

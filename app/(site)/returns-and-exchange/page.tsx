@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 
 const baseUrl =
   process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Повернення та обмін | Choice",
+  title: `Повернення та обмін | ${SITE_STORE_NAME}`,
   description:
-    "Обмін і повернення: перевірка замовлень, невідповідність і пошкодження, 14 днів для товару належної якості, обмеження за постановою КМУ №172, перевірка при отриманні.",
+    "Обмін і повернення: звернення до продавця, строк і спосіб повернення коштів, витрати на доставку при поверненні, 14 днів, обмеження за КМУ №172.",
   openGraph: {
-    title: "Повернення та обмін | Choice",
+    title: `Повернення та обмін | ${SITE_STORE_NAME}`,
     description:
-      "Умови обміну та повернення, контакт для звернень і юридичні підстави.",
+      "Умови обміну та повернення, повернення коштів, доставка при поверненні, контакти та юридичні підстави.",
     type: "article",
     locale: "uk_UA",
     url: `${baseUrl}/returns-and-exchange`,
@@ -20,10 +21,10 @@ export const metadata: Metadata = {
         url: `${baseUrl}/images/tg_image_3614117882.png`,
         width: 1200,
         height: 630,
-        alt: "CHOICE — повернення та обмін",
+        alt: `${SITE_STORE_NAME} — повернення та обмін`,
       },
     ],
-    siteName: "Choice",
+    siteName: SITE_STORE_NAME,
   },
 };
 
@@ -51,6 +52,44 @@ export default function ReturnsAndExchangePage() {
               Кожне замовлення перевіряється перед відправкою. Якщо виникає питання — ми
               оперативно його вирішуємо.
             </p>
+          </section>
+
+          <section className="space-y-6 rounded-lg border border-black/10 p-6 md:p-8 bg-black/[0.02]">
+            <h2 className="text-2xl md:text-3xl font-semibold">Порядок звернення та повернення коштів</h2>
+            <p className="opacity-90">
+              Обмін або повернення товару здійснюється після звернення покупця до продавця за
+              контактами, вказаними на сайті, та погодження деталей відправлення.
+            </p>
+
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xl font-semibold">Строк повернення коштів</h3>
+              <p className="opacity-90">
+                У разі погодження повернення кошти повертаються в день розірвання договору. Якщо
+                повернення коштів у цей день неможливе, вони повертаються в інший погоджений строк,
+                але не пізніше ніж протягом <strong>7 календарних днів</strong>.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">Спосіб повернення коштів</h3>
+              <p className="opacity-90">
+                Повернення коштів здійснюється на банківську картку покупця, з якої була проведена
+                оплата, або іншим погодженим з покупцем способом.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">Витрати на доставку при поверненні</h3>
+              <p className="opacity-90">
+                Якщо товар повертається з причин, не пов&apos;язаних із недоліками товару або помилкою
+                продавця, витрати на доставку повернення сплачує <strong>покупець</strong>.
+              </p>
+              <p className="opacity-90">
+                Якщо повернення пов&apos;язане з виробничим недоліком, пошкодженням товару під час
+                доставки або помилкою з боку продавця, витрати на доставку компенсує{" "}
+                <strong>продавець</strong>.
+              </p>
+            </div>
           </section>
 
           <section className="space-y-4">

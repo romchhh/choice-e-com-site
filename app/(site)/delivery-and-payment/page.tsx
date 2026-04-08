@@ -8,11 +8,11 @@ const baseUrl =
 export const metadata: Metadata = {
   title: `Доставка та оплата | ${SITE_STORE_NAME}`,
   description:
-    "Доставка Новою Поштою та Укрпоштою по Україні, самовивіз за домовленістю, накладений платіж, безкоштовна доставка від 2000 грн.",
+    "Оплата карткою, Google Pay, Apple Pay, на карту ФОП, післяплата в НП. Доставка Новою Поштою (відділення, поштомат, кур'єром) та Укрпоштою. Терміни та тарифи.",
   openGraph: {
-    title: "Доставка та оплата | Choice",
+    title: `Доставка та оплата | ${SITE_STORE_NAME}`,
     description:
-      "Умови доставки Новою Поштою та Укрпоштою, оплата при отриманні та правила безкоштовної доставки.",
+      "Умови доставки Новою Поштою та Укрпоштою, усі способи оплати, післяплата та комісії перевізника.",
     type: "article",
     locale: "uk_UA",
     url: `${baseUrl}/delivery-and-payment`,
@@ -51,74 +51,193 @@ export default function DeliveryAndPaymentPage() {
           <div className="w-20 h-1 bg-black mt-6" />
         </div>
 
-        <div className="space-y-12 text-base leading-relaxed">
-          <section className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-semibold">Доставка</h2>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Нова Пошта (відділення або кур&apos;єр)</h3>
-              <p className="opacity-80">
-                Доставка по всій Україні відповідно до тарифів перевізника. Термін:{" "}
-                <strong>1–3 робочі дні</strong>. Відправлення здійснюються щодня. Номер ТТН ви
-                отримуєте після відправки.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Укрпошта</h3>
-              <p className="opacity-80">
-                Доставка по Україні згідно тарифів перевізника. Термін:{" "}
-                <strong>3–5 робочих днів</strong>.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Самовивіз</h3>
-              <p className="opacity-80">Можливий за попередньою домовленістю.</p>
-            </div>
-          </section>
-
-          <section className="space-y-6">
+        <div className="space-y-14 text-base leading-relaxed">
+          {/* Оплата */}
+          <section className="space-y-5">
             <h2 className="text-2xl md:text-3xl font-semibold">Оплата</h2>
-
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Накладений платіж (Нова Пошта)</h3>
-              <p className="opacity-80">Оплата при отриманні у відділенні.</p>
-              <p className="opacity-80">
-                Комісія перевізника: <strong>20 грн + 2%</strong> від суми замовлення.
-              </p>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Безкоштовна доставка</h2>
-            <p className="opacity-80">
-              При замовленні від <strong>2000 грн</strong> — доставка безкоштовна (Нова Пошта або
-              Укрпошта).
+            <p className="opacity-90">
+              Оплатити замовлення можна будь-яким зручним способом:
             </p>
-            <p className="opacity-80 font-semibold">Не враховуються:</p>
-            <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>пробники;</li>
-              <li>мірні ємності;</li>
-              <li>розпилювачі.</li>
-            </ul>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Важливо</h2>
-            <ul className="space-y-3 opacity-80 list-disc pl-5">
-              <li>При замовленні до 2000 грн — доставку оплачує отримувач.</li>
+            <ul className="space-y-3 opacity-90 list-disc pl-5 marker:text-black">
               <li>
-                Стартові бокси та акційні набори зі знижками відправляються за рахунок отримувача
-                незалежно від суми замовлення.
+                <strong>Банківською карткою</strong> (VISA / Mastercard) — під час оформлення
+                замовлення на сайті.
+              </li>
+              <li>
+                <strong>Онлайн-сервісами Google Pay, Apple Pay</strong> — під час оформлення
+                замовлення на сайті.
+              </li>
+              <li>
+                <strong>На картку або реквізити ФОП</strong> — за реквізитами, які надаємо після
+                узгодження замовлення.
+              </li>
+              <li>
+                <strong>Післяплатою у відділенні «Нової пошти»</strong> — без передоплати.
               </li>
             </ul>
           </section>
 
-          <section className="mt-16 pt-8 border-t border-black/10">
+          {/* Комісії */}
+          <section className="space-y-5">
+            <h2 className="text-2xl md:text-3xl font-semibold">Комісії</h2>
+            <p className="opacity-90">
+              Комісія за післяплату (грошовий переказ) НП: <strong>2% + 20 грн</strong>.
+            </p>
+            <p className="opacity-90">Комісія від оголошеної вартості:</p>
+            <ul className="space-y-2 opacity-90 list-disc pl-5">
+              <li>
+                до 500 грн — <strong>включена у тариф</strong>;
+              </li>
+              <li>
+                понад 500 грн — <strong>0,5%</strong> від суми.
+              </li>
+            </ul>
+            <p className="opacity-80 text-sm">
+              Усі ціни вказані у гривнях (з ПДВ) та дійсні з <strong>01.01.2024</strong>.
+            </p>
+            <p className="opacity-90">
+              Актуальні тарифи «Нової пошти» можна переглянути за посиланням:{" "}
+              <a
+                href="https://novaposhta.ua/shipping-cost"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#3D1A00] underline font-medium hover:opacity-80"
+              >
+                novaposhta.ua/shipping-cost
+              </a>
+            </p>
+          </section>
+
+          {/* Доставка */}
+          <section className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-semibold">Доставка</h2>
+            <p className="opacity-90 font-medium">Вартість доставки залежить від суми замовлення та способу отримання:</p>
+            <ul className="space-y-2 opacity-90 list-disc pl-5">
+              <li>
+                <strong>Від 80 грн</strong> — стандартна вартість доставки (залежно від розміру та
+                ваги замовлення за тарифами перевізника).
+              </li>
+              <li>
+                <strong>Безкоштовно</strong> — при замовленні від <strong>2000 грн</strong> (за
+                відсутності інших акцій).
+              </li>
+            </ul>
+
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xl font-semibold">Способи доставки</h3>
+              <ul className="space-y-2 opacity-90 list-disc pl-5">
+                <li>
+                  До <strong>відділення</strong> або <strong>поштомату</strong> «Нової пошти».
+                </li>
+                <li>
+                  <strong>Адресна доставка кур’єром «Нової пошти»</strong> — до вказаної вами адреси
+                  (квартира, офіс тощо). Замовлення передається перевізнику за стандартними правилами
+                  НП; після відправлення ви отримаєте трек-номер для відстеження.
+                </li>
+                <li>
+                  До відділення <strong>«Укрпошти»</strong>.
+                </li>
+              </ul>
+              <p className="opacity-80 text-sm pl-1 border-l-2 border-[#3D1A00]/20 pl-4">
+                Терміни адресної доставки кур’єром у межах України зазвичай збігаються з термінами
+                «Нової пошти» для вашого напрямку (див. блок «Терміни доставки по Україні» нижче).
+              </p>
+            </div>
+          </section>
+
+          {/* Терміни */}
+          <section className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-semibold">Терміни доставки по Україні</h2>
+
+            <div className="space-y-3 rounded-lg border border-black/10 p-5 bg-black/[0.02]">
+              <h3 className="text-xl font-semibold">Нова пошта</h3>
+              <p className="text-sm opacity-70 mb-2">
+                Відділення, поштомат або кур’єр на адресу — орієнтовні терміни за даними{" "}
+                <a
+                  href="https://novaposhta.ua/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-[#3D1A00] hover:opacity-80"
+                >
+                  novaposhta.ua
+                </a>
+                :
+              </p>
+              <ul className="space-y-2 opacity-90 list-disc pl-5">
+                <li>у межах одного міста — <strong>до 1 дня</strong>;</li>
+                <li>
+                  між обласними центрами або великими містами — <strong>1–2 дні</strong>;
+                </li>
+                <li>у віддалені населені пункти — <strong>до 3 днів</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-3 rounded-lg border border-black/10 p-5 bg-black/[0.02]">
+              <h3 className="text-xl font-semibold">Укрпошта</h3>
+              <ul className="space-y-2 opacity-90 list-disc pl-5">
+                <li>
+                  <strong>4–7 робочих днів</strong> (залежно від регіону та обсягу відправлень).
+                </li>
+              </ul>
+            </div>
+
+            <p className="opacity-90">
+              Доставка здійснюється перевізниками <strong>«Нова Пошта»</strong> або{" "}
+              <strong>«Укрпошта»</strong>. Після відправлення замовлення ви отримаєте SMS або
+              повідомлення з трек-номером.
+            </p>
+            <p className="opacity-90">
+              Замовлення зберігається у відділенні <strong>до 7 робочих днів</strong>, після чого
+              повертається відправнику.
+            </p>
+            <p className="opacity-90">
+              Ознайомитися з графіком роботи відділень можна тут:
+            </p>
+            <ul className="space-y-2 opacity-90 list-none pl-0">
+              <li>
+                👉{" "}
+                <a
+                  href="https://novaposhta.ua/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#3D1A00] underline font-medium hover:opacity-80"
+                >
+                  Графік роботи «Нової пошти» — novaposhta.ua
+                </a>
+              </li>
+              <li>
+                👉{" "}
+                <a
+                  href="https://ukrposhta.ua/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#3D1A00] underline font-medium hover:opacity-80"
+                >
+                  Графік роботи «Укрпошти» — ukrposhta.ua
+                </a>
+              </li>
+            </ul>
+          </section>
+
+          <section className="space-y-4 pt-4 border-t border-black/10">
+            <h2 className="text-xl font-semibold">Додатково</h2>
+            <p className="opacity-80">
+              Самовивіз можливий за попередньою домовленістю — уточнюйте при оформленні замовлення.
+            </p>
+            <p className="opacity-80">
+              При замовленні <strong>до 2000 грн</strong> доставку зазвичай оплачує отримувач згідно
+              з тарифами перевізника (окрім акційних умов).
+            </p>
+            <p className="opacity-80">
+              Безкоштовна доставка від 2000 грн <strong>не враховує</strong> окремі позиції
+              (пробники, мірні ємності, розпилювачі тощо) — деталі уточнюйте при замовленні.
+            </p>
+          </section>
+
+          <section className="pt-8 border-t border-black/10">
             <p className="text-sm opacity-50">
-              Актуальність інформації щодо доставки та оплат: за відображеними умовами при оформленні
-              замовлення.
+              Актуальні умови оплати та доставки також відображаються під час оформлення замовлення на
+              сайті {SITE_STORE_NAME}.
             </p>
           </section>
         </div>
