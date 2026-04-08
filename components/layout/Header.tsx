@@ -10,7 +10,7 @@ import { useCategories } from "@/lib/CategoriesProvider";
 import SidebarBasket from "./SidebarBasket";
 import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
-import { siteOfficialRepLine, SITE_STORE_NAME } from "@/lib/siteBrand";
+import { siteOfficialRepLine } from "@/lib/siteBrand";
 
 interface Subcategory {
   id: number;
@@ -217,13 +217,18 @@ export default function Header() {
           {/* Top nav — трохи вищий */}
           <div className="hidden lg:flex justify-center">
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center h-20 px-10">
-            <Link
-              href="/"
-              className={`flex items-center pt-1 font-['Montserrat'] font-bold text-xl lg:text-2xl tracking-tight whitespace-nowrap ${
-                headerTransparent ? "text-white" : "text-[#3D1A00]"
-              }`}
-            >
-              {SITE_STORE_NAME}
+            <Link href="/" className="flex items-center pt-1">
+              <Image
+                src={
+                  headerTransparent
+                    ? "/images/logos/choice-logo-white.png"
+                    : "/images/logos/choice-logo-dark.png"
+                }
+                alt="Choice"
+                width={120}
+                height={32}
+                className="h-8 w-auto"
+              />
             </Link>
 
             <div className="flex items-center gap-4 text-xs font-bold font-['Montserrat']">
@@ -460,9 +465,7 @@ export default function Header() {
             </button>
             <Link
               href="/"
-              className={`flex items-center pt-0.5 font-['Montserrat'] font-bold text-base sm:text-lg tracking-tight whitespace-nowrap ${
-                headerTransparent ? "text-white" : "text-[#3D1A00]"
-              }`}
+              className="flex items-center pt-0.5"
               onClick={(e) => {
                 if (isSidebarOpen) {
                   e.preventDefault();
@@ -476,7 +479,17 @@ export default function Header() {
                 }
               }}
             >
-              {SITE_STORE_NAME}
+              <Image
+                src={
+                  headerTransparent
+                    ? "/images/logos/choice-logo-white.png"
+                    : "/images/logos/choice-logo-dark.png"
+                }
+                alt="Choice"
+                width={100}
+                height={26}
+                className="h-6 w-auto"
+              />
             </Link>
           </div>
 

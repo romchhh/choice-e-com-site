@@ -82,7 +82,7 @@ export default function Hero() {
               href="/info#partnership"
               className="cursor-pointer w-full sm:w-52 md:w-60 h-12 md:h-14 p-2 bg-transparent border-2 border-white text-white inline-flex justify-center items-center gap-2 hover:bg-white hover:text-black transition-all duration-300 font-['Montserrat'] font-semibold"
             >
-              <span className="text-center text-sm sm:text-base md:text-lg">Співпраця з {SITE_PRODUCT_BRAND}</span>
+              <span className="text-center text-sm sm:text-base md:text-lg">Стати партнером</span>
             </Link>
           </div>
         </div>

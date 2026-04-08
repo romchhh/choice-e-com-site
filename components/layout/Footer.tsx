@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { siteContact } from "@/lib/siteContact";
 import {
-  SITE_STORE_NAME,
+  SITE_PRODUCT_BRAND,
   siteFooterLead,
   siteFooterLegalNote,
 } from "@/lib/siteBrand";
@@ -39,7 +39,7 @@ export default function Footer() {
           <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0">
             <Link href="/" className="inline-block">
               <span className="text-2xl lg:text-3xl font-bold font-['Montserrat'] tracking-wide text-black">
-                {SITE_STORE_NAME}
+                {SITE_PRODUCT_BRAND}
               </span>
             </Link>
             <p className="text-sm lg:text-base text-gray-600 leading-relaxed w-full text-left tracking-normal">
@@ -129,7 +129,7 @@ export default function Footer() {
                 letterSpacing: "0%",
               }}
             >
-              ЗВ&apos;ЯЗОК З {SITE_STORE_NAME.toUpperCase()}
+              ЗВ&apos;ЯЗАТИСЯ З {SITE_PRODUCT_BRAND.toUpperCase()}
             </Link>
 
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-left">
