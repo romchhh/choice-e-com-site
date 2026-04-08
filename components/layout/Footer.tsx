@@ -4,11 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { siteContact } from "@/lib/siteContact";
-import {
-  SITE_PRODUCT_BRAND,
-  siteFooterLead,
-  siteFooterLegalNote,
-} from "@/lib/siteBrand";
+import { SITE_WORDMARK, siteFooterLead, siteFooterLegalNote } from "@/lib/siteBrand";
 
 export default function Footer() {
   const router = useRouter();
@@ -37,9 +33,11 @@ export default function Footer() {
       <div className="max-w-[1920px] mx-auto px-6 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 items-center md:items-start text-center md:text-left">
           <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0">
-            <Link href="/" className="inline-block">
-              <span className="text-2xl lg:text-3xl font-bold font-['Montserrat'] tracking-wide text-black">
-                {SITE_PRODUCT_BRAND}
+            <Link href="/" className="inline-block group">
+              <span
+                className="font-['Montserrat'] font-light text-[2rem] lg:text-[2.5rem] leading-none tracking-[0.16em] lg:tracking-[0.18em] text-black transition-opacity duration-300 group-hover:opacity-80"
+              >
+                {SITE_WORDMARK}
               </span>
             </Link>
             <p className="text-sm lg:text-base text-gray-600 leading-relaxed w-full text-left tracking-normal">
@@ -129,7 +127,7 @@ export default function Footer() {
                 letterSpacing: "0%",
               }}
             >
-              ЗВ&apos;ЯЗАТИСЯ З {SITE_PRODUCT_BRAND.toUpperCase()}
+              ЗВ&apos;ЯЗОК З {SITE_WORDMARK.toUpperCase()}
             </Link>
 
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-left">

@@ -10,7 +10,7 @@ import { useCategories } from "@/lib/CategoriesProvider";
 import SidebarBasket from "./SidebarBasket";
 import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
-import { siteOfficialRepLine } from "@/lib/siteBrand";
+import { siteOfficialRepLine, SITE_WORDMARK } from "@/lib/siteBrand";
 
 interface Subcategory {
   id: number;
@@ -217,18 +217,14 @@ export default function Header() {
           {/* Top nav — трохи вищий */}
           <div className="hidden lg:flex justify-center">
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center h-20 px-10">
-            <Link href="/" className="flex items-center pt-1">
-              <Image
-                src={
-                  headerTransparent
-                    ? "/images/logos/choice-logo-white.png"
-                    : "/images/logos/choice-logo-dark.png"
-                }
-                alt="Choice"
-                width={120}
-                height={32}
-                className="h-8 w-auto"
-              />
+            <Link href="/" className="flex items-center pt-1 group">
+              <span
+                className={`font-['Montserrat'] font-light text-[1.75rem] lg:text-[2.35rem] leading-none tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
+                  headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
+                }`}
+              >
+                {SITE_WORDMARK}
+              </span>
             </Link>
 
             <div className="flex items-center gap-4 text-xs font-bold font-['Montserrat']">
@@ -465,7 +461,7 @@ export default function Header() {
             </button>
             <Link
               href="/"
-              className="flex items-center pt-0.5"
+              className="flex items-center pt-0.5 group"
               onClick={(e) => {
                 if (isSidebarOpen) {
                   e.preventDefault();
@@ -479,17 +475,13 @@ export default function Header() {
                 }
               }}
             >
-              <Image
-                src={
-                  headerTransparent
-                    ? "/images/logos/choice-logo-white.png"
-                    : "/images/logos/choice-logo-dark.png"
-                }
-                alt="Choice"
-                width={100}
-                height={26}
-                className="h-6 w-auto"
-              />
+              <span
+                className={`font-['Montserrat'] font-light text-[1.35rem] sm:text-[1.55rem] leading-none tracking-[0.14em] sm:tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
+                  headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
+                }`}
+              >
+                {SITE_WORDMARK}
+              </span>
             </Link>
           </div>
 

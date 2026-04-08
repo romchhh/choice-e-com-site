@@ -1,6 +1,9 @@
 /** Публічна назва магазину (не ототожнювати з брендом продукції Choice). */
 export const SITE_STORE_NAME = "ForBody Space";
 
+/** Словесний знак у хедері/футері (коротка форма без «Space»). */
+export const SITE_WORDMARK = "ForBody";
+
 /** Бренд продукції, офіційним представником якого є магазин. */
 export const SITE_PRODUCT_BRAND = "Choice";
 
