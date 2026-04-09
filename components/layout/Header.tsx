@@ -59,6 +59,7 @@ export default function Header() {
   // Use categories from context instead of fetching
   const { categories } = useCategories();
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(
     null
   );
@@ -66,8 +67,25 @@ export default function Header() {
   const infoTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const [pinnedCatalog, setPinnedCatalog] = useState(false);
-  const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const cancelCatalogMenuClose = () => {
+    if (hoverTimeout.current) {
+      clearTimeout(hoverTimeout.current);
+      hoverTimeout.current = null;
+    }
+  };
+
+  /** Один таймер на все меню каталогу: header / категорія / панель — інакше залишаються «сирі» таймери й null прилітає вже коли курсор знову на категорії (mouseEnter не повторюється). */
+  const scheduleCatalogMenuClose = () => {
+    if (pinnedCatalog) return;
+    cancelCatalogMenuClose();
+    hoverTimeout.current = setTimeout(() => {
+      setHoveredCategoryId(null);
+      hoverTimeout.current = null;
+    }, NAV_MENU_LEAVE_DELAY_MS);
+  };
   const categoryRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const infoRef = useRef<HTMLDivElement | null>(null);
   const [categoryLeftPositions, setCategoryLeftPositions] = useState<Map<number, number>>(new Map());
@@ -110,22 +128,36 @@ export default function Header() {
   // Categories are now loaded from context, no need to fetch
 
   useEffect(() => {
-    async function fetchSubcategories(categoryId: number) {
+    if (hoveredCategoryId === null) {
+      setSubcategories([]);
+      setSubcategoriesLoading(false);
+      return;
+    }
+
+    const categoryId = hoveredCategoryId;
+    setSubcategories([]);
+    setSubcategoriesLoading(true);
+    let cancelled = false;
+
+    (async () => {
       try {
         const res = await fetch(
           `/api/subcategories?parent_category_id=${categoryId}`
         );
         const data = await res.json();
-        setSubcategories(data);
+        if (cancelled) return;
+        setSubcategories(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to load subcategories", err);
-        setSubcategories([]);
+        if (!cancelled) setSubcategories([]);
+      } finally {
+        if (!cancelled) setSubcategoriesLoading(false);
       }
-    }
+    })();
 
-    if (hoveredCategoryId !== null) {
-      fetchSubcategories(hoveredCategoryId);
-    }
+    return () => {
+      cancelled = true;
+    };
   }, [hoveredCategoryId]);
 
   // Calculate positions for dropdown alignment
@@ -174,12 +206,11 @@ export default function Header() {
         className={`max-w-[1920px] mx-auto fixed top-0 left-1/2 transform -translate-x-1/2 w-full z-50 transition-all duration-300 ${
           headerTransparent ? "bg-transparent text-white shadow-none" : "bg-white text-[#3D1A00] shadow-md"
         }`}
+        onMouseEnter={() => {
+          cancelCatalogMenuClose();
+        }}
         onMouseLeave={() => {
-          if (!pinnedCatalog) {
-            hoverTimeout.current = setTimeout(() => {
-              setHoveredCategoryId(null);
-            }, NAV_MENU_LEAVE_DELAY_MS);
-          }
+          scheduleCatalogMenuClose();
         }}
       >
         {/* === WRAPPER: everything inside shares same bg and styles === */}
@@ -216,8 +247,8 @@ export default function Header() {
           </div>
           {/* Top nav — трохи вищий */}
           <div className="hidden lg:flex justify-center">
-            <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center h-20 px-10">
-            <Link href="/" className="flex items-center pt-1 group">
+            <div className="w-full max-w-[1920px] mx-auto flex justify-between items-stretch h-20 px-10">
+            <Link href="/" className="flex items-center self-center pt-1 group shrink-0">
               <span
                 className={`font-['Montserrat'] font-light text-[1.75rem] lg:text-[2.35rem] leading-none tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
                   headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
@@ -227,7 +258,7 @@ export default function Header() {
               </span>
             </Link>
 
-            <div className="flex items-center gap-4 text-xs font-bold font-['Montserrat']">
+            <div className="flex items-stretch gap-1 sm:gap-2 lg:gap-4 text-xs font-bold font-['Montserrat'] min-w-0">
               {/* Product Categories shown directly in top nav */}
               {Array.isArray(categories) && categories.map((category) => (
                 <div
@@ -239,18 +270,13 @@ export default function Header() {
                       categoryRefs.current.delete(category.id);
                     }
                   }}
-                  className="relative group after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-14 after:content-['']"
+                  className="relative group flex items-center h-full min-h-0 after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-20 after:content-['']"
                   onMouseEnter={() => {
-                    if (hoverTimeout.current)
-                      clearTimeout(hoverTimeout.current);
+                    cancelCatalogMenuClose();
                     setHoveredCategoryId(category.id);
                   }}
                   onMouseLeave={() => {
-                    if (!pinnedCatalog) {
-                      hoverTimeout.current = setTimeout(() => {
-                        setHoveredCategoryId(null);
-                      }, NAV_MENU_LEAVE_DELAY_MS);
-                    }
+                    scheduleCatalogMenuClose();
                   }}
                 >
                   <Link
@@ -263,40 +289,42 @@ export default function Header() {
                   </Link>
 
                   {/* Subcategories dropdown */}
-                  {hoveredCategoryId === category.id &&
-                    subcategories.length > 0 && (
+                  {hoveredCategoryId === category.id && (
                       <div
                         className="fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto"
                         onMouseEnter={() => {
-                          if (hoverTimeout.current)
-                            clearTimeout(hoverTimeout.current);
+                          cancelCatalogMenuClose();
                         }}
                         onMouseLeave={() => {
-                          if (!pinnedCatalog) {
-                            hoverTimeout.current = setTimeout(() => {
-                              setHoveredCategoryId(null);
-                            }, NAV_MENU_LEAVE_DELAY_MS);
-                          }
+                          scheduleCatalogMenuClose();
                         }}
                       >
                         <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${categoryLeftPositions.get(category.id) || 0}px` }}>
-                        {subcategories.map((subcat) => (
-                          <Link
-                            key={subcat.id}
-                            href={`/catalog?subcategory=${encodeURIComponent(
-                              subcat.name
-                            )}`}
-                              className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
-                          >
-                            {subcat.name}
-                          </Link>
-                        ))}
-                          <Link
-                            href={`/catalog?categoryId=${category.id}`}
-                            className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200 underline mt-2"
-                          >
-                            Переглянути всі
-                          </Link>
+                        {subcategoriesLoading ? (
+                          <p className="text-gray-500 text-xs py-2 font-['Montserrat']">
+                            Завантаження…
+                          </p>
+                        ) : (
+                          <>
+                            {subcategories.map((subcat) => (
+                              <Link
+                                key={subcat.id}
+                                href={`/catalog?subcategory=${encodeURIComponent(
+                                  subcat.name
+                                )}`}
+                                className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
+                              >
+                                {subcat.name}
+                              </Link>
+                            ))}
+                            <Link
+                              href={`/catalog?categoryId=${category.id}`}
+                              className={`text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200 underline ${subcategories.length > 0 ? "mt-2" : ""}`}
+                            >
+                              Переглянути всі
+                            </Link>
+                          </>
+                        )}
                         </div>
                       </div>
                     )}
@@ -306,7 +334,7 @@ export default function Header() {
               {/* Information dropdown */}
               <div
                 ref={infoRef}
-                className="relative after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-14 after:content-['']"
+                className="relative flex items-center h-full min-h-0 after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-20 after:content-['']"
                 onMouseEnter={() => {
                   if (infoTimeout.current) clearTimeout(infoTimeout.current);
                   setInfoMenuOpen(true);
@@ -381,7 +409,7 @@ export default function Header() {
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 self-center shrink-0">
               <button 
                 onClick={() => setIsSearchOpen(true)} 
                 className="flex items-center rounded-full px-4 py-2 transition-colors bg-[#D7D799] hover:opacity-90"

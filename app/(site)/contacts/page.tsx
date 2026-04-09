@@ -87,7 +87,7 @@ export default function ContactsPage() {
                 letterSpacing: "0.04em",
               }}
             >
-              Зв&apos;язатися з Choice
+              Зв&apos;язатися з ForBody
             </h2>
 
             {submitted ? (

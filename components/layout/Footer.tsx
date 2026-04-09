@@ -6,6 +6,41 @@ import { useRouter, usePathname } from "next/navigation";
 import { siteContact } from "@/lib/siteContact";
 import { SITE_WORDMARK, siteFooterLead, siteFooterLegalNote } from "@/lib/siteBrand";
 
+const PAYMENT_LOGOS = [
+  {
+    src: "/payments/Apple_Pay-Logo.wine.svg",
+    alt: "Apple Pay",
+    width: 88,
+    height: 36,
+    imageClassName:
+      "h-10 sm:h-12 w-auto max-h-12 object-contain opacity-85 hover:opacity-100 transition-opacity",
+  },
+  {
+    src: "/payments/Google_Pay_Logo.svg.webp",
+    alt: "Google Pay",
+    width: 52,
+    height: 28,
+    imageClassName:
+      "h-7 sm:h-8 w-auto max-h-8 object-contain opacity-85 hover:opacity-100 transition-opacity",
+  },
+  {
+    src: "/payments/Visa_Inc._logo_(2021–present).svg.png",
+    alt: "Visa",
+    width: 40,
+    height: 13,
+    imageClassName:
+      "h-4 sm:h-5 w-auto max-h-5 object-contain opacity-85 hover:opacity-100 transition-opacity",
+  },
+  {
+    src: "/payments/Mastercard-logo.png",
+    alt: "Mastercard",
+    width: 44,
+    height: 28,
+    imageClassName:
+      "h-7 sm:h-8 w-auto max-h-8 object-contain opacity-85 hover:opacity-100 transition-opacity",
+  },
+] as const;
+
 export default function Footer() {
   const router = useRouter();
   const pathname = usePathname();
@@ -209,6 +244,28 @@ export default function Footer() {
               </Link>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10 pt-10 border-t border-[#3D1A00]/10">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-4 text-center md:text-left font-['Montserrat']">
+            Приймаємо до оплати
+          </p>
+          <ul
+            className="flex flex-wrap items-center justify-center md:justify-start gap-6 md:gap-8 list-none p-0 m-0"
+            aria-label="Платіжні системи: Apple Pay, Google Pay, Visa, Mastercard"
+          >
+            {PAYMENT_LOGOS.map(({ src, alt, width, height, imageClassName }) => (
+              <li key={src} className="flex items-center">
+                <Image
+                  src={src}
+                  alt={alt}
+                  width={width}
+                  height={height}
+                  className={imageClassName}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

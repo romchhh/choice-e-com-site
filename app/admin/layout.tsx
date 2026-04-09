@@ -11,7 +11,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Choice — Admin Panel",
+  title: "ForBody — Admin Panel",
   icons: {
     icon: "/images/choice-features/open-browser.png",
     shortcut: "/images/choice-features/open-browser.png",

@@ -7,14 +7,18 @@ import { useState } from "react";
 const scrollClass = "scroll-mt-[var(--site-header-offset)]";
 
 const faqItems = [
-  { number: "01", title: "Чи це оригінальна продукція Choice?", content: "Так. Всі продукти є оригінальною продукцією Choice." },
+  {
+    number: "01",
+    title: "Чи це оригінальна продукція ForBody?",
+    content: "Так. Всі продукти є оригінальною продукцією ForBody.",
+  },
   { number: "02", title: "Як обрати продукт?", content: "Ви можете обрати самостійно або звернутись за консультацією." },
   { number: "03", title: "Як швидко відправляється замовлення?", content: "Зазвичай протягом 1–2 робочих днів." },
   { number: "04", title: "Чи можна отримати консультацію?", content: "Так. Ви можете звернутись через email або месенджери." },
 ];
 
 const brandFeatures = [
-  { label: "ОРИГІНАЛЬНА ПРОДУКЦІЯ CHOICE", icon: "/images/choice-features/original-product.png" },
+  { label: "ОРИГІНАЛЬНА ПРОДУКЦІЯ FORBODY", icon: "/images/choice-features/original-product.png" },
   { label: "ПРОДУКТИ ДЛЯ ЗДОРОВ'Я, ДОГЛЯДУ І ДОМУ", icon: "/images/choice-features/health-care-home.png" },
   { label: "РОСЛИННІ ФОРМУЛИ", icon: "/images/choice-features/plant-formulas.png" },
   { label: "ОФІЦІЙНИЙ ПРЕДСТАВНИК БРЕНДУ", icon: "/images/choice-features/official-badge.png" },
@@ -58,13 +62,13 @@ export default function InfoPage() {
             Про бренд
           </h1>
 
-          {/* Про компанію CHOICE Ukraine — фото + вступ */}
+          {/* Про компанію ForBody — фото + вступ */}
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 max-w-6xl mx-auto mb-14 lg:mb-16">
             <div className="lg:w-[480px] flex-shrink-0">
               <div className="relative w-full aspect-[4/3] max-w-[480px] rounded-lg overflow-hidden bg-[#D9D9D9]">
                 <Image
                   src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
-                  alt="CHOICE Ukraine — виробництво та продукція"
+                  alt="ForBody — виробництво та продукція"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 480px"
@@ -74,10 +78,10 @@ export default function InfoPage() {
             </div>
             <div className="flex-1 max-w-xl space-y-4 lg:pl-2 font-['Montserrat'] text-[#3D1A00]">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.02em] leading-[140%] text-[#3D1A00]">
-                Про компанію CHOICE Ukraine
+                Про компанію ForBody
               </h2>
               <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-                CHOICE Ukraine — українська виробнича компанія, що створює натуральні продукти для здоров&apos;я, краси та екологічного способу життя. Компанія працює з 2004 року і поєднує виробництво, розробку продуктів та партнерську бізнес-модель.
+                ForBody — українська виробнича компанія, що створює натуральні продукти для здоров&apos;я, краси та екологічного способу життя. Компанія працює з 2004 року і поєднує виробництво, розробку продуктів та партнерську бізнес-модель.
               </p>
               <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
                 Основний напрямок діяльності — розробка фітокомплексів, продуктів здорового харчування, натуральної косметики та екологічних засобів для дому.
@@ -91,7 +95,7 @@ export default function InfoPage() {
               Власне виробництво в Україні
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Однією з ключових особливостей CHOICE є власне виробництво. Продукція виготовляється на українських підприємствах із контролем усіх етапів — від закупівлі сировини до випуску готового продукту.
+              Однією з ключових особливостей ForBody є власне виробництво. Продукція виготовляється на українських підприємствах із контролем усіх етапів — від закупівлі сировини до випуску готового продукту.
             </p>
             <p className="text-[#3D1A00]/80 font-semibold mb-2" style={{ fontSize: "clamp(14px, 1.1vw, 16px)", lineHeight: "159%" }}>
               Основні виробничі майданчики:
@@ -111,7 +115,7 @@ export default function InfoPage() {
               </li>
             </ul>
             <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Наразі компанія будує сучасний виробничий комплекс CHOICE Manufacture, який дозволить розширити виробничі потужності та забезпечити натуральною продукцією не лише Україну, а й міжнародні ринки.
+              Наразі компанія будує сучасний виробничий комплекс ForBody Manufacture, який дозволить розширити виробничі потужності та забезпечити натуральною продукцією не лише Україну, а й міжнародні ринки.
             </p>
           </div>
 
@@ -167,12 +171,12 @@ export default function InfoPage() {
               Бренди компанії
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              CHOICE розвиває кілька напрямків натуральної продукції:
+              ForBody розвиває кілька напрямків натуральної продукції:
             </p>
             <ul className="space-y-2 mb-4 list-none">
               <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>CHOICE PHYTO</strong> — фітокомплекси для здоров&apos;я</span>
+                <span><strong>FORBODY PHYTO</strong> — фітокомплекси для здоров&apos;я</span>
               </li>
               <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
@@ -202,7 +206,7 @@ export default function InfoPage() {
               Спільнота та партнерство
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              CHOICE — це не лише виробництво продукції, а й партнерська спільнота людей, які розвивають власні проєкти у сфері здоров&apos;я та екологічного способу життя.
+              ForBody — це не лише виробництво продукції, а й партнерська спільнота людей, які розвивають власні проєкти у сфері здоров&apos;я та екологічного способу життя.
             </p>
             <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
               Компанія надає партнерам доступ до навчання, бізнес-інструментів та можливості працювати з продукцією безпосередньо від виробника.
@@ -268,7 +272,7 @@ export default function InfoPage() {
                 }}
                 className="text-[#3D1A00]/80"
               >
-                Choice пропонує можливість співпраці для тих, хто хоче працювати у сфері wellness і eco-продуктів, та отримувати додатковий дохід.
+                ForBody пропонує можливість співпраці для тих, хто хоче працювати у сфері wellness і eco-продуктів, та отримувати додатковий дохід.
               </p>
               <p
                 style={{
@@ -317,7 +321,7 @@ export default function InfoPage() {
               <div className="relative w-full aspect-[16/10] min-h-[200px] lg:min-h-[280px] rounded-lg overflow-hidden bg-[#D9D9D9]">
                 <Image
                   src="/images/choice-features/hf_20260307_174928_45490834-1da6-4ee5-b317-cc4fa3a4fcc1.png"
-                  alt="Партнерство з CHOICE"
+                  alt="Партнерство з ForBody"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 50vw"

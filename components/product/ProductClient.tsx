@@ -20,10 +20,17 @@ import {
   LABEL_PRODUCT_PACKAGE,
 } from "@/lib/siteBrand";
 import OneClickOrderModal from "@/components/product/OneClickOrderModal";
+import ProductDeliveryPaymentTab from "@/components/product/ProductDeliveryPaymentTab";
 
 const DEFAULT_SIZE = "—";
 
-type TabId = "description" | "action" | "usage" | "composition" | "contraindications";
+type TabId =
+  | "description"
+  | "action"
+  | "usage"
+  | "composition"
+  | "contraindications"
+  | "delivery_payment";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "description", label: "ОПИС" },
@@ -31,6 +38,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "usage", label: "СПОСІБ ВИКОРИСТАННЯ" },
   { id: "composition", label: "СКЛАД" },
   { id: "contraindications", label: "ПРОТИПОКАЗАННЯ" },
+  { id: "delivery_payment", label: "ДОСТАВКА ТА ОПЛАТА" },
 ];
 
 interface ProductClientProps {
@@ -245,6 +253,8 @@ export default function ProductClient({ product }: ProductClientProps) {
         ) : (
           <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Інформація відсутня.</p>
         );
+      case "delivery_payment":
+        return <ProductDeliveryPaymentTab />;
       default:
         return null;
     }

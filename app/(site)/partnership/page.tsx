@@ -6,11 +6,11 @@ const baseUrl =
   process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Партнерство з CHOICE у wellness-напрямку | Choice",
+  title: "Партнерство з CHOICE у wellness-напрямку | ForBody",
   description:
     "Партнерство з CHOICE у сфері wellness та натуральної продукції: як працює команда, які можливості заробітку та розвитку ви отримуєте, приєднавшись.",
   openGraph: {
-    title: "Партнерство з CHOICE у wellness-напрямку | Choice",
+    title: "Партнерство з CHOICE у wellness-напрямку | ForBody",
     description:
       "Приєднайтеся до партнерської програми CHOICE: будуйте дохід на wellness та eco-продукції, працюйте в команді з підтримкою й системним навчанням.",
     type: "website",
@@ -24,11 +24,11 @@ export const metadata: Metadata = {
         alt: "Партнерство з CHOICE у wellness-напрямку",
       },
     ],
-    siteName: "Choice",
+    siteName: "ForBody",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Партнерство з CHOICE у wellness-напрямку | Choice",
+    title: "Партнерство з CHOICE у wellness-напрямку | ForBody",
     description:
       "Дізнайтеся, як стати партнером CHOICE у сфері wellness та натуральних продуктів і побудувати стабільний дохід.",
     images: [`${baseUrl}/images/partnership/0068.jpg`],
@@ -101,7 +101,7 @@ export default function PartnershipPage() {
                 <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-[#D9D9D9]">
                   <Image
                     src="/images/partnership/0068.jpg"
-                    alt="Партнерство з CHOICE"
+                    alt="Партнерство з ForBody"
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 50vw, 25vw"
@@ -111,7 +111,7 @@ export default function PartnershipPage() {
                 <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-[#D9D9D9]">
                   <Image
                     src="/images/partnership/HL5A6060.jpg"
-                    alt="Команда CHOICE"
+                    alt="Команда ForBody"
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 50vw, 25vw"

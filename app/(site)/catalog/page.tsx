@@ -6,15 +6,15 @@ import { CatalogGridSkeleton } from "@/components/shared/SkeletonLoader";
 export const revalidate = 1200; // ISR every 20 minutes
 
 export const metadata: Metadata = {
-  title: "Каталог wellness та eco-продукції | Choice",
+  title: "Каталог wellness та eco-продукції | ForBody",
   description:
-    "Перегляньте повний каталог wellness-комплексів, фітопрепаратів, натурального догляду та eco-засобів для дому від Choice. Підберіть продукти для здоров'я, енергії та комфорту щодня.",
+    "Перегляньте повний каталог wellness-комплексів, фітопрепаратів, натурального догляду та eco-засобів для дому від ForBody. Підберіть продукти для здоров'я, енергії та комфорту щодня.",
   keywords:
-    "Choice, каталог продукції, wellness, фітокомплекси, вітаміни, натуральний догляд, eco-засоби для дому, здоров'я, імунітет, детокс, енергія",
+    "ForBody, каталог продукції, wellness, фітокомплекси, вітаміни, натуральний догляд, eco-засоби для дому, здоров'я, імунітет, детокс, енергія",
   openGraph: {
-    title: "Каталог wellness та eco-продукції | Choice",
+    title: "Каталог wellness та eco-продукції | ForBody",
     description:
-      "Wellness-комплекси, фітопрепарати, натуральний догляд і eco-засоби для дому від Choice. Оберіть рішення для вашого здоров'я та комфорту.",
+      "Wellness-комплекси, фітопрепарати, натуральний догляд і eco-засоби для дому від ForBody. Оберіть рішення для вашого здоров'я та комфорту.",
     type: "website",
     locale: "uk_UA",
     url: `${process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000"}/catalog`,
@@ -23,16 +23,16 @@ export const metadata: Metadata = {
         url: `${process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000"}/images/tg_image_3614117882.png`,
         width: 1200,
         height: 630,
-        alt: "Choice — каталог wellness та eco-продукції",
+        alt: "ForBody — каталог wellness та eco-продукції",
       },
     ],
-    siteName: "Choice",
+    siteName: "ForBody",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Каталог wellness та eco-продукції | Choice",
+    title: "Каталог wellness та eco-продукції | ForBody",
     description:
-      "Перегляньте каталог wellness та eco-продукції Choice: фітокомплекси, природна підтримка організму та засоби для здорового дому.",
+      "Перегляньте каталог wellness та eco-продукції ForBody: фітокомплекси, природна підтримка організму та засоби для здорового дому.",
     images: [
       `${
         process.env.PUBLIC_URL ||
