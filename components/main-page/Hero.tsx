@@ -6,9 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
 
-const HERO_IMAGE_DESKTOP =
-  "/images/hf_20260222_063745_3c9c7bbc-82d2-4f3f-8c11-4216792e4995.jpeg";
-const HERO_IMAGE_MOBILE = "/images/tg_image_3018005591.jpg";
+const HERO_IMAGE_DESKTOP = "/images/hero.jpg";
+const HERO_IMAGE_MOBILE = "/images/hero.jpg";
 
 export default function Hero() {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();

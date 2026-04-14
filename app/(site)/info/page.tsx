@@ -9,8 +9,8 @@ const scrollClass = "scroll-mt-[var(--site-header-offset)]";
 const faqItems = [
   {
     number: "01",
-    title: "Чи це оригінальна продукція ForBody?",
-    content: "Так. Всі продукти є оригінальною продукцією ForBody.",
+    title: "Чи це оригінальна продукція Choice?",
+    content: "Так. Усі продукти на сайті — оригінальна продукція виробника Choice.",
   },
   { number: "02", title: "Як обрати продукт?", content: "Ви можете обрати самостійно або звернутись за консультацією." },
   { number: "03", title: "Як швидко відправляється замовлення?", content: "Зазвичай протягом 1–2 робочих днів." },
@@ -62,154 +62,139 @@ export default function InfoPage() {
             Про бренд
           </h1>
 
-          {/* Про компанію ForBody — фото + вступ */}
+          {/* Про бренд */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Про бренд
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              ForBody — магазин, де є логіка, а не просто асортимент.
+            </p>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              ForBody з&apos;явився як відповідь на просту ситуацію: у людей багато продуктів, але немає системи, як їх використовувати.
+            </p>
+            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Тут зібрані позиції і готові набори, які поєднуються між собою і не створюють відчуття, що потрібно розбиратися у всьому з нуля.
+            </p>
+          </div>
+
+          {/* Про мене */}
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 max-w-6xl mx-auto mb-14 lg:mb-16">
-            <div className="lg:w-[480px] flex-shrink-0">
-              <div className="relative w-full aspect-[4/3] max-w-[480px] rounded-lg overflow-hidden bg-[#D9D9D9]">
+            <div className="lg:w-[420px] flex-shrink-0">
+              <div className="relative w-full aspect-[4/5] max-w-[420px] rounded-lg overflow-hidden bg-[#D9D9D9]">
                 <Image
-                  src="/images/choice-features/hf_20260307_215108_06a12bac-5d12-49df-91f4-d239d4ced1b7.png"
-                  alt="ForBody — виробництво та продукція"
+                  src="/HL5A6046.jpg"
+                  alt="Марія Максякова"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 480px"
+                  sizes="(max-width: 1024px) 100vw, 420px"
                   priority
                 />
               </div>
             </div>
-            <div className="flex-1 max-w-xl space-y-4 lg:pl-2 font-['Montserrat'] text-[#3D1A00]">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium uppercase tracking-[-0.02em] leading-[140%] text-[#3D1A00]">
-                Про компанію ForBody
+            <div className="flex-1 max-w-2xl space-y-4 font-['Montserrat'] text-[#3D1A00]">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] text-[#3D1A00]">
+                Про мене
               </h2>
               <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-                ForBody — українська виробнича компанія, що створює натуральні продукти для здоров&apos;я, краси та екологічного способу життя. Компанія працює з 2004 року і поєднує виробництво, розробку продуктів та партнерську бізнес-модель.
+                Марія Максякова. Вже 4 роки працюю з продукцією Choice і розвиваю власну мережу.
               </p>
               <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-                Основний напрямок діяльності — розробка фітокомплексів, продуктів здорового харчування, натуральної косметики та екологічних засобів для дому.
+                Це був свідомий вибір. Я орієнтуюсь на продукти, які можна зрозуміти по складу і логіці використання, а не тільки по обіцянках.
+              </p>
+              <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+                У роботі для мене важливо, щоб людина розуміла, що саме вона купує і як це використовувати в реальному житті.
               </p>
             </div>
           </div>
 
-          {/* Власне виробництво в Україні */}
+          {/* Про продукцію Choice */}
           <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
-              Власне виробництво в Україні
+              Про продукцію Choice
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Однією з ключових особливостей ForBody є власне виробництво. Продукція виготовляється на українських підприємствах із контролем усіх етапів — від закупівлі сировини до випуску готового продукту.
+              Усі продукти на сайті виготовляє українська компанія Choice.
+            </p>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Компанія працює з 2004 року і самостійно розробляє та виробляє продукцію. Це означає повний контроль процесу — від відбору сировини до готового продукту.
+            </p>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Виробництво знаходиться в Україні, з дотриманням стандартів якості та лабораторним контролем на різних етапах.
             </p>
             <p className="text-[#3D1A00]/80 font-semibold mb-2" style={{ fontSize: "clamp(14px, 1.1vw, 16px)", lineHeight: "159%" }}>
-              Основні виробничі майданчики:
+              Асортимент включає:
             </p>
-            <ul className="space-y-2 mb-4 list-none">
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>завод Фітобіопродукт — виробництво фітокомплексів та продуктів здорового харчування</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>завод Грінмакс Компані — виробництво екологічних засобів для дому та побуту</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>виробництво натуральної косметики White Mandarin</span>
-              </li>
+            <ul className="space-y-2 list-none">
+              {[
+                "фітокомплекси",
+                "функціональне харчування",
+                "натуральну косметику",
+                "екологічні засоби для дому",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
+          </div>
+
+          {/* Як створюється продукт */}
+          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
+              Як створюється продукт
+            </h2>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Choice працює з комплексними формулами, де компоненти підібрані для взаємодії між собою.
+            </p>
+            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
+              Такий підхід дозволяє використовувати продукти у вигляді курсів або поєднувати їх між собою без зайвих експериментів.
+            </p>
             <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Наразі компанія будує сучасний виробничий комплекс ForBody Manufacture, який дозволить розширити виробничі потужності та забезпечити натуральною продукцією не лише Україну, а й міжнародні ринки.
+              У частині продуктів застосовується технологія пророщених зерен, яка впливає на доступність поживних речовин для засвоєння.
             </p>
           </div>
 
-          {/* Стандарти якості */}
+          {/* Позиція і цінності Choice */}
           <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
-              Стандарти якості
+              Позиція і цінності Choice
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Виробництво відповідає міжнародним стандартам GMP та ISO, що гарантує контроль якості на кожному етапі виробництва.
+              Choice — український виробник, який будує продукт на базі складу, технологій і довгострокового використання.
             </p>
             <p className="text-[#3D1A00]/80 font-semibold mb-2" style={{ fontSize: "clamp(14px, 1.1vw, 16px)", lineHeight: "159%" }}>
-              Це включає:
+              Основні принципи:
             </p>
             <ul className="space-y-2 mb-4 list-none">
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>перевірку та відбір натуральної сировини</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>дотримання технологічних процесів</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span>лабораторний контроль готової продукції</span>
-              </li>
+              {[
+                "використання рослинної сировини",
+                "продумані поєднання компонентів",
+                "системний підхід до створення продуктів",
+                "відповідальність за якість на всіх етапах виробництва",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
             <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Такий підхід забезпечує стабільну якість, безпечність і ефективність продуктів.
+              Компанія орієнтується на усвідомлене споживання і регулярне використання продуктів у повсякденному житті.
             </p>
           </div>
 
-          {/* Унікальна технологія пророщених зерен */}
+          {/* Що ви тут купуєте */}
           <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
-              Унікальна технологія пророщених зерен
+              Що ви тут купуєте
             </h2>
             <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Однією з ключових розробок компанії стала запатентована технологія пророщування зерен злаків.
-            </p>
-            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Під час пророщування активуються ферменти, вітаміни, амінокислоти та антиоксиданти. Завдяки цьому поживні речовини переходять у форму, яка легше засвоюється організмом.
+              Асортимент сформований за принципом зручності та поєднуваності продуктів між собою.
             </p>
             <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Ця технологія використовується в багатьох фітокомплексах компанії та підвищує їхню біодоступність і ефективність.
-            </p>
-          </div>
-
-          {/* Бренди компанії */}
-          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
-              Бренди компанії
-            </h2>
-            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              ForBody розвиває кілька напрямків натуральної продукції:
-            </p>
-            <ul className="space-y-2 mb-4 list-none">
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>FORBODY PHYTO</strong> — фітокомплекси для здоров&apos;я</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>PRO HEALTHY</strong> — функціональне харчування</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>WHITE MANDARIN</strong> — натуральна косметика</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>GREEN MAX</strong> та <strong>BIOX</strong> — екологічні засоби для дому</span>
-              </li>
-              <li className="flex items-start gap-2 text-[#3D1A00]/85" style={{ fontSize: "clamp(14px, 1.1vw, 17px)", lineHeight: "159%" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3D1A00]/60 flex-shrink-0 mt-2" />
-                <span><strong>Добра Їжа</strong> — натуральні продукти харчування</span>
-              </li>
-            </ul>
-            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Такий мультибрендовий підхід дозволяє сформувати повноцінний асортимент натуральних продуктів для здорового способу життя.
-            </p>
-          </div>
-
-          {/* Спільнота та партнерство */}
-          <div className="max-w-6xl mx-auto mb-14 lg:mb-16 font-['Montserrat'] text-[#3D1A00]">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-medium uppercase tracking-[-0.02em] mb-4 text-[#3D1A00]">
-              Спільнота та партнерство
-            </h2>
-            <p className="text-[#3D1A00]/85 mb-4" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              ForBody — це не лише виробництво продукції, а й партнерська спільнота людей, які розвивають власні проєкти у сфері здоров&apos;я та екологічного способу життя.
-            </p>
-            <p className="text-[#3D1A00]/85" style={{ fontSize: "clamp(15px, 1.2vw, 18px)", lineHeight: "159%" }}>
-              Компанія надає партнерам доступ до навчання, бізнес-інструментів та можливості працювати з продукцією безпосередньо від виробника.
+              На сайті представлені як окремі позиції, так і готові набори, які вже мають продуману структуру використання. Це дозволяє обрати варіант під свій запит без необхідності самостійно комбінувати різні продукти.
             </p>
           </div>
 
