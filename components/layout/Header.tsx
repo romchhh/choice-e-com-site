@@ -17,8 +17,8 @@ interface Subcategory {
   name: string;
 }
 
-/** Затримка перед закриттям меню категорій — щоб встигнути перевести курсор на підкатегорії (fixed-панель не в межах hit-area батька). */
-const NAV_MENU_LEAVE_DELAY_MS = 420;
+/** Затримка перед закриттям меню категорій — щоб встигнути перевести курсор на fixed-панель після виходу з пункту. */
+const NAV_MENU_LEAVE_DELAY_MS = 280;
 
 export default function Header() {
   const {
@@ -87,7 +87,7 @@ export default function Header() {
     }, NAV_MENU_LEAVE_DELAY_MS);
   };
   const categoryRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-  const infoRef = useRef<HTMLDivElement | null>(null);
+  const infoRef = useRef<HTMLSpanElement | null>(null);
   const [categoryLeftPositions, setCategoryLeftPositions] = useState<Map<number, number>>(new Map());
   const [infoLeftPosition, setInfoLeftPosition] = useState<number>(0);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -258,8 +258,8 @@ export default function Header() {
               </span>
             </Link>
 
-            <div className="flex items-stretch gap-1 sm:gap-2 lg:gap-4 text-xs font-bold font-['Montserrat'] min-w-0">
-              {/* Product Categories shown directly in top nav */}
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 text-xs font-bold font-['Montserrat'] min-w-0">
+              {/* Product Categories — hover лише на тексті посилання, не на всю висоту рядка (items-stretch давав «раннє» відкриття). */}
               {Array.isArray(categories) && categories.map((category) => (
                 <div
                   key={category.id}
@@ -270,18 +270,18 @@ export default function Header() {
                       categoryRefs.current.delete(category.id);
                     }
                   }}
-                  className="relative group flex items-center h-full min-h-0 after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-20 after:content-['']"
-                  onMouseEnter={() => {
-                    cancelCatalogMenuClose();
-                    setHoveredCategoryId(category.id);
-                  }}
-                  onMouseLeave={() => {
-                    scheduleCatalogMenuClose();
-                  }}
+                  className="relative group flex items-center self-center min-h-0"
                 >
                   <Link
                     href={`/catalog?categoryId=${category.id}`}
-                    className={`relative z-10 cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
+                    onMouseEnter={() => {
+                      cancelCatalogMenuClose();
+                      setHoveredCategoryId(category.id);
+                    }}
+                    onMouseLeave={() => {
+                      scheduleCatalogMenuClose();
+                    }}
+                    className={`relative z-10 inline-block cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] px-3 py-1.5 rounded-full transition-colors duration-200 ${
                       headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                     }`}
                   >
@@ -332,22 +332,22 @@ export default function Header() {
               ))}
 
               {/* Information dropdown */}
-              <div
-                ref={infoRef}
-                className="relative flex items-center h-full min-h-0 after:pointer-events-auto after:absolute after:left-0 after:right-0 after:top-full after:z-[5] after:block after:h-20 after:content-['']"
-                onMouseEnter={() => {
-                  if (infoTimeout.current) clearTimeout(infoTimeout.current);
-                  setInfoMenuOpen(true);
-                }}
-                onMouseLeave={() => {
-                  infoTimeout.current = setTimeout(() => {
-                    setInfoMenuOpen(false);
-                  }, NAV_MENU_LEAVE_DELAY_MS);
-                }}
-              >
-                <span className={`relative z-10 cursor-default whitespace-nowrap text-xs font-bold font-['Montserrat'] hover:px-3 hover:py-1.5 hover:rounded-full transition-all duration-200 ${
-                  headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
-                } ${infoMenuOpen ? (headerTransparent ? "bg-white text-[#3D1A00] rounded-full px-3 py-1.5" : "bg-[#3D1A00] text-white rounded-full px-3 py-1.5") : ""}`}>
+              <div className="relative flex items-center self-center min-h-0">
+                <span
+                  ref={infoRef}
+                  onMouseEnter={() => {
+                    if (infoTimeout.current) clearTimeout(infoTimeout.current);
+                    setInfoMenuOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    infoTimeout.current = setTimeout(() => {
+                      setInfoMenuOpen(false);
+                    }, NAV_MENU_LEAVE_DELAY_MS);
+                  }}
+                  className={`relative z-10 inline-block cursor-default whitespace-nowrap text-xs font-bold font-['Montserrat'] px-3 py-1.5 rounded-full transition-colors duration-200 ${
+                    headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
+                  } ${infoMenuOpen ? (headerTransparent ? "bg-white text-[#3D1A00]" : "bg-[#3D1A00] text-white") : ""}`}
+                >
                   ІНФО
                 </span>
 
