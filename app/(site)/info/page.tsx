@@ -18,7 +18,7 @@ const faqItems = [
 ];
 
 const brandFeatures = [
-  { label: "ОРИГІНАЛЬНА ПРОДУКЦІЯ FORBODY", icon: "/images/choice-features/original-product.png" },
+  { label: "ОРИГІНАЛЬНА ПРОДУКЦІЯ CHOICE", icon: "/images/choice-features/original-product.png" },
   { label: "ПРОДУКТИ ДЛЯ ЗДОРОВ'Я, ДОГЛЯДУ І ДОМУ", icon: "/images/choice-features/health-care-home.png" },
   { label: "РОСЛИННІ ФОРМУЛИ", icon: "/images/choice-features/plant-formulas.png" },
   { label: "ОФІЦІЙНИЙ ПРЕДСТАВНИК БРЕНДУ", icon: "/images/choice-features/official-badge.png" },
@@ -257,7 +257,7 @@ export default function InfoPage() {
                 }}
                 className="text-[#3D1A00]/80"
               >
-                ForBody пропонує можливість співпраці для тих, хто хоче працювати у сфері wellness і eco-продуктів, та отримувати додатковий дохід.
+                Пропоную можливість спавпраці з компанією CHOICE для тих, хто хоче працювати у сфері wellness і eco-продуктів, та отримувати додатковий дохід.
               </p>
               <p
                 style={{
