@@ -409,24 +409,29 @@ export default function Header() {
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-4 self-center shrink-0">
-              <button 
-                onClick={() => setIsSearchOpen(true)} 
-                className="flex items-center rounded-full px-4 py-2 transition-colors bg-[#D7D799] hover:opacity-90"
+            <div className="flex items-center gap-1 self-center shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Пошук"
+                className="cursor-pointer relative flex h-12 w-12 shrink-0 items-center justify-center transition-opacity hover:opacity-80"
               >
                 <Image
-                  className="cursor-pointer h-5 w-5 mr-2 brightness-0"
-                  height="20"
-                  width="20"
-                  alt="search icon"
+                  className="h-7 w-7"
+                  height="28"
+                  width="28"
+                  alt=""
                   src="/images/dark-theme/search.svg"
-                  style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)" }}
+                  style={{
+                    filter: headerTransparent
+                      ? "brightness(0) invert(1)"
+                      : "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)",
+                  }}
                 />
-                <span className="text-sm font-['Montserrat'] text-[#3D1A00]">Пошук</span>
               </button>
 
               <button
-                className="cursor-pointer relative flex items-center justify-center p-2 min-w-[3rem] min-h-[3rem]"
+                className="cursor-pointer relative flex h-12 w-12 shrink-0 items-center justify-center"
                 onClick={() => setIsBasketOpen(!isBasketOpen)}
               >
                 <Image
