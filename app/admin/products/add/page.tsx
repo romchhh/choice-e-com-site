@@ -10,6 +10,7 @@ import TextArea from "@/components/admin/form/input/TextArea";
 import ToggleSwitch from "@/components/admin/form/ToggleSwitch";
 import Image from "next/image";
 import { parseProductPageText } from "@/lib/parseProductFile";
+import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
 
 interface Category {
   id: number;
@@ -192,6 +193,12 @@ export default function FormElements() {
       const primaryCategoryId = allCategoryIds[0] ?? null;
       const primarySubcategoryId = allSubcategoryIds[0] ?? null;
 
+      const pricing = normalizeProductPricing(
+        Number(price),
+        parseOptionalNumber(oldPrice),
+        parseOptionalNumber(discountPercentage)
+      );
+
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,9 +218,9 @@ export default function FormElements() {
           usage_method: usageMethod || null,
           contraindications: contraindications || null,
           storage_conditions: storageConditions || null,
-          price: Number(price),
-          old_price: oldPrice ? Number(oldPrice) : null,
-          discount_percentage: discountPercentage ? Number(discountPercentage) : null,
+          price: pricing.price,
+          old_price: pricing.old_price,
+          discount_percentage: pricing.discount_percentage,
           priority: Number(priority || 0),
           stock: Number(stock) || 0,
           top_sale: bestseller,

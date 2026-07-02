@@ -1063,7 +1063,9 @@ export default function FinalCard() {
             {/* Right column: order summary */}
             <div className="w-full lg:w-1/2 flex flex-col gap-5">
               {items.map((item) => {
-                const displayPrice = item.discount_percentage ? Math.round(item.price * (1 - item.discount_percentage / 100)) : item.price;
+                const displayPrice = Math.round(
+                  getDiscountedPrice(item.price, item.discount_percentage)
+                );
                 return (
                   <div key={`${item.id}-${item.size}`} className="bg-white border border-[#3D1A00]/15 rounded-xl p-5 sm:p-6 flex flex-row gap-4 sm:gap-6 relative">
                     {/* Кнопка видалити — темно-коричневий X у правому верхньому куті картки */}

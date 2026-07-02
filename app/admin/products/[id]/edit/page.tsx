@@ -10,6 +10,7 @@ import Input from "@/components/admin/form/input/InputField";
 import TextArea from "@/components/admin/form/input/TextArea";
 import DropzoneComponent from "@/components/admin/form/form-elements/DropZone";
 import ToggleSwitch from "@/components/admin/form/ToggleSwitch";
+import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
 
 type MediaFile = {
   id?: number; // for existing ones
@@ -154,9 +155,22 @@ export default function EditProductPage() {
           usageMethod: productData.usage_method || "",
           contraindications: productData.contraindications || "",
           storageConditions: productData.storage_conditions || "",
-          price: String(productData.price || ""),
-          oldPrice: String(productData.old_price || ""),
-          discountPercentage: String(productData.discount_percentage || ""),
+          ...(() => {
+            const pricing = normalizeProductPricing(
+              Number(productData.price || 0),
+              parseOptionalNumber(productData.old_price),
+              parseOptionalNumber(productData.discount_percentage)
+            );
+            return {
+              price: String(pricing.price || ""),
+              oldPrice:
+                pricing.old_price != null ? String(pricing.old_price) : "",
+              discountPercentage:
+                pricing.discount_percentage != null
+                  ? String(pricing.discount_percentage)
+                  : "",
+            };
+          })(),
           priority: String(productData.priority || 0),
           stock: String(productData.stock ?? 0),
           media: mediaArray,
@@ -436,6 +450,12 @@ export default function EditProductPage() {
       const primaryCategoryId = allCategoryIds[0] ?? null;
       const primarySubcategoryId = allSubcategoryIds[0] ?? null;
 
+      const pricing = normalizeProductPricing(
+        Number(formData.price),
+        parseOptionalNumber(formData.oldPrice),
+        parseOptionalNumber(formData.discountPercentage)
+      );
+
       const res = await fetch(`/api/products/${productId}`, {
         method: "PUT",
         headers: {
@@ -457,9 +477,9 @@ export default function EditProductPage() {
           usage_method: formData.usageMethod || null,
           contraindications: formData.contraindications || null,
           storage_conditions: formData.storageConditions || null,
-          price: Number(formData.price),
-          old_price: formData.oldPrice ? Number(formData.oldPrice) : null,
-          discount_percentage: formData.discountPercentage ? Number(formData.discountPercentage) : null,
+          price: pricing.price,
+          old_price: pricing.old_price,
+          discount_percentage: pricing.discount_percentage,
           priority: Number(formData.priority),
           stock: Number(formData.stock) || 0,
           media: updatedMedia,

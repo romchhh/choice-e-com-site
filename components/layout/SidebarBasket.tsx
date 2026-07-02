@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBasket } from "@/lib/BasketProvider";
 import Link from "next/link";
 import Image from "next/image";
-import { getItemSubtotal } from "@/lib/pricing";
+import { getDiscountedPrice, getItemSubtotal } from "@/lib/pricing";
 
 interface SidebarBasketProps {
   isOpen: boolean;
@@ -76,9 +76,10 @@ export default function SidebarBasket({
           )}
 
           {items.map((item) => {
-            const displayPrice = item.discount_percentage
-              ? Math.round(item.price * (1 - item.discount_percentage / 100))
-              : item.price;
+            const displayPrice = getDiscountedPrice(
+              item.price,
+              item.discount_percentage
+            );
             return (
               <div
                 key={`${item.id}-${item.size}`}

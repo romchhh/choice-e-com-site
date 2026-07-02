@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sqlGetProduct, sqlPutProduct, sqlDeleteProduct } from "@/lib/sql";
 import { apiLogger } from "@/lib/logger";
 import { revalidateProducts } from "@/lib/revalidate";
+import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
 
 // Enable ISR for this route
 export const revalidate = 1200; // 20 minutes
@@ -84,10 +85,11 @@ export async function PUT(
     const subcategoryId = body.subcategory_id
       ? Number(body.subcategory_id)
       : null;
-    const oldPrice = body.old_price ? Number(body.old_price) : null;
-    const discountPercentage = body.discount_percentage
-      ? Number(body.discount_percentage)
-      : null;
+    const pricing = normalizeProductPricing(
+      Number(body.price),
+      parseOptionalNumber(body.old_price),
+      parseOptionalNumber(body.discount_percentage)
+    );
     const priority = body.priority ? Number(body.priority) : 0;
     const hasLining = body.has_lining === true;
     const liningDescription = body.lining_description || "";
@@ -138,9 +140,9 @@ export async function PUT(
       usage_method: body.usage_method ?? undefined,
       contraindications: body.contraindications ?? undefined,
       storage_conditions: body.storage_conditions ?? undefined,
-      price: body.price,
-      old_price: oldPrice,
-      discount_percentage: discountPercentage,
+      price: pricing.price,
+      old_price: pricing.old_price,
+      discount_percentage: pricing.discount_percentage,
       priority,
       top_sale: topSale,
       in_stock: inStock,

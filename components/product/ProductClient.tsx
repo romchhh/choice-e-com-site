@@ -8,7 +8,7 @@ import Link from "next/link";
 import Alert from "@/components/shared/Alert";
 import CartAlert from "@/components/shared/CartAlert";
 import { getFirstProductImage } from "@/lib/getFirstProductImage";
-import { getDiscountedPrice } from "@/lib/pricing";
+import { getDiscountedPrice, getProductPriceDisplay } from "@/lib/pricing";
 import {
   GA4_BRAND,
   GA4_CURRENCY,
@@ -180,9 +180,11 @@ export default function ProductClient({ product }: ProductClientProps) {
   const outOfStock =
     product.in_stock === false ||
     (typeof product.stock === "number" && product.stock <= 0);
-  const displayPrice = product.discount_percentage
-    ? Math.round(product.price * (1 - product.discount_percentage / 100))
-    : product.price;
+  const { displayPrice } = getProductPriceDisplay({
+    price: product.price,
+    old_price: product.old_price,
+    discount_percentage: product.discount_percentage,
+  });
 
   const analyticsCategory = product.subcategory_name ?? product.category_name ?? null;
 

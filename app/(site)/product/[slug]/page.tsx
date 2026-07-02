@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { sqlGetProductBySlug, sqlGetProduct, sqlGetAllProducts } from "@/lib/sql";
 import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
+import { getDiscountedPrice } from "@/lib/pricing";
 import { redirect, notFound } from "next/navigation";
 
 interface PageProps {
@@ -46,9 +47,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const imageUrl = firstMedia
     ? `${baseUrl}/api/images/${firstMedia.url}`
     : `${baseUrl}/images/tg_image_3614117882.png`;
-  const price = product.discount_percentage
-    ? (product.price * (1 - product.discount_percentage / 100)).toFixed(0)
-    : product.price.toFixed(0);
+  const price = getDiscountedPrice(
+    Number(product.price),
+    product.discount_percentage
+  ).toFixed(0);
   const categoryName = product.category_name || "wellness-продукція";
 
   const baseDescription =

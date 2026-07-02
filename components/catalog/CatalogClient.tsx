@@ -9,7 +9,7 @@ import SidebarMenu from "../layout/SidebarMenu";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import ProductSkeleton from "./ProductSkeleton";
 import { useSearchParams } from "next/navigation";
-import { getDiscountedPrice } from "@/lib/pricing";
+import { getDiscountedPrice, getProductPriceDisplay } from "@/lib/pricing";
 import {
   GA4_BRAND,
   GA4_CURRENCY,
@@ -865,28 +865,8 @@ export default function CatalogClient({
                   const outOfStock =
                     product.in_stock === false ||
                     (typeof product.stock === "number" && product.stock <= 0);
-                  const hasPct =
-                    product.discount_percentage != null && Number(product.discount_percentage) > 0;
-                  const hasOld =
-                    product.old_price != null && Number(product.old_price) > Number(product.price);
-                  const displayPrice = hasPct
-                    ? Math.round(product.price * (1 - Number(product.discount_percentage) / 100))
-                    : product.price;
-                  const strikePrice = hasPct
-                    ? product.price
-                    : hasOld
-                    ? Number(product.old_price)
-                    : null;
-                  const discountBadgePct = hasPct
-                    ? Number(product.discount_percentage)
-                    : hasOld
-                    ? Math.max(
-                        1,
-                        Math.round(
-                          (1 - Number(product.price) / Number(product.old_price)) * 100
-                        )
-                      )
-                    : null;
+                  const { displayPrice, strikePrice, discountBadgePct } =
+                    getProductPriceDisplay(product);
                   const rawDesc = product.description
                     ? product.description.replace(/<[^>]*>/g, "").trim()
                     : "";

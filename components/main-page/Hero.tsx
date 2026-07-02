@@ -18,7 +18,7 @@ export default function Hero() {
         {/* Hero image — mobile */}
         <Image
           src={HERO_IMAGE_MOBILE}
-          alt={`${SITE_STORE_NAME} — eco та wellness`}
+          alt={`${SITE_STORE_NAME} - eco та wellness`}
           fill
           className="object-cover object-center sm:hidden"
           priority
@@ -28,7 +28,7 @@ export default function Hero() {
         {/* Hero image — desktop */}
         <Image
           src={HERO_IMAGE_DESKTOP}
-          alt={`${SITE_STORE_NAME} — eco та wellness`}
+          alt={`${SITE_STORE_NAME} - eco та wellness`}
           fill
           className="hidden sm:block object-cover object-right"
           priority
@@ -62,7 +62,9 @@ export default function Hero() {
                 letterSpacing: "-0.02em",
               }}
             >
-              {SITE_STORE_NAME} — eco та wellness для здоров&apos;я і дому
+              {SITE_STORE_NAME}
+              <span className="whitespace-pre"> - </span>
+              eco та wellness для здоров&apos;я і дому
             </h1>
             <p className="text-white text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-2xl font-['Montserrat'] text-left opacity-90 max-w-xl drop-shadow-md" style={{ letterSpacing: "0.02em" }}>
               Інтернет-магазин офіційного представника бренду {SITE_PRODUCT_BRAND}: wellness-комплекси, натуральний догляд та eco-засоби для щоденного життя.

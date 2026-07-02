@@ -5,6 +5,7 @@ import {
   SITE_STORE_NAME,
   siteFooterLead,
 } from "@/lib/siteBrand";
+import { getDiscountedPrice } from "@/lib/pricing";
 
 interface ProductStructuredDataProps {
   product: {
@@ -94,9 +95,7 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
 
   const offer = {
     "@type": "Offer",
-    price: product.discount_percentage
-      ? (product.price * (1 - product.discount_percentage / 100)).toFixed(2)
-      : product.price.toFixed(2),
+    price: getDiscountedPrice(product.price, product.discount_percentage).toFixed(2),
     priceCurrency: "UAH",
     availability: isInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     url: productUrl,

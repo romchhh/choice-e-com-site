@@ -7,6 +7,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { apiLogger } from "@/lib/logger";
+import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
 
 // Helper function to determine file type
 function getFileType(mimeType: string, filename: string): "photo" | "video" {
@@ -130,6 +131,12 @@ export async function POST(req: Request) {
         );
       }
 
+      const pricing = normalizeProductPricing(
+        Number(price),
+        parseOptionalNumber(old_price),
+        parseOptionalNumber(discount_percentage)
+      );
+
       const product = await sqlPostProduct({
         name,
         subtitle: subtitle ?? null,
@@ -146,9 +153,9 @@ export async function POST(req: Request) {
         usage_method: usage_method ?? null,
         contraindications: contraindications ?? null,
         storage_conditions: storage_conditions ?? null,
-        price,
-        old_price,
-        discount_percentage,
+        price: pricing.price,
+        old_price: pricing.old_price,
+        discount_percentage: pricing.discount_percentage,
         priority,
         stock: typeof stock === "number" ? stock : Number(stock) || 0,
         media,
@@ -198,12 +205,11 @@ export async function POST(req: Request) {
 
     const name = formData.get("name") as string;
     const price = Number(formData.get("price"));
-    const oldPrice = formData.get("old_price")
-      ? Number(formData.get("old_price"))
-      : null;
-    const discountPercentage = formData.get("discount_percentage")
-      ? Number(formData.get("discount_percentage"))
-      : null;
+    const pricing = normalizeProductPricing(
+      price,
+      parseOptionalNumber(formData.get("old_price")),
+      parseOptionalNumber(formData.get("discount_percentage"))
+    );
     const priority = formData.get("priority")
       ? Number(formData.get("priority"))
       : 0;
@@ -258,9 +264,9 @@ export async function POST(req: Request) {
     const product = await sqlPostProduct({
       name,
       description,
-      price,
-      old_price: oldPrice,
-      discount_percentage: discountPercentage,
+      price: pricing.price,
+      old_price: pricing.old_price,
+      discount_percentage: pricing.discount_percentage,
       priority,
       stock,
       top_sale: topSale,

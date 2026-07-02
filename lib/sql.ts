@@ -4,6 +4,19 @@ import { unlink } from "fs/promises";
 import path from "path";
 import { unstable_cache } from "next/cache";
 import { textToSlug, ensureUniqueSlug } from "./slug";
+import { normalizeProductPricing, parseOptionalNumber } from "./pricing";
+
+function formatProductPricing(
+  price: unknown,
+  oldPrice: unknown,
+  discountPercentage: unknown
+) {
+  return normalizeProductPricing(
+    Number(price),
+    parseOptionalNumber(oldPrice),
+    parseOptionalNumber(discountPercentage)
+  );
+}
 
 // Keep sql template literal for backward compatibility (used in migrate route)
 // This will be deprecated but kept for now
@@ -72,10 +85,8 @@ async function _sqlGetAllProducts() {
     id: p.id,
     name: p.name,
     slug: p.slug ?? null,
-    price: Number(p.price),
     description: p.description,
-    old_price: p.oldPrice ? Number(p.oldPrice) : null,
-    discount_percentage: p.discountPercentage,
+    ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
     is_hit: p.isHit ?? false,
     dietitian_approved: p.dietitianApproved ?? false,
     is_promo: p.isPromo ?? false,
@@ -166,9 +177,11 @@ export async function sqlGetProduct(id: number) {
         usage_method: product.usageMethod ?? null,
         contraindications: product.contraindications ?? null,
         storage_conditions: product.storageConditions ?? null,
-        price: Number(product.price),
-        old_price: product.oldPrice ? Number(product.oldPrice) : null,
-        discount_percentage: product.discountPercentage,
+        ...formatProductPricing(
+          product.price,
+          product.oldPrice,
+          product.discountPercentage
+        ),
         priority: product.priority,
         top_sale: product.topSale,
         in_stock: product.inStock,
@@ -270,9 +283,11 @@ export async function sqlGetProductBySlug(slug: string) {
     usage_method: product.usageMethod ?? null,
     contraindications: product.contraindications ?? null,
     storage_conditions: product.storageConditions ?? null,
-    price: Number(product.price),
-    old_price: product.oldPrice ? Number(product.oldPrice) : null,
-    discount_percentage: product.discountPercentage,
+    ...formatProductPricing(
+      product.price,
+      product.oldPrice,
+      product.discountPercentage
+    ),
     priority: product.priority,
     top_sale: product.topSale,
     in_stock: product.inStock,
@@ -372,9 +387,7 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
-        price: Number(p.price),
-        old_price: p.oldPrice ? Number(p.oldPrice) : null,
-        discount_percentage: p.discountPercentage,
+        ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
         is_hit: p.isHit ?? false,
@@ -466,9 +479,7 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
-        price: Number(p.price),
-        old_price: p.oldPrice ? Number(p.oldPrice) : null,
-        discount_percentage: p.discountPercentage,
+        ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
         is_hit: p.isHit ?? false,
@@ -532,9 +543,7 @@ async function _sqlGetTopSaleProducts() {
     id: p.id,
     name: p.name,
     slug: p.slug ?? null,
-    price: Number(p.price),
-    old_price: p.oldPrice ? Number(p.oldPrice) : null,
-    discount_percentage: p.discountPercentage,
+    ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
     top_sale: p.topSale,
     limited_edition: p.limitedEdition,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
@@ -572,9 +581,7 @@ async function _sqlGetLimitedEditionProducts() {
     id: p.id,
     name: p.name,
     slug: p.slug ?? null,
-    price: Number(p.price),
-    old_price: p.oldPrice ? Number(p.oldPrice) : null,
-    discount_percentage: p.discountPercentage,
+    ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
     top_sale: p.topSale,
     limited_edition: p.limitedEdition,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
@@ -637,6 +644,12 @@ export async function sqlPostProduct(product: {
     prisma.product.findFirst({ where: { slug: s } }).then(Boolean)
   );
 
+  const pricing = normalizeProductPricing(
+    product.price,
+    product.old_price,
+    product.discount_percentage
+  );
+
   const created = await prisma.product.create({
     data: {
       name: product.name,
@@ -655,9 +668,9 @@ export async function sqlPostProduct(product: {
       usageMethod: product.usage_method ?? null,
       contraindications: product.contraindications ?? null,
       storageConditions: product.storage_conditions ?? null,
-      price: product.price,
-      oldPrice: product.old_price ?? null,
-      discountPercentage: product.discount_percentage ?? null,
+      price: pricing.price,
+      oldPrice: pricing.old_price,
+      discountPercentage: pricing.discount_percentage,
       priority: product.priority ?? 0,
       topSale: product.top_sale ?? false,
       inStock: product.in_stock ?? true,
@@ -764,6 +777,18 @@ export async function sqlPutProduct(
     subcategory_ids?: number[];
   }
 ) {
+  const pricing = normalizeProductPricing(
+    update.price,
+    update.old_price,
+    update.discount_percentage
+  );
+  update = {
+    ...update,
+    price: pricing.price,
+    old_price: pricing.old_price,
+    discount_percentage: pricing.discount_percentage,
+  };
+
   const oldMedia = await prisma.productMedia.findMany({
     where: { productId: id },
     select: { url: true },
@@ -804,8 +829,10 @@ export async function sqlPutProduct(
         contraindications: update.contraindications ?? undefined,
         storageConditions: update.storage_conditions ?? undefined,
         price: update.price,
-        oldPrice: update.old_price ?? undefined,
-        discountPercentage: update.discount_percentage ?? undefined,
+        ...(update.old_price !== undefined ? { oldPrice: update.old_price } : {}),
+        ...(update.discount_percentage !== undefined
+          ? { discountPercentage: update.discount_percentage }
+          : {}),
         priority: update.priority ?? undefined,
         topSale: update.top_sale ?? undefined,
         inStock: update.in_stock ?? undefined,
