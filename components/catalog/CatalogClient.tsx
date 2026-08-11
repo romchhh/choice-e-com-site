@@ -1087,7 +1087,7 @@ export default function CatalogClient({
                   onClick={() => setVisibleCount((prev) => prev + 9)}
                   className="px-8 py-3 bg-[#3D1A00] text-white font-semibold font-['Montserrat'] uppercase tracking-wider hover:bg-[#3D1A00]/90 transition-colors rounded-lg min-h-[44px]"
                 >
-                  Показати ще
+                  {dict.common.more}
                 </button>
               </div>
             )}
