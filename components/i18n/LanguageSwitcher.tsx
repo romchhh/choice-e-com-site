@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { localePath, stripLocalePrefix } from "@/lib/i18n/paths";
 import type { Locale } from "@/lib/i18n/config";
@@ -12,8 +11,10 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
   const { locale } = useLocale();
   const search = searchParams?.toString() ? `?${searchParams.toString()}` : "";
 
-  // usePathname() may return rewritten path (/) or /ru — always strip, then re-prefix
-  const barePath = stripLocalePrefix(pathname);
+  // Browser URL is source of truth (/ru is rewritten away from usePathname)
+  const browserPath =
+    typeof window !== "undefined" ? window.location.pathname : pathname;
+  const barePath = stripLocalePrefix(browserPath);
   const hrefFor = (next: Locale) => localePath(`${barePath}${search}`, next);
 
   return (
@@ -21,7 +22,8 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
       className={`inline-flex items-center gap-1 font-['Montserrat'] text-xs sm:text-sm font-semibold tracking-wide text-current ${className}`}
       aria-label="Language"
     >
-      <Link
+      {/* Full document navigation: layout getLocale() + client dict stay in sync */}
+      <a
         href={hrefFor("uk")}
         className={
           locale === "uk"
@@ -29,14 +31,13 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
             : "opacity-60 hover:opacity-100"
         }
         hrefLang="uk"
-        scroll={false}
       >
         UA
-      </Link>
+      </a>
       <span className="opacity-40" aria-hidden>
         |
       </span>
-      <Link
+      <a
         href={hrefFor("ru")}
         className={
           locale === "ru"
@@ -44,10 +45,9 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
             : "opacity-60 hover:opacity-100"
         }
         hrefLang="ru"
-        scroll={false}
       >
         RU
-      </Link>
+      </a>
     </div>
   );
 }
