@@ -73,6 +73,24 @@ async function main() {
 
   console.log("Done.");
   await prisma.$disconnect();
+
+  // Bust Next.js product/category caches so /ru/catalog shows new RU texts
+  const base =
+    process.env.PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_PUBLIC_URL ||
+    "http://127.0.0.1:3000";
+  try {
+    const secret = process.env.REVALIDATE_SECRET?.trim();
+    const url = new URL("/api/revalidate-catalog", base.replace(/\/$/, ""));
+    if (secret) url.searchParams.set("secret", secret);
+    const res = await fetch(url.toString(), { method: "POST" });
+    console.log(`Cache revalidate: ${res.status} ${await res.text()}`);
+  } catch (e) {
+    console.warn(
+      "Cache revalidate skipped (restart pm2 or wait ~20 min):",
+      e instanceof Error ? e.message : e
+    );
+  }
 }
 
 main().catch((e) => {

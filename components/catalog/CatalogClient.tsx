@@ -20,6 +20,7 @@ import {
 import { SITE_STORE_NAME } from "@/lib/siteBrand";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
 import { catalogProductWord } from "@/lib/i18n/plural";
+import { localizeList } from "@/lib/i18n/localizeCatalog";
 
 interface Product {
   id: number;
@@ -28,6 +29,10 @@ interface Product {
   price: number;
   old_price?: number | null;
   description?: string | null;
+  name_ru?: string | null;
+  description_ru?: string | null;
+  course_ru?: string | null;
+  package_weight_ru?: string | null;
   first_media?: { url: string; type: string } | null;
   discount_percentage?: number | null;
   is_hit?: boolean;
@@ -58,6 +63,9 @@ interface CatalogClientProps {
   categories: Category[];
   initialSelectedCategoryIds?: number[];
   selectedCategoryDescription?: string | null;
+  pageHeading?: string;
+  pageIntro?: string | null;
+  activeCategoryLabel?: string | null;
 }
 
 /** Товар у блоці «Акції» / ?promo=1: плашка акції, % знижки або знижка через стару ціну. */
@@ -73,11 +81,20 @@ export default function CatalogClient({
   categories,
   initialSelectedCategoryIds,
   selectedCategoryDescription,
+  pageHeading,
+  pageIntro,
+  activeCategoryLabel,
 }: CatalogClientProps) {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
   const { addItem } = useBasket();
   const { dict, locale } = useLocale();
   const numberLocale = locale === "ru" ? "ru-RU" : "uk-UA";
+
+  /** Always overlay RU fields on the client — works even if SSR cache was stale. */
+  const localizedProducts = useMemo(
+    () => localizeList(initialProducts, locale, "product"),
+    [initialProducts, locale]
+  );
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recommended" | "newest" | "asc" | "desc" | "sale">("recommended");
@@ -86,7 +103,7 @@ export default function CatalogClient({
     initialSelectedCategoryIds ?? []
   );
   const [subcategories, setSubcategories] = useState<
-    { id: number; name: string; category_id: number }[]
+    { id: number; name: string; name_uk?: string; category_id: number }[]
   >([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number | null>(null);
@@ -98,17 +115,29 @@ export default function CatalogClient({
   const searchParams = useSearchParams();
   const initializedFromQueryRef = useRef(false);
 
-  // Load all subcategories for filters
+  // Load all subcategories for filters (with RU overlay)
   useEffect(() => {
     let cancelled = false;
     async function loadSubcategories() {
       try {
         const res = await fetch("/api/subcategories");
         if (!res.ok) return;
-        const data: { id: number; name: string; category_id: number }[] =
-          await res.json();
+        const data: {
+          id: number;
+          name: string;
+          category_id: number;
+          name_ru?: string | null;
+        }[] = await res.json();
         if (!cancelled) {
-          setSubcategories(data);
+          const localized = localizeList(data, locale, "subcategory");
+          setSubcategories(
+            localized.map((s) => ({
+              id: s.id,
+              name: s.name,
+              name_uk: (s as { name_uk?: string }).name_uk ?? data.find((d) => d.id === s.id)?.name,
+              category_id: s.category_id,
+            }))
+          );
         }
       } catch {
         // тихо ігноруємо помилку — фільтр за підкатегоріями просто не з'явиться
@@ -118,7 +147,7 @@ export default function CatalogClient({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   // Init/override selection when приходимо з хедера по підкатегорії (?subcategory=...)
   useEffect(() => {
@@ -127,9 +156,13 @@ export default function CatalogClient({
     const subName = searchParams.get("subcategory");
     if (!subName) return;
 
-    const found = subcategories.find(
-      (s) => s.name.toLowerCase() === subName.toLowerCase()
-    );
+    const found = subcategories.find((s) => {
+      const q = subName.toLowerCase();
+      return (
+        s.name.toLowerCase() === q ||
+        (s.name_uk && s.name_uk.toLowerCase() === q)
+      );
+    });
     if (!found) return;
 
     initializedFromQueryRef.current = true;
@@ -172,16 +205,16 @@ export default function CatalogClient({
   }, [searchParams]);
 
   const priceRange = useMemo(() => {
-    if (initialProducts.length === 0) return { min: 0, max: 10000 };
-    const prices = initialProducts.map((p) => p.price);
+    if (localizedProducts.length === 0) return { min: 0, max: 10000 };
+    const prices = localizedProducts.map((p) => p.price);
     return {
       min: Math.floor(Math.min(...prices)),
       max: Math.ceil(Math.max(...prices)),
     };
-  }, [initialProducts]);
+  }, [localizedProducts]);
 
   const filteredProducts = useMemo(() => {
-    return initialProducts.filter((product) => {
+    return localizedProducts.filter((product) => {
       const productCategoryIds =
         product.category_ids && product.category_ids.length > 0
           ? product.category_ids
@@ -209,7 +242,7 @@ export default function CatalogClient({
         matchesCategory && matchesSubcategory && matchesMinPrice && matchesMaxPrice && matchesPromo
       );
     });
-  }, [initialProducts, minPrice, maxPrice, selectedCategories, selectedSubcategories, promoOnly]);
+  }, [localizedProducts, minPrice, maxPrice, selectedCategories, selectedSubcategories, promoOnly]);
 
   useEffect(() => {
     setIsFiltering(true);
@@ -218,8 +251,8 @@ export default function CatalogClient({
   }, [selectedCategories, selectedSubcategories, minPrice, maxPrice, sortOrder, promoOnly]);
 
   const hasPromoProducts = useMemo(() => {
-    return initialProducts.some((p) => isCatalogPromoProduct(p));
-  }, [initialProducts]);
+    return localizedProducts.some((p) => isCatalogPromoProduct(p));
+  }, [localizedProducts]);
 
   const singleSelectedCategoryDescription = useMemo(() => {
     if (selectedCategoryDescription) return selectedCategoryDescription;
@@ -373,14 +406,32 @@ export default function CatalogClient({
               </LocaleLink>
             </li>
             <li aria-hidden className="text-gray-300">|</li>
-            <li className="text-[#3D1A00]">{dict.catalog.title}</li>
+            {activeCategoryLabel ? (
+              <>
+                <li>
+                  <LocaleLink href="/catalog" className="hover:text-gray-700 transition-colors">
+                    {dict.catalog.title}
+                  </LocaleLink>
+                </li>
+                <li aria-hidden className="text-gray-300">|</li>
+                <li className="text-[#3D1A00]">{activeCategoryLabel}</li>
+              </>
+            ) : (
+              <li className="text-[#3D1A00]">{dict.catalog.title}</li>
+            )}
           </ol>
         </nav>
 
-        {/* Великий заголовок по центру */}
-        <h1 className="text-center text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-10">
-          {dict.catalog.title}
-        </h1>
+        <header className="mb-8 sm:mb-10 max-w-3xl mx-auto text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00]">
+            {pageHeading || dict.catalog.title}
+          </h1>
+          {pageIntro ? (
+            <p className="mt-3 text-sm sm:text-base font-['Montserrat'] text-gray-600 leading-relaxed">
+              {pageIntro}
+            </p>
+          ) : null}
+        </header>
 
         {/* Мобільна кнопка фільтрів — відкриває ті самі фільтри, що й на десктопі */}
         <button

@@ -1,16 +1,21 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import LocaleLink from "@/components/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useProducts } from "@/lib/useProducts";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
+import { localizeList } from "@/lib/i18n/localizeCatalog";
 
 export default function Bestsellers() {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const { products, loading } = useProducts({ topSale: true });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const items = useMemo(
+    () => localizeList(products, locale, "product").slice(0, 8),
+    [products, locale]
+  );
 
   const scrollLeft = () => {
     const container = scrollContainerRef.current;
@@ -21,8 +26,6 @@ export default function Bestsellers() {
     const container = scrollContainerRef.current;
     if (container) container.scrollBy({ left: 320, behavior: "smooth" });
   };
-
-  const items = products.slice(0, 8);
 
   if (loading) {
     return (

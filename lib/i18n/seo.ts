@@ -154,35 +154,95 @@ export function buildSeoMetadata(opts: BuildSeoOptions): Metadata {
 /** Catalog listing / category SEO copy. */
 export function catalogSeoCopy(
   locale: Locale,
-  categoryName?: string | null
-): { title: string; description: string; keywords: string } {
+  opts?: {
+    categoryName?: string | null;
+    categoryDescription?: string | null;
+    productCount?: number | null;
+  }
+): {
+  title: string;
+  description: string;
+  keywords: string;
+  h1: string;
+  ogTitle: string;
+} {
+  const categoryName = opts?.categoryName?.trim() || null;
+  const count = opts?.productCount != null && opts.productCount > 0 ? opts.productCount : null;
+  const countBitUk = count != null ? ` ${count} товарів у категорії.` : "";
+  const countBitRu = count != null ? ` ${count} товаров в категории.` : "";
+  const fromDesc = plainTextForMeta(opts?.categoryDescription, 120);
+
   if (categoryName) {
     if (locale === "ru") {
+      const fallback = `Купить продукцию категории «${categoryName}» в ${SITE_STORE_NAME} — официальный представитель ${SITE_PRODUCT_BRAND}. Wellness и eco с доставкой по Украине.${countBitRu}`;
       return {
-        title: `${categoryName} — каталог | ${SITE_STORE_NAME}`,
-        description: `Купить «${categoryName}» в интернет-магазине ${SITE_STORE_NAME}. Оригинальная продукция ${SITE_PRODUCT_BRAND}: wellness-комплексы и eco-средства с доставкой по Украине.`,
-        keywords: `${categoryName}, ${SITE_STORE_NAME}, ${SITE_PRODUCT_BRAND}, wellness, фитокомплексы, купить, Украина`,
+        h1: categoryName,
+        title: `${categoryName}: купить онлайн | ${SITE_STORE_NAME}`,
+        ogTitle: `${categoryName} — ${SITE_PRODUCT_BRAND} | ${SITE_STORE_NAME}`,
+        description: plainTextForMeta(
+          fromDesc
+            ? `${fromDesc} Каталог «${categoryName}» в ${SITE_STORE_NAME}.${countBitRu}`
+            : fallback,
+          168
+        ),
+        keywords: [
+          categoryName,
+          `купить ${categoryName}`,
+          SITE_STORE_NAME,
+          SITE_PRODUCT_BRAND,
+          "wellness",
+          "фитокомплексы",
+          "eco",
+          "Украина",
+        ].join(", "),
       };
     }
+    const fallback = `Купити продукцію категорії «${categoryName}» у ${SITE_STORE_NAME} — офіційний представник ${SITE_PRODUCT_BRAND}. Wellness та eco з доставкою по Україні.${countBitUk}`;
     return {
-      title: `${categoryName} — каталог | ${SITE_STORE_NAME}`,
-      description: `Купити «${categoryName}» в інтернет-магазині ${SITE_STORE_NAME}. Оригінальна продукція ${SITE_PRODUCT_BRAND}: wellness-комплекси та eco-засоби з доставкою по Україні.`,
-      keywords: `${categoryName}, ${SITE_STORE_NAME}, ${SITE_PRODUCT_BRAND}, wellness, фітокомплекси, купити, Україна`,
+      h1: categoryName,
+      title: `${categoryName}: купити онлайн | ${SITE_STORE_NAME}`,
+      ogTitle: `${categoryName} — ${SITE_PRODUCT_BRAND} | ${SITE_STORE_NAME}`,
+      description: plainTextForMeta(
+        fromDesc
+          ? `${fromDesc} Каталог «${categoryName}» у ${SITE_STORE_NAME}.${countBitUk}`
+          : fallback,
+        168
+      ),
+      keywords: [
+        categoryName,
+        `купити ${categoryName}`,
+        SITE_STORE_NAME,
+        SITE_PRODUCT_BRAND,
+        "wellness",
+        "фітокомплекси",
+        "eco",
+        "Україна",
+      ].join(", "),
     };
   }
 
   if (locale === "ru") {
     return {
-      title: `Каталог wellness и eco-продукции | ${SITE_STORE_NAME}`,
-      description: `Полный каталог wellness-комплексов, фитопрепаратов, натурального ухода и eco-средств ${SITE_PRODUCT_BRAND} в ${SITE_STORE_NAME}. Подберите программу для здоровья и дома.`,
-      keywords: `${SITE_STORE_NAME}, каталог, ${SITE_PRODUCT_BRAND}, wellness, фитокомплексы, eco, купить`,
+      h1: "Каталог",
+      title: `Каталог ${SITE_PRODUCT_BRAND}: wellness и eco | ${SITE_STORE_NAME}`,
+      ogTitle: `Каталог продукции ${SITE_PRODUCT_BRAND} | ${SITE_STORE_NAME}`,
+      description: plainTextForMeta(
+        `Полный каталог wellness-комплексов, фитопрепаратов, натурального ухода и eco-средств ${SITE_PRODUCT_BRAND} в интернет-магазине ${SITE_STORE_NAME}. Официальный представитель бренда — доставка по Украине.`,
+        168
+      ),
+      keywords: `${SITE_STORE_NAME}, каталог, ${SITE_PRODUCT_BRAND}, wellness, фитокомплексы, eco, купить, Украина`,
     };
   }
 
   return {
-    title: `Каталог wellness та eco-продукції | ${SITE_STORE_NAME}`,
-    description: `Повний каталог wellness-комплексів, фітопрепаратів, натурального догляду та eco-засобів ${SITE_PRODUCT_BRAND} у ${SITE_STORE_NAME}. Підберіть програму для здоров'я і дому.`,
-    keywords: `${SITE_STORE_NAME}, каталог, ${SITE_PRODUCT_BRAND}, wellness, фітокомплекси, eco, купити`,
+    h1: "Каталог",
+    title: `Каталог ${SITE_PRODUCT_BRAND}: wellness та eco | ${SITE_STORE_NAME}`,
+    ogTitle: `Каталог продукції ${SITE_PRODUCT_BRAND} | ${SITE_STORE_NAME}`,
+    description: plainTextForMeta(
+      `Повний каталог wellness-комплексів, фітопрепаратів, натурального догляду та eco-засобів ${SITE_PRODUCT_BRAND} в інтернет-магазині ${SITE_STORE_NAME}. Офіційний представник бренду — доставка по Україні.`,
+      168
+    ),
+    keywords: `${SITE_STORE_NAME}, каталог, ${SITE_PRODUCT_BRAND}, wellness, фітокомплекси, eco, купити, Україна`,
   };
 }
 

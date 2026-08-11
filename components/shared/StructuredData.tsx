@@ -208,6 +208,8 @@ interface CollectionPageStructuredDataProps {
   category?: string;
   locale?: "uk" | "ru";
   breadcrumbItems?: { name: string; url: string }[];
+  /** Product list for ItemList rich results (max ~30) */
+  items?: { name: string; url: string; image?: string | null; position?: number }[];
 }
 
 export function CollectionPageStructuredData({
@@ -219,6 +221,7 @@ export function CollectionPageStructuredData({
   category,
   locale = "uk",
   breadcrumbItems,
+  items,
 }: CollectionPageStructuredDataProps) {
   const origin = normalizeBaseUrl(baseUrl);
   const homeUrl = locale === "ru" ? `${origin}/ru` : origin;
@@ -228,9 +231,22 @@ export function CollectionPageStructuredData({
       ? breadcrumbItems
       : [
           { name: locale === "ru" ? "Главная" : "Головна", url: homeUrl },
-          { name: locale === "ru" ? "Каталог" : "Каталог", url: catalogUrl },
+          { name: "Каталог", url: catalogUrl },
           ...(category ? [{ name: category, url }] : []),
         ];
+
+  const listElements =
+    items && items.length > 0
+      ? items.slice(0, 30).map((item, index) => ({
+          "@type": "ListItem",
+          position: item.position ?? index + 1,
+          name: item.name,
+          url: item.url,
+          ...(item.image ? { image: item.image } : {}),
+        }))
+      : category
+        ? [{ "@type": "ListItem", position: 1, name: category }]
+        : undefined;
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -239,15 +255,16 @@ export function CollectionPageStructuredData({
     description,
     url,
     inLanguage: locale === "ru" ? "ru-RU" : "uk-UA",
+    isPartOf: {
+      "@type": "WebSite",
+      name: SITE_STORE_NAME,
+      url: origin,
+    },
     mainEntity: {
       "@type": "ItemList",
-      numberOfItems: itemCount,
-      ...(category && {
-        itemListElement: {
-          "@type": "ListItem",
-          name: category,
-        },
-      }),
+      name,
+      numberOfItems: itemCount || items?.length || 0,
+      ...(listElements ? { itemListElement: listElements } : {}),
     },
     breadcrumb: {
       "@type": "BreadcrumbList",

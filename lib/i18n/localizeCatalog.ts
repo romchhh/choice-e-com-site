@@ -5,6 +5,17 @@ function pick(ua: string | null | undefined, ru: string | null | undefined, loca
   return ua;
 }
 
+/** Display name for category/subcategory with optional RU overlay. */
+export function localizedLabel(
+  item: { name?: string | null; name_ru?: string | null; nameRu?: string | null } | null | undefined,
+  locale: Locale
+): string {
+  if (!item) return "";
+  const ua = item.name ?? "";
+  const ru = item.name_ru ?? item.nameRu;
+  return String(pick(ua, ru, locale) ?? ua);
+}
+
 /** Overlay RU text fields onto primary display fields for storefront. */
 export function localizeProductFields<T extends Record<string, any>>(
   product: T,
@@ -34,6 +45,9 @@ export function localizeProductFields<T extends Record<string, any>>(
     category_name: pick(product.category_name, product.category_name_ru, locale) ?? product.category_name,
     subcategory_name: pick(product.subcategory_name, product.subcategory_name_ru, locale) ?? product.subcategory_name,
     category_description: pick(product.category_description, product.category_description_ru, locale) ?? product.category_description,
+    gift_product: product.gift_product
+      ? localizeProductFields(product.gift_product, locale)
+      : product.gift_product,
   };
 }
 
@@ -41,11 +55,22 @@ export function localizeCategoryFields<T extends Record<string, any>>(
   category: T,
   locale: Locale
 ): T {
-  if (locale !== "ru" || !category) return category;
+  if (!category) return category;
+  const uaName = category.name_uk ?? category.name;
+  const uaDesc = category.description_uk ?? category.description;
+  if (locale !== "ru") {
+    return {
+      ...category,
+      name_uk: uaName,
+      description_uk: uaDesc,
+    };
+  }
   return {
     ...category,
-    name: pick(category.name, category.name_ru ?? category.nameRu, locale) ?? category.name,
-    description: pick(category.description, category.description_ru ?? category.descriptionRu, locale),
+    name_uk: uaName,
+    description_uk: uaDesc,
+    name: pick(uaName, category.name_ru ?? category.nameRu, locale) ?? uaName,
+    description: pick(uaDesc, category.description_ru ?? category.descriptionRu, locale),
   };
 }
 
@@ -53,10 +78,15 @@ export function localizeSubcategoryFields<T extends Record<string, any>>(
   sub: T,
   locale: Locale
 ): T {
-  if (locale !== "ru" || !sub) return sub;
+  if (!sub) return sub;
+  const uaName = sub.name_uk ?? sub.name;
+  if (locale !== "ru") {
+    return { ...sub, name_uk: uaName };
+  }
   return {
     ...sub,
-    name: pick(sub.name, sub.name_ru ?? sub.nameRu, locale) ?? sub.name,
+    name_uk: uaName,
+    name: pick(uaName, sub.name_ru ?? sub.nameRu, locale) ?? uaName,
   };
 }
 
@@ -65,7 +95,6 @@ export function localizeList<T extends Record<string, any>>(
   locale: Locale,
   kind: "product" | "category" | "subcategory" = "product"
 ): T[] {
-  if (locale !== "ru") return items;
   return items.map((item) => {
     if (kind === "category") return localizeCategoryFields(item, locale);
     if (kind === "subcategory") return localizeSubcategoryFields(item, locale);

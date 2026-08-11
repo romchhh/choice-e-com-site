@@ -1,5 +1,4 @@
 import CatalogClient from "./CatalogClient";
-import { SITE_STORE_NAME, SITE_PRODUCT_BRAND } from "@/lib/siteBrand";
 import { 
   sqlGetAllProducts, 
   sqlGetProductsByCategory, 
@@ -10,7 +9,12 @@ import { CollectionPageStructuredData, BreadcrumbStructuredData } from "@/compon
 import { getLocale } from "@/lib/i18n/getLocale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { localizeList, localizeCategoryFields } from "@/lib/i18n/localizeCatalog";
-import { absoluteLocaleUrl, getSiteOrigin } from "@/lib/i18n/seo";
+import {
+  absoluteLocaleUrl,
+  catalogSeoCopy,
+  getSiteOrigin,
+  plainTextForMeta,
+} from "@/lib/i18n/seo";
 
 interface Product {
   id: number;
@@ -79,7 +83,6 @@ export default async function CatalogServer(props: CatalogServerProps) {
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
-  // Parallel data fetching for better performance
   const [productsRaw, categoriesRaw] = await Promise.all([
     getProducts(props),
     getCategories(),
@@ -90,33 +93,60 @@ export default async function CatalogServer(props: CatalogServerProps) {
 
   const origin = getSiteOrigin();
   const categoryName = props.category || props.subcategory || null;
-  const localizedCategoryName =
-    categoryName &&
-    categories.find((c) => c.name === categoryName || (c as any).name_ru === categoryName)?.name;
-  const displayCategory = localizedCategoryName || categoryName;
+  const matchedCategory =
+    categoryName
+      ? categories.find(
+          (c) =>
+            c.name === categoryName ||
+            (c as { name_uk?: string }).name_uk === categoryName ||
+            (c as { name_ru?: string | null }).name_ru === categoryName
+        )
+      : undefined;
+  const displayCategory = matchedCategory?.name || categoryName;
   const catalogPathBare = props.categorySlug
     ? `/catalog/${props.categorySlug}`
     : "/catalog";
   const catalogUrl = absoluteLocaleUrl(catalogPathBare, locale);
-  const pageName = displayCategory || dict.catalog.title;
-  const pageDescription = displayCategory
-    ? locale === "ru"
-      ? `Каталог товаров категории «${displayCategory}» в ${SITE_STORE_NAME}. Оригинальная продукция ${SITE_PRODUCT_BRAND}, wellness и eco-средства.`
-      : `Каталог товарів категорії «${displayCategory}» у ${SITE_STORE_NAME}. Оригінальна продукція ${SITE_PRODUCT_BRAND}, wellness та eco-засоби.`
-    : locale === "ru"
-    ? `Каталог оригинальной продукции ${SITE_PRODUCT_BRAND} в интернет-магазине ${SITE_STORE_NAME}: wellness-комплексы, натуральный уход и eco-товары.`
-    : `Каталог оригінальної продукції ${SITE_PRODUCT_BRAND} в інтернет-магазині ${SITE_STORE_NAME}: wellness-комплекси, натуральний догляд та eco-товари.`;
+
+  const seo = catalogSeoCopy(locale, {
+    categoryName: displayCategory,
+    categoryDescription:
+      props.categoryDescription ??
+      (matchedCategory as { description?: string | null } | undefined)?.description ??
+      null,
+    productCount: products.length,
+  });
+
+  const pageDescription =
+    plainTextForMeta(props.categoryDescription, 200) || seo.description;
 
   const breadcrumbs = [
     { name: dict.nav.home, url: absoluteLocaleUrl("/", locale) },
     { name: dict.catalog.title, url: absoluteLocaleUrl("/catalog", locale) },
-    ...(displayCategory ? [{ name: displayCategory, url: catalogUrl }] : []),
+    ...(displayCategory && props.categorySlug
+      ? [{ name: displayCategory, url: catalogUrl }]
+      : displayCategory
+        ? [{ name: displayCategory, url: catalogUrl }]
+        : []),
   ];
+
+  const listItems = products.slice(0, 24).map((p, index) => {
+    const slug = p.slug || String(p.id);
+    const image = p.first_media?.url
+      ? `${origin}/api/images/${p.first_media.url}`
+      : null;
+    return {
+      name: p.name,
+      url: absoluteLocaleUrl(`/product/${slug}`, locale),
+      image,
+      position: index + 1,
+    };
+  });
 
   return (
     <>
       <CollectionPageStructuredData
-        name={pageName}
+        name={seo.h1 === dict.catalog.title ? seo.ogTitle : `${seo.h1} | ${dict.catalog.title}`}
         description={pageDescription}
         url={catalogUrl}
         baseUrl={origin}
@@ -124,6 +154,7 @@ export default async function CatalogServer(props: CatalogServerProps) {
         category={displayCategory || undefined}
         locale={locale}
         breadcrumbItems={breadcrumbs}
+        items={listItems}
       />
       <BreadcrumbStructuredData items={breadcrumbs} />
       <CatalogClient
@@ -131,8 +162,16 @@ export default async function CatalogServer(props: CatalogServerProps) {
         categories={categories}
         initialSelectedCategoryIds={props.categoryId ? [props.categoryId] : undefined}
         selectedCategoryDescription={props.categoryDescription ?? null}
+        pageHeading={seo.h1}
+        pageIntro={
+          displayCategory
+            ? pageDescription
+            : locale === "ru"
+              ? "Оригинальная продукция Choice: wellness, уход и eco-средства."
+              : "Оригінальна продукція Choice: wellness, догляд та eco-засоби."
+        }
+        activeCategoryLabel={displayCategory}
       />
     </>
   );
 }
-

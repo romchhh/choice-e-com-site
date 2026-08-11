@@ -14,10 +14,12 @@ import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
 import { SITE_WORDMARK } from "@/lib/siteBrand";
 import { stripLocalePrefix } from "@/lib/i18n/paths";
+import { localizedLabel } from "@/lib/i18n/localizeCatalog";
 
 interface Subcategory {
   id: number;
   name: string;
+  name_ru?: string | null;
 }
 
 /** Затримка перед закриттям меню категорій — щоб встигнути перевести курсор на fixed-панель після виходу з пункту. */
@@ -283,9 +285,7 @@ export default function Header() {
                       headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                     }`}
                   >
-                    {locale === "ru" && (category as { name_ru?: string | null }).name_ru
-                      ? (category as { name_ru?: string | null }).name_ru
-                      : category.name}
+                    {localizedLabel(category, locale)}
                   </LocaleLink>
 
                   {/* Subcategories dropdown */}
@@ -314,7 +314,7 @@ export default function Header() {
                                 )}`}
                                 className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                               >
-                                {subcat.name}
+                                {localizedLabel(subcat, locale)}
                               </LocaleLink>
                             ))}
                             <LocaleLink

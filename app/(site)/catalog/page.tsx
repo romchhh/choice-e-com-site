@@ -4,12 +4,20 @@ import type { Metadata } from "next";
 import { CatalogGridSkeleton } from "@/components/shared/SkeletonLoader";
 import { getLocale } from "@/lib/i18n/getLocale";
 import { buildSeoMetadata, catalogSeoCopy } from "@/lib/i18n/seo";
+import { sqlGetAllProducts } from "@/lib/sql";
 
 export const revalidate = 1200; // ISR every 20 minutes
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const copy = catalogSeoCopy(locale);
+  let productCount: number | null = null;
+  try {
+    const products = await sqlGetAllProducts();
+    productCount = products.length;
+  } catch {
+    /* ignore */
+  }
+  const copy = catalogSeoCopy(locale, { productCount });
   return buildSeoMetadata({
     locale,
     path: "/catalog",
@@ -17,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: copy.description,
     keywords: copy.keywords,
     ogType: "website",
-    imageAlt: copy.title,
+    imageAlt: copy.ogTitle,
   });
 }
 

@@ -2,12 +2,12 @@ import { Suspense } from "react";
 import CatalogServer from "@/components/catalog/CatalogServer";
 import type { Metadata } from "next";
 import { CatalogGridSkeleton } from "@/components/shared/SkeletonLoader";
-import { sqlGetAllCategories, sqlGetCategoryBySlug } from "@/lib/sql";
+import { sqlGetAllCategories, sqlGetCategoryBySlug, sqlGetProductsByCategory } from "@/lib/sql";
 import { notFound } from "next/navigation";
 import { SITE_STORE_NAME } from "@/lib/siteBrand";
 import { getLocale } from "@/lib/i18n/getLocale";
 import { localizeCategoryFields } from "@/lib/i18n/localizeCatalog";
-import { buildSeoMetadata, catalogSeoCopy } from "@/lib/i18n/seo";
+import { buildSeoMetadata, catalogSeoCopy, getSiteOrigin } from "@/lib/i18n/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -42,21 +42,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const category = localizeCategoryFields(categoryRaw, locale);
-  const copy = catalogSeoCopy(locale, category.name);
-  const descFromCategory = category.description
-    ? String(category.description).replace(/<[^>]*>/g, " ").trim()
-    : null;
+  let productCount: number | null = null;
+  try {
+    const products = await sqlGetProductsByCategory(categoryRaw.name);
+    productCount = products.length;
+  } catch {
+    /* ignore */
+  }
+
+  const copy = catalogSeoCopy(locale, {
+    categoryName: category.name,
+    categoryDescription: (category as { description?: string | null }).description,
+    productCount,
+  });
+
+  const origin = getSiteOrigin();
+  const ogImage =
+    (categoryRaw as { mediaUrl?: string | null }).mediaUrl
+      ? `${origin}/api/images/${(categoryRaw as { mediaUrl?: string | null }).mediaUrl}`
+      : undefined;
 
   return buildSeoMetadata({
     locale,
     path: `/catalog/${slug}`,
     title: copy.title,
-    description: descFromCategory
-      ? `${descFromCategory.slice(0, 140)}${descFromCategory.length > 140 ? "…" : ""}`
-      : copy.description,
+    description: copy.description,
     keywords: copy.keywords,
     ogType: "website",
-    imageAlt: `${SITE_STORE_NAME} — ${category.name}`,
+    image: ogImage,
+    imageAlt: copy.ogTitle,
   });
 }
 

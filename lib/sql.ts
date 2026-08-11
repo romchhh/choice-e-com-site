@@ -86,10 +86,10 @@ async function _sqlGetAllProducts() {
     orderBy: { id: "desc" },
     include: {
       category: {
-        select: { name: true },
+        select: { name: true, nameRu: true },
       },
       subcategory: {
-        select: { name: true },
+        select: { name: true, nameRu: true },
       },
       media: {
         take: 1,
@@ -175,6 +175,7 @@ export async function sqlGetProduct(id: number) {
             select: {
               id: true,
               name: true,
+              nameRu: true,
               slug: true,
               price: true,
               oldPrice: true,
@@ -251,6 +252,7 @@ export async function sqlGetProduct(id: number) {
           ? {
               id: (product as any).giftProduct.id,
               name: (product as any).giftProduct.name,
+              name_ru: (product as any).giftProduct.nameRu ?? null,
               slug: (product as any).giftProduct.slug ?? null,
               price: Number((product as any).giftProduct.price),
               old_price: (product as any).giftProduct.oldPrice ? Number((product as any).giftProduct.oldPrice) : null,
@@ -284,6 +286,7 @@ export async function sqlGetProductBySlug(slug: string) {
         select: {
           id: true,
           name: true,
+          nameRu: true,
           slug: true,
           price: true,
           oldPrice: true,
@@ -356,6 +359,7 @@ export async function sqlGetProductBySlug(slug: string) {
       ? {
           id: product.giftProduct.id,
           name: product.giftProduct.name,
+          name_ru: (product.giftProduct as { nameRu?: string | null }).nameRu ?? null,
           slug: product.giftProduct.slug ?? null,
           price: Number(product.giftProduct.price),
           old_price: product.giftProduct.oldPrice ? Number(product.giftProduct.oldPrice) : null,
@@ -397,7 +401,10 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         orderBy: { id: "desc" },
         include: {
           category: {
-            select: { name: true },
+            select: { name: true, nameRu: true },
+          },
+          subcategory: {
+            select: { name: true, nameRu: true },
           },
           categoryLinks: {
             select: { categoryId: true },
@@ -417,6 +424,7 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
+        description: p.description ?? null,
         ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
@@ -438,9 +446,11 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         stock: p.stock,
         in_stock: p.inStock,
         category_name: p.category?.name || null,
+        subcategory_name: p.subcategory?.name || null,
         package_weight: p.packageWeight ?? null,
         course: p.course ?? null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+        ...productRuApiFields(p),
       }));
     },
     [`products-by-category-${categoryName}`],
@@ -483,10 +493,10 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         orderBy: { id: "desc" },
         include: {
           category: {
-            select: { name: true },
+            select: { name: true, nameRu: true },
           },
           subcategory: {
-            select: { name: true },
+            select: { name: true, nameRu: true },
           },
           categoryLinks: {
             select: { categoryId: true },
@@ -509,6 +519,7 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         id: p.id,
         name: p.name,
         slug: p.slug ?? null,
+        description: p.description ?? null,
         ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
         top_sale: p.topSale,
         limited_edition: p.limitedEdition,
@@ -542,6 +553,7 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         package_weight: p.packageWeight ?? null,
         course: p.course ?? null,
         first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+        ...productRuApiFields(p),
       }));
     },
     [`products-by-subcategory-${name}`],
@@ -577,6 +589,7 @@ async function _sqlGetTopSaleProducts() {
     top_sale: p.topSale,
     limited_edition: p.limitedEdition,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+    ...productRuApiFields(p),
   }));
 }
 
@@ -615,6 +628,7 @@ async function _sqlGetLimitedEditionProducts() {
     top_sale: p.topSale,
     limited_edition: p.limitedEdition,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+    ...productRuApiFields(p),
   }));
 }
 

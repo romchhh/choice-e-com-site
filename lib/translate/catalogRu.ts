@@ -1,5 +1,6 @@
 import { prisma } from "../prisma";
 import { translateFieldsUkToRu } from "./freeTranslate";
+import { invalidateCategoriesCache, invalidateProductsCache } from "../revalidate";
 
 const PRODUCT_TEXT_KEYS = [
   "name",
@@ -70,6 +71,7 @@ export async function syncProductRuTranslation(
 
   if (Object.keys(data).length === 0) return;
   await prisma.product.update({ where: { id: productId }, data: data as any });
+  invalidateProductsCache();
 }
 
 export async function syncCategoryRuTranslation(
@@ -92,6 +94,8 @@ export async function syncCategoryRuTranslation(
 
   if (Object.keys(data).length === 0) return;
   await prisma.category.update({ where: { id: categoryId }, data });
+  invalidateCategoriesCache();
+  invalidateProductsCache();
 }
 
 export async function syncSubcategoryRuTranslation(
@@ -110,6 +114,8 @@ export async function syncSubcategoryRuTranslation(
     where: { id: subcategoryId },
     data: { nameRu: translated.name },
   });
+  invalidateCategoriesCache();
+  invalidateProductsCache();
 }
 
 /** Fire-and-forget; never throws to caller. */

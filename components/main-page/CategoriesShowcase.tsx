@@ -5,6 +5,7 @@ import LocaleLink from "@/components/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useCategories } from "@/lib/CategoriesProvider";
+import { localizedLabel } from "@/lib/i18n/localizeCatalog";
 
 // Same loading markup as Suspense fallback in page.tsx to avoid hydration mismatch
 function CategoriesLoadingPlaceholder() {
@@ -19,7 +20,7 @@ function CategoriesLoadingPlaceholder() {
 }
 
 export default function CategoriesShowcase() {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const { categories, loading } = useCategories();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -88,7 +89,7 @@ export default function CategoriesShowcase() {
               key={category.id}
               href={`/catalog?categoryId=${category.id}`}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
-              aria-label={`${dict.catalog.category} ${category.name}`}
+              aria-label={`${dict.catalog.category} ${localizedLabel(category, locale)}`}
             >
               <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-gray-200 mb-3 relative">
                 {category.mediaUrl && category.mediaType ? (
@@ -104,7 +105,7 @@ export default function CategoriesShowcase() {
                   ) : (
                     <Image
                       src={`/api/images/${category.mediaUrl}`}
-                      alt={category.name}
+                      alt={localizedLabel(category, locale)}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="260px"
@@ -115,7 +116,7 @@ export default function CategoriesShowcase() {
                 )}
               </div>
               <p className="text-[#3D1A00] font-['Montserrat'] font-semibold text-sm lg:text-base text-left">
-                {category.name}
+                {localizedLabel(category, locale)}
               </p>
             </LocaleLink>
           ))}

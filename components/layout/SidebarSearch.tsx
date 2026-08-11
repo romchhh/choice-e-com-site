@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import { useProducts } from "@/lib/useProducts";
 import { catalogProductWord } from "@/lib/i18n/plural";
+import { localizeList } from "@/lib/i18n/localizeCatalog";
 
 interface SearchSidebarProps {
   isOpen: boolean;
@@ -86,13 +87,21 @@ export default function SearchSidebar({
   isOpen,
   setIsOpen,
 }: SearchSidebarProps) {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const [query, setQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  const { products: allProducts, loading } = useProducts();
-  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
+  const { products: allProductsRaw, loading } = useProducts();
+  const allProducts = useMemo(
+    () => localizeList(allProductsRaw as Record<string, any>[], locale, "product") as Product[],
+    [allProductsRaw, locale]
+  );
+  const [popularProductsRaw, setPopularProductsRaw] = useState<Product[]>([]);
+  const popularProducts = useMemo(
+    () => localizeList(popularProductsRaw as Record<string, any>[], locale, "product") as Product[],
+    [popularProductsRaw, locale]
+  );
   const [loadingPopular, setLoadingPopular] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -124,7 +133,7 @@ export default function SearchSidebar({
           if (response.ok) {
             const data = await response.json();
             // Limit to 6-8 products
-            setPopularProducts(data.slice(0, 8));
+            setPopularProductsRaw(data.slice(0, 8));
           }
         } catch (error) {
           console.error("Error fetching popular products:", error);

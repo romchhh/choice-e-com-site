@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useCategories } from "@/lib/CategoriesProvider";
+import { localizedLabel } from "@/lib/i18n/localizeCatalog";
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export default function SidebarMenu({
   isOpen,
   setIsOpen,
 }: SidebarMenuProps) {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   // Use categories from context instead of fetching
   const { categories, subcategories: subcategoriesMap, loading, error, fetchSubcategoriesForCategory } = useCategories();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -104,7 +105,7 @@ export default function SidebarMenu({
                         : "bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20"
                     }`}
                   >
-                    {cat.name}
+                    {localizedLabel(cat, locale)}
                   </button>
                   ))}
                 </>
@@ -132,7 +133,7 @@ export default function SidebarMenu({
                         className="block py-3 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors border-b border-[#3D1A00]/5 font-['Montserrat']"
                         onClick={() => setIsOpen(false)}
                       >
-                        {sub.name}
+                        {localizedLabel(sub, locale)}
                       </LocaleLink>
                     ))}
                   </div>
