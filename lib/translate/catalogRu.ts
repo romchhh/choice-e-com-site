@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../prisma";
 import { translateFieldsUkToRu } from "./libretranslate";
 
 const PRODUCT_TEXT_KEYS = [
