@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface Category {
   id: number;
@@ -35,6 +36,7 @@ export default function CatalogFiltersInline({
   onApply,
   defaultOpenOnMobile = false,
 }: CatalogFiltersInlineProps) {
+  const { dict } = useLocale();
   const [localMin, setLocalMin] = useState<string>(minPrice !== null ? String(minPrice) : "");
   const [localMax, setLocalMax] = useState<string>(maxPrice !== null ? String(maxPrice) : "");
   const [mobileOpen, setMobileOpen] = useState(defaultOpenOnMobile);
@@ -78,43 +80,41 @@ export default function CatalogFiltersInline({
 
   const filtersContent = (
     <div className="space-y-6">
-      {/* ЦІНА */}
       <div>
         <h3 className="text-xs font-bold font-['Montserrat'] uppercase tracking-widest text-gray-700 mb-3">
-          Ціна
+          {dict.catalog.price}
         </h3>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 font-['Montserrat']">Від</span>
+            <span className="text-sm text-gray-600 font-['Montserrat']">{dict.catalog.from}</span>
             <input
               type="number"
               min={priceRange.min}
               max={priceRange.max}
               value={localMin}
               onChange={(e) => setLocalMin(e.target.value)}
-              placeholder="Грн"
+              placeholder={dict.catalog.uahPlaceholder}
               className="w-24 sm:w-28 px-3 py-2.5 bg-[#FFF9F0] border border-[#E8DED0] rounded text-sm font-['Montserrat'] text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#8B9A47]/30 focus:border-[#8B9A47] outline-none transition-shadow"
             />
           </label>
           <label className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 font-['Montserrat']">До</span>
+            <span className="text-sm text-gray-600 font-['Montserrat']">{dict.catalog.to}</span>
             <input
               type="number"
               min={priceRange.min}
               max={priceRange.max}
               value={localMax}
               onChange={(e) => setLocalMax(e.target.value)}
-              placeholder="Грн"
+              placeholder={dict.catalog.uahPlaceholder}
               className="w-24 sm:w-28 px-3 py-2.5 bg-[#FFF9F0] border border-[#E8DED0] rounded text-sm font-['Montserrat'] text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#8B9A47]/30 focus:border-[#8B9A47] outline-none transition-shadow"
             />
           </label>
         </div>
       </div>
 
-      {/* КАТЕГОРІЯ ТОВАРУ */}
       <div>
         <h3 className="text-xs font-bold font-['Montserrat'] uppercase tracking-widest text-gray-700 mb-3">
-          Категорія товару
+          {dict.catalog.productCategory}
         </h3>
         <ul className="space-y-2.5 max-h-64 overflow-y-auto">
           {categories.map((cat) => (
@@ -135,21 +135,20 @@ export default function CatalogFiltersInline({
         </ul>
       </div>
 
-      {/* Кнопки */}
       <div className="flex gap-2 pt-2">
         <button
           type="button"
           onClick={clearAll}
           className="flex-1 py-2.5 px-4 text-sm font-medium font-['Montserrat'] text-gray-800 bg-white border border-[#C4B59A] hover:bg-gray-50 rounded transition-colors"
         >
-          Очистити
+          {dict.catalog.clearFilters}
         </button>
         <button
           type="button"
           onClick={handleApply}
           className="flex-1 py-2.5 px-4 text-sm font-semibold font-['Montserrat'] text-gray-900 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded transition-colors shadow-sm"
         >
-          Застосувати
+          {dict.common.apply}
         </button>
       </div>
     </div>
@@ -157,15 +156,13 @@ export default function CatalogFiltersInline({
 
   return (
     <>
-      {/* Desktop: завжди видимий сайдбар */}
       <aside
         className="hidden lg:block w-56 xl:w-64 flex-shrink-0 bg-[#FFFBF5] rounded-lg p-5 border border-[#E8DED0] shadow-sm"
-        aria-label="Фільтри"
+        aria-label={dict.common.filters}
       >
         {filtersContent}
       </aside>
 
-      {/* Mobile: кнопка "Фільтри" і згортання вгорі */}
       <div className="lg:hidden w-full">
         <button
           type="button"
@@ -174,7 +171,7 @@ export default function CatalogFiltersInline({
           aria-expanded={mobileOpen}
           aria-controls="catalog-filters-mobile"
         >
-          <span>Фільтри</span>
+          <span>{dict.common.filters}</span>
           {hasActiveFilters && (
             <span className="bg-[#8B9A47] text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1.5 flex items-center justify-center">
               {selectedCategories.length + (localMin ? 1 : 0) + (localMax ? 1 : 0)}

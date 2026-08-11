@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { translateFieldsUkToRu } from "./libretranslate";
+import { translateFieldsUkToRu } from "./freeTranslate";
 
 const PRODUCT_TEXT_KEYS = [
   "name",

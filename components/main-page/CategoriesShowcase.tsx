@@ -8,10 +8,11 @@ import { useCategories } from "@/lib/CategoriesProvider";
 
 // Same loading markup as Suspense fallback in page.tsx to avoid hydration mismatch
 function CategoriesLoadingPlaceholder() {
+  const { dict } = useLocale();
   return (
     <section className="w-full bg-[#FFFFFF] py-16 lg:py-20">
       <div className="max-w-[1920px] mx-auto px-6">
-        <p className="text-[#3D1A00] font-['Montserrat']">Завантаження категорій...</p>
+        <p className="text-[#3D1A00] font-['Montserrat']">{dict.common.loading}</p>
       </div>
     </section>
   );
@@ -87,7 +88,7 @@ export default function CategoriesShowcase() {
               key={category.id}
               href={`/catalog?categoryId=${category.id}`}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
-              aria-label={`Категорія ${category.name}`}
+              aria-label={`${dict.catalog.category} ${category.name}`}
             >
               <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-gray-200 mb-3 relative">
                 {category.mediaUrl && category.mediaType ? (

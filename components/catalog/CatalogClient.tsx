@@ -19,6 +19,7 @@ import {
 } from "@/lib/ga4Ecommerce";
 import { SITE_STORE_NAME } from "@/lib/siteBrand";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
+import { catalogProductWord } from "@/lib/i18n/plural";
 
 interface Product {
   id: number;
@@ -75,7 +76,8 @@ export default function CatalogClient({
 }: CatalogClientProps) {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
   const { addItem } = useBasket();
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
+  const numberLocale = locale === "ru" ? "ru-RU" : "uk-UA";
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recommended" | "newest" | "asc" | "desc" | "sale">("recommended");
@@ -264,7 +266,7 @@ export default function CatalogClient({
         item_id: String(p.id),
         item_name: p.name,
         item_brand: GA4_BRAND,
-        item_category: p.subcategory_name ?? p.category_name ?? "Каталог",
+        item_category: p.subcategory_name ?? p.category_name ?? dict.catalog.title,
         price: unitPrice,
         quantity: 1,
         google_business_vertical: GA4_VERTICAL,
@@ -305,7 +307,7 @@ export default function CatalogClient({
         category_name: product.subcategory_name ?? product.category_name ?? null,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Недостатньо товару в наявності";
+      const message = err instanceof Error ? err.message : dict.catalog.stockInsufficient;
       setBasketError(message);
       setTimeout(() => setBasketError(null), 5000);
     }
@@ -405,7 +407,7 @@ export default function CatalogClient({
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
                   className="p-2 text-gray-500 hover:text-gray-800 text-2xl leading-none"
-                  aria-label="Закрити фільтри"
+                  aria-label={dict.catalog.closeFilters}
                 >
                   ×
                 </button>
@@ -414,26 +416,26 @@ export default function CatalogClient({
                 {/* Ціна */}
                 <div>
                   <h3 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                    Ціна
+                    {dict.catalog.price}
                   </h3>
                   <div className="flex gap-2 items-center">
                     <div className="flex-1">
-                      <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">Від</label>
+                      <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">{dict.catalog.from}</label>
                       <input
                         type="number"
                         value={minPriceInput}
                         onChange={(e) => setMinPriceInput(e.target.value)}
-                        placeholder="Грн"
+                        placeholder={dict.catalog.uahPlaceholder}
                         className="w-full border border-gray-200 rounded px-3 py-2 text-sm font-['Montserrat'] text-gray-700 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">До</label>
+                      <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">{dict.catalog.to}</label>
                       <input
                         type="number"
                         value={maxPriceInput}
                         onChange={(e) => setMaxPriceInput(e.target.value)}
-                        placeholder="Грн"
+                        placeholder={dict.catalog.uahPlaceholder}
                         className="w-full border border-gray-200 rounded px-3 py-2 text-sm font-['Montserrat'] text-gray-700 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
                       />
                     </div>
@@ -482,7 +484,7 @@ export default function CatalogClient({
                 {/* Категорія товару + підкатегорії під вибраною категорією */}
                 <div>
                   <h3 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                    Категорія товару
+                    {dict.catalog.productCategory}
                   </h3>
                   <ul className="flex flex-col gap-2">
                     {categories.map((cat) => {
@@ -603,26 +605,26 @@ export default function CatalogClient({
             {/* Ціна */}
             <div>
               <h2 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                Ціна
+                {dict.catalog.price}
               </h2>
               <div className="flex gap-2 items-center">
                 <div className="flex-1">
-                  <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">Від</label>
+                  <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">{dict.catalog.from}</label>
                   <input
                     type="number"
                     value={minPriceInput}
                     onChange={(e) => setMinPriceInput(e.target.value)}
-                    placeholder="Грн"
+                    placeholder={dict.catalog.uahPlaceholder}
                     className="w-full border border-gray-200 rounded px-3 py-2 text-sm font-['Montserrat'] text-gray-700 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">До</label>
+                  <label className="block text-xs font-['Montserrat'] text-gray-500 mb-1">{dict.catalog.to}</label>
                   <input
                     type="number"
                     value={maxPriceInput}
                     onChange={(e) => setMaxPriceInput(e.target.value)}
-                    placeholder="Грн"
+                    placeholder={dict.catalog.uahPlaceholder}
                     className="w-full border border-gray-200 rounded px-3 py-2 text-sm font-['Montserrat'] text-gray-700 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
                   />
                 </div>
@@ -673,7 +675,7 @@ export default function CatalogClient({
             {/* Категорії + підкатегорії під вибраною категорією */}
             <div>
               <h2 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                Категорія товару
+                {dict.catalog.productCategory}
               </h2>
               <ul className="flex flex-col gap-2">
                 {categories.map((cat) => {
@@ -790,9 +792,9 @@ export default function CatalogClient({
             {/* Сортування та лічильник */}
             <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
               <p className="text-sm font-['Montserrat'] text-gray-500">
-                Знайдено:{" "}
+                {dict.catalog.found}:{" "}
                 <span className="font-semibold text-[#3D1A00]">{filteredProducts.length}</span>{" "}
-                {filteredProducts.length === 1 ? "товар" : "товарів"}
+                {catalogProductWord(filteredProducts.length, dict)}
               </p>
               {hasPromoProducts && (
                 <div className="flex items-center gap-2">
@@ -805,7 +807,7 @@ export default function CatalogClient({
                         : "bg-white text-[#3D1A00] border-gray-200 hover:border-[#3D1A00]/40"
                     }`}
                   >
-                    Всі
+                    {dict.catalog.all}
                   </button>
                   <button
                     type="button"
@@ -821,17 +823,17 @@ export default function CatalogClient({
                 </div>
               )}
               <label className="flex items-center gap-2">
-                <span className="text-sm font-['Montserrat'] text-gray-500">Сортування:</span>
+                <span className="text-sm font-['Montserrat'] text-gray-500">{dict.catalog.sortByColon}</span>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
                   className="text-sm font-['Montserrat'] border border-gray-200 rounded px-3 py-2 bg-white text-[#3D1A00] focus:ring-2 focus:ring-[#8B9A47]/30 focus:border-[#8B9A47] outline-none"
                 >
-                  <option value="recommended">Рекомендовані</option>
-                  <option value="newest">За новизною</option>
-                  <option value="asc">Ціна: за зростанням</option>
-                  <option value="desc">Ціна: за спаданням</option>
-                  <option value="sale">Спочатку акційні</option>
+                  <option value="recommended">{dict.catalog.sortRecommended}</option>
+                  <option value="newest">{dict.catalog.sortNewest}</option>
+                  <option value="asc">{dict.catalog.sortPriceAsc}</option>
+                  <option value="desc">{dict.catalog.sortPriceDesc}</option>
+                  <option value="sale">{dict.catalog.sortSaleFirst}</option>
                 </select>
               </label>
             </div>
@@ -988,11 +990,11 @@ export default function CatalogClient({
                           <div className="flex flex-col leading-none space-y-0.5">
                             {strikePrice != null && (
                               <span className="font-['Montserrat'] font-normal text-sm sm:text-base lg:text-xl leading-none tracking-[-0.02em] text-[#3D1A00]/70 line-through">
-                                {strikePrice.toLocaleString("uk-UA")} {dict.common.uah}
+                                {strikePrice.toLocaleString(numberLocale)} {dict.common.uah}
                               </span>
                             )}
                             <span className="font-['Montserrat'] font-normal text-lg sm:text-xl lg:text-3xl leading-none tracking-[-0.02em] text-[#3D1A00] align-middle">
-                              {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
+                              {displayPrice.toLocaleString(numberLocale)} {dict.common.uah}
                             </span>
                           </div>
                           <button

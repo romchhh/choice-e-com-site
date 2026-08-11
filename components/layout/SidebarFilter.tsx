@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface Product {
   id: number;
@@ -46,6 +47,7 @@ export default function SidebarFilter({
   products,
   filteredCount,
 }: SidebarFilterProps) {
+  const { dict } = useLocale();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     sort: true,
     category: true,
@@ -128,22 +130,22 @@ export default function SidebarFilter({
         {/* Header - Black with white text */}
         <div className="bg-black text-white px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold font-['Montserrat'] uppercase tracking-wider text-center flex-1">
-            ФІЛЬТРИ
+            {dict.common.filters}
           </h2>
           <div className="flex items-center gap-3">
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
                 className="text-sm text-white/80 hover:text-white underline transition-colors"
-                aria-label="Очистити всі фільтри"
+                aria-label={dict.catalog.clearFilters}
               >
-                Очистити
+                {dict.catalog.clearFilters}
               </button>
             )}
           <button
             className="text-white text-2xl hover:text-gray-300 transition-colors"
             onClick={() => setIsOpen(false)}
-              aria-label="Закрити фільтри"
+              aria-label={dict.catalog.closeFilters}
           >
             ×
           </button>
@@ -158,7 +160,7 @@ export default function SidebarFilter({
               onClick={() => toggleSection("sort")}
               className="w-full flex items-center justify-between text-lg font-bold font-['Montserrat'] uppercase tracking-wide text-gray-900 mb-4 hover:text-gray-700 transition-colors"
             >
-              <span>СОРТУВАННЯ</span>
+              <span>{dict.catalog.sortBy}</span>
               <svg
                 className={`w-5 h-5 transition-transform duration-200 ${
                   openSections.sort ? "rotate-180" : ""
@@ -188,7 +190,7 @@ export default function SidebarFilter({
                   onChange={() => setSortOrder("recommended")}
                   className="w-4 h-4 text-gray-900 focus:ring-gray-900"
                 />
-                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">Рекомендовані</span>
+                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">{dict.catalog.sortRecommended}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
@@ -198,7 +200,7 @@ export default function SidebarFilter({
                   onChange={() => setSortOrder("newest")}
                   className="w-4 h-4 text-gray-900 focus:ring-gray-900"
                 />
-                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">За новизною</span>
+                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">{dict.catalog.sortNewest}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
@@ -208,7 +210,7 @@ export default function SidebarFilter({
                   onChange={() => setSortOrder("asc")}
                   className="w-4 h-4 text-gray-900 focus:ring-gray-900"
                 />
-                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">За зростанням ціни</span>
+                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">{dict.catalog.sortPriceAsc}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
@@ -218,7 +220,7 @@ export default function SidebarFilter({
                   onChange={() => setSortOrder("desc")}
                   className="w-4 h-4 text-gray-900 focus:ring-gray-900"
                 />
-                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">За спаданням ціни</span>
+                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">{dict.catalog.sortPriceDesc}</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
@@ -228,7 +230,7 @@ export default function SidebarFilter({
                   onChange={() => setSortOrder("sale")}
                   className="w-4 h-4 text-gray-900 focus:ring-gray-900"
                 />
-                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">Спочатку акційні</span>
+                <span className="text-base font-['Montserrat'] text-gray-700 group-hover:text-gray-900">{dict.catalog.sortSaleFirst}</span>
               </label>
             </div>
           </div>
@@ -239,7 +241,7 @@ export default function SidebarFilter({
               onClick={() => toggleSection("category")}
               className="w-full flex items-center justify-between text-lg font-bold font-['Montserrat'] uppercase tracking-wide text-gray-900 mb-4 hover:text-gray-700 transition-colors"
             >
-              <span>КАТЕГОРІЯ</span>
+              <span>{dict.catalog.category}</span>
               <svg
                 className={`w-5 h-5 transition-transform duration-200 ${
                   openSections.category ? "rotate-180" : ""
@@ -284,7 +286,7 @@ export default function SidebarFilter({
               onClick={() => toggleSection("price")}
               className="w-full flex items-center justify-between text-lg font-bold font-['Montserrat'] uppercase tracking-wide text-gray-900 mb-4 hover:text-gray-700 transition-colors"
             >
-              <span>ВАРТІСТЬ</span>
+              <span>{dict.catalog.cost}</span>
               <svg
                 className={`w-5 h-5 transition-transform duration-200 ${
                   openSections.price ? "rotate-180" : ""
@@ -316,7 +318,7 @@ export default function SidebarFilter({
               {/* Min Price Slider */}
               <div>
                 <label className="block text-sm font-medium mb-3 text-gray-700">
-                  Від: <span className="text-[#8C7461] font-semibold">{localMinPrice}₴</span>
+                  {dict.catalog.from}: <span className="text-[#8C7461] font-semibold">{localMinPrice}₴</span>
                 </label>
                 <input
                   type="range"
@@ -339,7 +341,7 @@ export default function SidebarFilter({
               {/* Max Price Slider */}
               <div>
                 <label className="block text-sm font-medium mb-3 text-gray-700">
-                  До: <span className="text-[#8C7461] font-semibold">{localMaxPrice}₴</span>
+                  {dict.catalog.to}: <span className="text-[#8C7461] font-semibold">{localMaxPrice}₴</span>
                 </label>
                 <input
                   type="range"
@@ -365,13 +367,13 @@ export default function SidebarFilter({
         {/* Footer - Black button */}
         <div className="bg-white border-t border-gray-200 p-6 space-y-3">
           <div className="text-center text-sm text-gray-600">
-            Знайдено товарів: <span className="font-bold text-gray-900">{filteredCount}</span>
+            {dict.catalog.foundProducts}: <span className="font-bold text-gray-900">{filteredCount}</span>
           </div>
           <button
             onClick={handleApplyFilters}
             className="w-full bg-black text-white py-4 text-lg font-bold font-['Montserrat'] uppercase tracking-wider hover:bg-gray-900 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
           >
-            ФІЛЬТРУВАТИ ({filteredCount})
+            {dict.catalog.filterAction} ({filteredCount})
           </button>
         </div>
       </div>

@@ -1,11 +1,12 @@
 /**
- * Backfill RU translations for categories, subcategories and products via LibreTranslate.
+ * Backfill RU translations for categories, subcategories and products.
+ * Providers: Google Translate (primary) → MyMemory (fallback).
  *
  * Usage:
  *   npm run translate:ru
  *   npm run translate:ru -- --force
  *
- * Env: DATABASE_URL, LIBRETRANSLATE_URL, LIBRETRANSLATE_API_KEY (optional)
+ * Env: DATABASE_URL, optional MYMEMORY_EMAIL
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -35,7 +36,7 @@ async function main() {
 
   const force = process.argv.includes("--force");
   console.log(`translate-catalog-to-ru (force=${force})`);
-  console.log(`LibreTranslate: ${process.env.LIBRETRANSLATE_URL || "https://libretranslate.com"}`);
+  console.log("Providers: Google Translate → MyMemory fallback");
 
   const categories = await prisma.category.findMany({ select: { id: true, name: true } });
   console.log(`Categories: ${categories.length}`);
@@ -44,7 +45,7 @@ async function main() {
       await syncCategoryRuTranslation(c.id, { force });
       console.log(`  ✓ category #${c.id} ${c.name}`);
     } catch (e) {
-      console.error(`  ✗ category #${c.id}`, e);
+      console.error(`  ✗ category #${c.id}`, e instanceof Error ? e.message : e);
     }
   }
 
@@ -55,7 +56,7 @@ async function main() {
       await syncSubcategoryRuTranslation(s.id, { force });
       console.log(`  ✓ subcategory #${s.id} ${s.name}`);
     } catch (e) {
-      console.error(`  ✗ subcategory #${s.id}`, e);
+      console.error(`  ✗ subcategory #${s.id}`, e instanceof Error ? e.message : e);
     }
   }
 
@@ -66,7 +67,7 @@ async function main() {
       await syncProductRuTranslation(p.id, { force });
       console.log(`  ✓ product #${p.id} ${p.name}`);
     } catch (e) {
-      console.error(`  ✗ product #${p.id}`, e);
+      console.error(`  ✗ product #${p.id}`, e instanceof Error ? e.message : e);
     }
   }
 

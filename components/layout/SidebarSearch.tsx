@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import { useProducts } from "@/lib/useProducts";
+import { catalogProductWord } from "@/lib/i18n/plural";
 
 interface SearchSidebarProps {
   isOpen: boolean;
@@ -427,7 +428,8 @@ export default function SearchSidebar({
               <>
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm text-[#3D1A00]/70 font-medium font-['Montserrat']">
-                    Знайдено: {filteredProducts.length} {filteredProducts.length === 1 ? "товар" : "товарів"}
+                    {dict.catalog.found}: {filteredProducts.length}{" "}
+                    {catalogProductWord(filteredProducts.length, dict)}
                   </span>
                 </div>
                 <ul className="flex flex-col gap-3">
