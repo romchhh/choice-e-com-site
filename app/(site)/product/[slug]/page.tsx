@@ -6,6 +6,11 @@ import { sqlGetProductBySlug, sqlGetProduct, sqlGetAllProducts } from "@/lib/sql
 import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
 import { getDiscountedPrice } from "@/lib/pricing";
 import { redirect, notFound } from "next/navigation";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { localizeProductFields, localizeList } from "@/lib/i18n/localizeCatalog";
+import { localePath } from "@/lib/i18n/paths";
+import { buildSeoMetadata, productSeoCopy } from "@/lib/i18n/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -33,71 +38,50 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const locale = await getLocale();
   let product = await sqlGetProductBySlug(slug);
   if (!product && /^\d+$/.test(slug)) {
     product = await sqlGetProduct(Number(slug));
   }
   if (!product) {
-    return { title: `Товар не знайдено | ${SITE_STORE_NAME}` };
+    return {
+      title:
+        locale === "ru"
+          ? `Товар не найден | ${SITE_STORE_NAME}`
+          : `Товар не знайдено | ${SITE_STORE_NAME}`,
+      robots: { index: false, follow: true },
+    };
   }
 
-  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+  product = localizeProductFields(product, locale);
+
   const canonicalSlug = product.slug || String(product.id);
   const firstMedia = product.media?.length ? product.media[0] : null;
   const imageUrl = firstMedia
-    ? `${baseUrl}/api/images/${firstMedia.url}`
-    : `${baseUrl}/images/tg_image_3614117882.png`;
+    ? `/api/images/${firstMedia.url}`
+    : undefined;
   const price = getDiscountedPrice(
     Number(product.price),
     product.discount_percentage
   ).toFixed(0);
-  const categoryName = product.category_name || "wellness-продукція";
+  const copy = productSeoCopy(locale, product, price);
 
-  const baseDescription =
-    product.description ||
-    `${product.name} — оригінальна продукція ${SITE_PRODUCT_BRAND} у каталозі ${SITE_STORE_NAME}, категорія «${categoryName}». Ціна: ${price} ₴.`;
-  const fullDescription = `${baseDescription} Підтримка організму на щодень, натуральний склад та eco-підхід.`;
-
-  const keywordParts = [
-    product.name,
-    SITE_PRODUCT_BRAND,
-    SITE_STORE_NAME,
-    categoryName,
-    "wellness",
-    "фітокомплекс",
-    "натуральний продукт",
-    "eco-продукція",
-    "здоров'я",
-    "детокс",
-    "імунітет",
-    "енергія",
-    "сон",
-  ];
-  const keywords = Array.from(new Set(keywordParts.filter(Boolean))).join(", ");
-
-  return {
-    title: `${product.name} | ${SITE_STORE_NAME}`,
-    description: fullDescription,
-    keywords,
-    openGraph: {
-      title: `${product.name} | ${SITE_STORE_NAME}`,
-      description: fullDescription,
-      type: "website",
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
-      locale: "uk_UA",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${product.name} | ${SITE_STORE_NAME}`,
-      description: baseDescription,
-      images: [imageUrl],
-    },
-    alternates: { canonical: `${baseUrl}/product/${canonicalSlug}` },
-  };
+  return buildSeoMetadata({
+    locale,
+    path: `/product/${canonicalSlug}`,
+    title: copy.title,
+    description: copy.description,
+    keywords: copy.keywords,
+    ogType: "product",
+    image: imageUrl,
+    imageAlt: product.name,
+  });
 }
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
   const slugStr = typeof slug === "string" ? slug.trim() : "";
   if (!slugStr) notFound();
 
@@ -105,12 +89,14 @@ export default async function Page({ params }: PageProps) {
   if (!product && /^\d+$/.test(slugStr)) {
     product = await sqlGetProduct(Number(slugStr));
     if (product?.slug) {
-      redirect(`/product/${product.slug}`);
+      redirect(localePath(`/product/${product.slug}`, locale));
     }
   }
   if (!product) {
     notFound();
   }
+
+  product = localizeProductFields(product, locale);
 
   const boughtTogetherIds = Array.isArray((product as any).bought_together_ids)
     ? ((product as any).bought_together_ids as number[])
@@ -121,7 +107,7 @@ export default async function Page({ params }: PageProps) {
     : [];
 
   // Схожі товари — спочатку з тієї ж підкатегорії, потім з тієї ж категорії, потім інші випадкові
-  const allProducts = await sqlGetAllProducts();
+  const allProducts = localizeList(await sqlGetAllProducts(), locale, "product");
   const others = allProducts.filter((p) => p.id !== product.id);
 
   // Допоміжний шифл
@@ -228,12 +214,12 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#FFFFFF]">
-      <Suspense fallback={<div className="text-center py-20 text-lg">Завантаження товару...</div>}>
+      <Suspense fallback={<div className="text-center py-20 text-lg">{dict.common.loading}</div>}>
         <ProductServer product={product} />
       </Suspense>
-      <YouMightLike title="Схожі товари" suggestedProducts={suggestedProducts} />
+      <YouMightLike title={dict.common.similarProducts} suggestedProducts={suggestedProducts} />
       {pairProducts.length > 0 && (
-        <YouMightLike title="Обирай у парі" suggestedProducts={pairProducts} />
+        <YouMightLike title={dict.common.chooseInPair} suggestedProducts={pairProducts} />
       )}
     </main>
   );

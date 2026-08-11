@@ -26,6 +26,7 @@
     "add-categories": "ts-node --project tsconfig.scripts.json scripts/add-categories.ts",
     "seed-test-categories": "ts-node --project tsconfig.scripts.json scripts/seed-test-categories.ts",
     "backfill-slugs": "ts-node --project tsconfig.scripts.json scripts/backfill-slugs.ts",
+    "translate:ru": "ts-node --project tsconfig.scripts.json scripts/translate-catalog-to-ru.ts",
     "fix-slug-columns": "ts-node --project tsconfig.scripts.json scripts/fix-slug-columns.ts",
     "check-vitals": "echo 'Run lighthouse audit after deployment'"
   },

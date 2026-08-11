@@ -1,10 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { getContactsCopy } from "@/lib/i18n/content/contacts";
 import { siteContact } from "@/lib/siteContact";
 
 export default function ContactsPage() {
+  const { locale } = useLocale();
+  const t = getContactsCopy(locale);
   const [agreed, setAgreed] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
@@ -28,12 +32,12 @@ export default function ContactsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Помилка відправки");
+        setError(data.error || t.errorSend);
         return;
       }
       setSubmitted(true);
     } catch {
-      setError("Помилка відправки. Спробуйте пізніше.");
+      setError(t.errorRetry);
     } finally {
       setSending(false);
     }
@@ -42,21 +46,20 @@ export default function ContactsPage() {
   return (
     <div className="min-h-screen w-full bg-white">
       <div className="max-w-[1920px] mx-auto px-3 lg:px-8 pt-4 pb-20">
-
-        {/* Хлібні крихти */}
         <nav className="mb-8" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 text-sm font-['Montserrat'] text-[#3D1A00]/60">
             <li>
-              <Link href="/" className="hover:text-[#3D1A00] transition-colors">
-                Головна
-              </Link>
+              <LocaleLink href="/" className="hover:text-[#3D1A00] transition-colors">
+                {t.home}
+              </LocaleLink>
             </li>
-            <li aria-hidden className="text-[#3D1A00]/30">|</li>
-            <li className="text-[#3D1A00]">Контакти</li>
+            <li aria-hidden className="text-[#3D1A00]/30">
+              |
+            </li>
+            <li className="text-[#3D1A00]">{t.title}</li>
           </ol>
         </nav>
 
-        {/* Великий заголовок по центру */}
         <h1
           className="text-center text-[#3D1A00] uppercase mb-16"
           style={{
@@ -67,13 +70,10 @@ export default function ContactsPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          Контакти
+          {t.title}
         </h1>
 
-        {/* Основний блок: форма зліва + інфо справа */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-5">
-
-          {/* ── Ліва: форма ── */}
           <div
             id="contact-form"
             className="w-full lg:w-[55%] rounded-2xl p-8 lg:p-12 bg-white border border-[#3D1A00]/10 scroll-mt-24"
@@ -87,7 +87,7 @@ export default function ContactsPage() {
                 letterSpacing: "0.04em",
               }}
             >
-              Зв&apos;язатися з ForBody
+              {t.formTitle}
             </h2>
 
             {submitted ? (
@@ -96,18 +96,21 @@ export default function ContactsPage() {
                   className="text-[#3D1A00]"
                   style={{ fontFamily: "Montserrat, sans-serif", fontSize: "18px", fontWeight: 500 }}
                 >
-                  Дякуємо! Ми отримали ваше повідомлення і зв&apos;яжемося найближчим часом.
+                  {t.success}
                 </p>
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Ім'я */}
                 <div>
                   <label
                     className="block text-[#3D1A00]/60 mb-1"
-                    style={{ fontFamily: "Montserrat, sans-serif", fontSize: "11px", letterSpacing: "0.08em" }}
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontSize: "11px",
+                      letterSpacing: "0.08em",
+                    }}
                   >
-                    ІМ&apos;Я *
+                    {t.nameLabel}
                   </label>
                   <input
                     type="text"
@@ -115,17 +118,20 @@ export default function ContactsPage() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="w-full bg-transparent border-b border-[#3D1A00]/30 pb-2 text-[#3D1A00] outline-none focus:border-[#3D1A00] transition-colors placeholder-transparent"
                     style={{ fontFamily: "Montserrat, sans-serif", fontSize: "15px" }}
-                    placeholder="Ваше ім'я"
+                    placeholder={t.namePlaceholder}
                   />
                 </div>
 
-                {/* Email */}
                 <div>
                   <label
                     className="block text-[#3D1A00]/60 mb-1"
-                    style={{ fontFamily: "Montserrat, sans-serif", fontSize: "11px", letterSpacing: "0.08em" }}
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontSize: "11px",
+                      letterSpacing: "0.08em",
+                    }}
                   >
-                    EMAIL *
+                    {t.emailLabel}
                   </label>
                   <input
                     type="email"
@@ -137,13 +143,16 @@ export default function ContactsPage() {
                   />
                 </div>
 
-                {/* Запит */}
                 <div>
                   <label
                     className="block text-[#3D1A00]/60 mb-1"
-                    style={{ fontFamily: "Montserrat, sans-serif", fontSize: "11px", letterSpacing: "0.08em" }}
+                    style={{
+                      fontFamily: "Montserrat, sans-serif",
+                      fontSize: "11px",
+                      letterSpacing: "0.08em",
+                    }}
                   >
-                    ВАШ ЗАПИТ *
+                    {t.messageLabel}
                   </label>
                   <textarea
                     value={form.message}
@@ -151,17 +160,16 @@ export default function ContactsPage() {
                     rows={3}
                     className="w-full bg-transparent border-b border-[#3D1A00]/30 pb-2 text-[#3D1A00] outline-none focus:border-[#3D1A00] transition-colors resize-none"
                     style={{ fontFamily: "Montserrat, sans-serif", fontSize: "15px" }}
-                    placeholder="Що ви хочете дізнатися/замовити?"
+                    placeholder={t.messageHint}
                   />
                   <p
                     className="text-[#3D1A00]/40 mt-1"
                     style={{ fontFamily: "Montserrat, sans-serif", fontSize: "12px" }}
                   >
-                    Що ви хочете дізнатися/замовити?
+                    {t.messageHint}
                   </p>
                 </div>
 
-                {/* Згода */}
                 <label className="flex items-start gap-3 cursor-pointer group mt-2">
                   <span
                     className={`mt-0.5 w-5 h-5 flex-shrink-0 border rounded-sm transition-colors flex items-center justify-center ${
@@ -173,7 +181,13 @@ export default function ContactsPage() {
                   >
                     {agreed && (
                       <svg viewBox="0 0 12 10" fill="none" className="w-3 h-3">
-                        <path d="M1 5l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path
+                          d="M1 5l3 3 7-7"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     )}
                   </span>
@@ -182,25 +196,36 @@ export default function ContactsPage() {
                     style={{ fontFamily: "Montserrat, sans-serif", fontSize: "13px" }}
                     onClick={() => setAgreed(!agreed)}
                   >
-                    Продовжуючи, я приймаю умови{" "}
-                    <Link href="/terms-of-service" className="underline hover:text-[#3D1A00] transition-colors">
-                      Публічної оферти
-                    </Link>{" "}
-                    та надаю згоду на обробку своїх персональних даних відповідно до{" "}
-                    <Link href="/privacy-policy" className="underline hover:text-[#3D1A00] transition-colors">
-                      Політики конфіденційності
-                    </Link>
+                    {t.consentBefore}{" "}
+                    <LocaleLink
+                      href="/terms-of-service"
+                      className="underline hover:text-[#3D1A00] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {t.publicOffer}
+                    </LocaleLink>{" "}
+                    {t.consentAnd}{" "}
+                    <LocaleLink
+                      href="/privacy-policy"
+                      className="underline hover:text-[#3D1A00] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {t.privacyPolicy}
+                    </LocaleLink>
                   </span>
                 </label>
 
-                {error && (
-                  <p className="text-red-600 text-sm font-['Montserrat']">{error}</p>
-                )}
-                {/* Кнопка */}
+                {error && <p className="text-red-600 text-sm font-['Montserrat']">{error}</p>}
                 <div className="pt-2 w-full">
                   <button
                     onClick={handleSubmit}
-                    disabled={!agreed || !form.name.trim() || !form.email.trim() || !form.message.trim() || sending}
+                    disabled={
+                      !agreed ||
+                      !form.name.trim() ||
+                      !form.email.trim() ||
+                      !form.message.trim() ||
+                      sending
+                    }
                     className="w-full px-10 py-4 bg-[#3D1A00] text-white uppercase transition-all hover:bg-[#3D1A00]/85 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{
                       fontFamily: "Montserrat, sans-serif",
@@ -209,18 +234,14 @@ export default function ContactsPage() {
                       letterSpacing: "0.12em",
                     }}
                   >
-                    {sending ? "Відправка…" : "Відправити"}
+                    {sending ? t.sending : t.send}
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* ── Права: контактна інформація ── */}
-          <div
-            className="w-full lg:w-[45%] rounded-2xl p-8 lg:p-12 grid grid-cols-2 gap-x-8 gap-y-12 content-start bg-white border border-[#3D1A00]/10"
-          >
-            {/* Телефон */}
+          <div className="w-full lg:w-[45%] rounded-2xl p-8 lg:p-12 grid grid-cols-2 gap-x-8 gap-y-12 content-start bg-white border border-[#3D1A00]/10">
             <div>
               <p
                 className="text-[#3D1A00]/50 uppercase mb-3"
@@ -231,7 +252,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                Телефон
+                {t.phone}
               </p>
               <a
                 href={`tel:${siteContact.phoneTel}`}
@@ -247,7 +268,6 @@ export default function ContactsPage() {
               </a>
             </div>
 
-            {/* Соц-мережі */}
             <div>
               <p
                 className="text-[#3D1A00]/50 uppercase mb-3"
@@ -258,7 +278,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                Соц-мережі
+                {t.social}
               </p>
               <div className="flex items-center gap-3">
                 <a
@@ -286,7 +306,6 @@ export default function ContactsPage() {
               </div>
             </div>
 
-            {/* Юридична адреса (ФОП) */}
             <div className="col-span-2">
               <p
                 className="text-[#3D1A00]/50 uppercase mb-3"
@@ -297,7 +316,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                Адреса
+                {t.address}
               </p>
               <div
                 className="text-[#3D1A00] space-y-1"
@@ -308,13 +327,12 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                {siteContact.addressLines.map((line) => (
+                {t.addressLines.map((line) => (
                   <p key={line}>{line}</p>
                 ))}
               </div>
             </div>
 
-            {/* E-mail */}
             <div>
               <p
                 className="text-[#3D1A00]/50 uppercase mb-3"
@@ -325,7 +343,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                E-mail
+                {t.email}
               </p>
               <a
                 href={`mailto:${siteContact.email}`}
@@ -341,7 +359,6 @@ export default function ContactsPage() {
               </a>
             </div>
 
-            {/* Графік роботи */}
             <div>
               <p
                 className="text-[#3D1A00]/50 uppercase mb-3"
@@ -352,7 +369,7 @@ export default function ContactsPage() {
                   letterSpacing: "0.06em",
                 }}
               >
-                Графік роботи
+                {t.schedule}
               </p>
               <div
                 className="text-[#3D1A00] space-y-1"
@@ -363,13 +380,12 @@ export default function ContactsPage() {
                   lineHeight: "159%",
                 }}
               >
-                {siteContact.scheduleLines.map((line) => (
+                {t.scheduleLines.map((line) => (
                   <p key={line}>{line}</p>
                 ))}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

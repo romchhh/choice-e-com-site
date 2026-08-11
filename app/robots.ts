@@ -1,20 +1,40 @@
 import { MetadataRoute } from "next";
+import { getSiteOrigin } from "@/lib/i18n/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+  const baseUrl = getSiteOrigin();
 
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/_next/", "/private/"],
+        disallow: [
+          "/admin/",
+          "/api/",
+          "/_next/",
+          "/private/",
+          "/final",
+          "/ru/final",
+          "/success",
+          "/ru/success",
+          "/forbidden",
+          "/ru/forbidden",
+        ],
       },
-      // Allow Google to crawl product pages and product images served via /api/images/*
       {
         userAgent: "Googlebot",
-        allow: ["/", "/api/images/"],
-        disallow: ["/admin/", "/api/", "/_next/", "/private/"],
+        allow: ["/", "/api/images/", "/ru/", "/catalog", "/ru/catalog", "/product", "/ru/product"],
+        disallow: [
+          "/admin/",
+          "/api/",
+          "/_next/",
+          "/private/",
+          "/final",
+          "/ru/final",
+          "/success",
+          "/ru/success",
+        ],
       },
       {
         userAgent: "Googlebot-Image",
@@ -24,6 +44,7 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "GPTBot", allow: "/", disallow: ["/admin/", "/api/"] },
       { userAgent: "ChatGPT-User", allow: "/", disallow: ["/admin/", "/api/"] },
       { userAgent: "OAI-SearchBot", allow: "/", disallow: ["/admin/", "/api/"] },
+      { userAgent: "Yandex", allow: ["/", "/ru/"], disallow: ["/admin/", "/api/"] },
     ],
     host: new URL(baseUrl).host,
     sitemap: `${baseUrl}/sitemap.xml`,

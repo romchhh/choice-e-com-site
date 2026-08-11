@@ -3,14 +3,15 @@
 import SidebarMenu from "@/components/layout/SidebarMenu";
 import { useAppContext } from "@/lib/GeneralProvider";
 import Image from "next/image";
-import Link from "next/link";
-import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import LocaleLink from "@/components/i18n/LocaleLink";
 
 const HERO_IMAGE_DESKTOP = "/images/hero.jpg";
 const HERO_IMAGE_MOBILE = "/images/hero.jpg";
 
 export default function Hero() {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
+  const { dict } = useLocale();
 
   return (
     <section id="hero" className="relative">
@@ -18,7 +19,7 @@ export default function Hero() {
         {/* Hero image — mobile */}
         <Image
           src={HERO_IMAGE_MOBILE}
-          alt={`${SITE_STORE_NAME} - eco та wellness`}
+          alt={dict.hero.imageAlt}
           fill
           className="object-cover object-center sm:hidden"
           priority
@@ -28,7 +29,7 @@ export default function Hero() {
         {/* Hero image — desktop */}
         <Image
           src={HERO_IMAGE_DESKTOP}
-          alt={`${SITE_STORE_NAME} - eco та wellness`}
+          alt={dict.hero.imageAlt}
           fill
           className="hidden sm:block object-cover object-right"
           priority
@@ -62,29 +63,27 @@ export default function Hero() {
                 letterSpacing: "-0.02em",
               }}
             >
-              {SITE_STORE_NAME}
-              <span className="whitespace-pre"> - </span>
-              eco та wellness для здоров&apos;я і дому
+              {dict.hero.headline}
             </h1>
             <p className="text-white text-lg sm:text-xl md:text-2xl lg:text-xl xl:text-2xl font-['Montserrat'] text-left opacity-90 max-w-xl drop-shadow-md" style={{ letterSpacing: "0.02em" }}>
-              Інтернет-магазин офіційного представника бренду {SITE_PRODUCT_BRAND}: wellness-комплекси, натуральний догляд та eco-засоби для щоденного життя.
+              {dict.hero.subhead}
             </p>
           </div>
 
           {/* CTA buttons — на мобільному на всю ширину з однаковими відступами */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-4 w-full sm:w-auto max-w-2xl">
-            <Link
+            <LocaleLink
               href="/catalog"
               className="cursor-pointer w-full sm:w-52 md:w-60 h-12 md:h-14 p-2 bg-[#D7D799] text-[#3D1A00] inline-flex justify-center items-center gap-2 hover:opacity-90 transition-all duration-300 font-['Montserrat'] font-semibold"
             >
-              <span className="text-center text-sm sm:text-base md:text-lg">Підібрати програму</span>
-            </Link>
-            <Link
+              <span className="text-center text-sm sm:text-base md:text-lg">{dict.hero.ctaCatalog}</span>
+            </LocaleLink>
+            <LocaleLink
               href="/info#partnership"
               className="cursor-pointer w-full sm:w-52 md:w-60 h-12 md:h-14 p-2 bg-transparent border-2 border-white text-white inline-flex justify-center items-center gap-2 hover:bg-white hover:text-black transition-all duration-300 font-['Montserrat'] font-semibold"
             >
-              <span className="text-center text-sm sm:text-base md:text-lg">Стати партнером</span>
-            </Link>
+              <span className="text-center text-sm sm:text-base md:text-lg">{dict.hero.ctaPartner}</span>
+            </LocaleLink>
           </div>
         </div>
       </div>

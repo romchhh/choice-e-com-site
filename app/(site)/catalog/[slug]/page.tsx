@@ -4,7 +4,10 @@ import type { Metadata } from "next";
 import { CatalogGridSkeleton } from "@/components/shared/SkeletonLoader";
 import { sqlGetAllCategories, sqlGetCategoryBySlug } from "@/lib/sql";
 import { notFound } from "next/navigation";
-import { SITE_PRODUCT_BRAND, SITE_STORE_NAME } from "@/lib/siteBrand";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { localizeCategoryFields } from "@/lib/i18n/localizeCatalog";
+import { buildSeoMetadata, catalogSeoCopy } from "@/lib/i18n/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -26,36 +29,43 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await sqlGetCategoryBySlug(slug);
-  if (!category) return { title: `Категорія не знайдена | ${SITE_STORE_NAME}` };
+  const locale = await getLocale();
+  const categoryRaw = await sqlGetCategoryBySlug(slug);
+  if (!categoryRaw) {
+    return {
+      title:
+        locale === "ru"
+          ? `Категория не найдена | ${SITE_STORE_NAME}`
+          : `Категорія не знайдена | ${SITE_STORE_NAME}`,
+      robots: { index: false, follow: true },
+    };
+  }
 
-  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
-  const title = `${category.name} | ${SITE_STORE_NAME}`;
-  const description = `Каталог категорії «${category.name}» в інтернет-магазині ${SITE_STORE_NAME}. Оригінальна продукція ${SITE_PRODUCT_BRAND}: фітокомплекси та eco-засоби.`;
-  const catalogUrl = `${baseUrl}/catalog/${slug}`;
+  const category = localizeCategoryFields(categoryRaw, locale);
+  const copy = catalogSeoCopy(locale, category.name);
+  const descFromCategory = category.description
+    ? String(category.description).replace(/<[^>]*>/g, " ").trim()
+    : null;
 
-  return {
-    title,
-    description,
-    keywords: `${category.name}, ${SITE_STORE_NAME}, ${SITE_PRODUCT_BRAND}, wellness, фітокомплекси, натуральна продукція, eco-засоби`,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale: "uk_UA",
-      url: catalogUrl,
-      images: [{ url: `${baseUrl}/images/tg_image_3614117882.png`, width: 1200, height: 630, alt: `${SITE_STORE_NAME} — каталог` }],
-      siteName: SITE_STORE_NAME,
-    },
-    twitter: { card: "summary_large_image", title, description },
-    alternates: { canonical: catalogUrl },
-  };
+  return buildSeoMetadata({
+    locale,
+    path: `/catalog/${slug}`,
+    title: copy.title,
+    description: descFromCategory
+      ? `${descFromCategory.slice(0, 140)}${descFromCategory.length > 140 ? "…" : ""}`
+      : copy.description,
+    keywords: copy.keywords,
+    ogType: "website",
+    imageAlt: `${SITE_STORE_NAME} — ${category.name}`,
+  });
 }
 
 export default async function CatalogSlugPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = await sqlGetCategoryBySlug(slug);
-  if (!category) notFound();
+  const locale = await getLocale();
+  const categoryRaw = await sqlGetCategoryBySlug(slug);
+  if (!categoryRaw) notFound();
+  const category = localizeCategoryFields(categoryRaw, locale);
 
   return (
     <Suspense
@@ -63,7 +73,7 @@ export default async function CatalogSlugPage({ params }: PageProps) {
         <section className="max-w-[1824px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-10 mb-20">
           <div className="flex justify-between items-center mb-12">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-['Montserrat'] uppercase tracking-wider text-gray-900">
-              Завантаження...
+              …
             </h1>
           </div>
           <CatalogGridSkeleton count={12} />
@@ -71,10 +81,13 @@ export default async function CatalogSlugPage({ params }: PageProps) {
       }
     >
       <CatalogServer
-        category={category.name}
+        category={categoryRaw.name}
         subcategory={null}
         categoryId={category.id}
-        categoryDescription={(category as any).description ?? null}
+        categorySlug={slug}
+        categoryDescription={
+          (category as { description?: string | null }).description ?? null
+        }
       />
     </Suspense>
   );

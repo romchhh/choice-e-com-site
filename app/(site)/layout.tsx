@@ -10,17 +10,15 @@ import Footer from "@/components/layout/Footer";
 import { AppProvider } from "@/lib/GeneralProvider";
 import { BasketProvider } from "@/lib/BasketProvider";
 import { CategoriesProvider } from "@/lib/CategoriesProvider";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { buildSeoMetadata, getSiteOrigin, absoluteLocaleUrl } from "@/lib/i18n/seo";
 import { registerServiceWorker } from "@/lib/registerSW";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { WebVitals } from "@/components/shared/WebVitals";
-import MainContent from "@/components/shared/MainContent";
 import { OrganizationStructuredData, WebSiteStructuredData } from "@/components/shared/StructuredData";
-import {
-  SITE_PRODUCT_BRAND,
-  SITE_STORE_NAME,
-  siteFooterLead,
-  siteOfficialRepLine,
-} from "@/lib/siteBrand";
+import MainContent from "@/components/shared/MainContent";
 
 const montserrat = Montserrat({
   subsets: ["latin", "cyrillic"],
@@ -33,43 +31,40 @@ const montserrat = Montserrat({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-const baseUrlForMeta = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  return {
+    ...buildSeoMetadata({
+      locale,
+      path: "/",
+      title: dict.meta.title,
+      description: dict.meta.description,
+      keywords: dict.meta.keywords,
+      ogType: "website",
+      imageAlt: dict.hero.imageAlt,
+    }),
+    icons: {
+      icon: "/images/choice-features/open-browser.png",
+      shortcut: "/images/choice-features/open-browser.png",
+      apple: "/images/choice-features/open-browser.png",
+    },
+  };
+}
 
-export const metadata: Metadata = {
-  metadataBase: new URL(baseUrlForMeta),
-  title: `${SITE_STORE_NAME} — ${siteOfficialRepLine} | Eco та wellness`,
-  description: `${siteFooterLead} Замовлення та консультація оригінальної продукції ${SITE_PRODUCT_BRAND}.`,
-  keywords: `ForBody Space, ${SITE_PRODUCT_BRAND}, wellness, eco, фітокомплекси, офіційний представник ${SITE_PRODUCT_BRAND}, натуральна продукція, Україна`,
-  icons: {
-    icon: "/images/choice-features/open-browser.png",
-    shortcut: "/images/choice-features/open-browser.png",
-    apple: "/images/choice-features/open-browser.png",
-  },
-  openGraph: {
-    title: `${SITE_STORE_NAME} — ${siteOfficialRepLine}`,
-    description: siteFooterLead,
-    type: "website",
-    locale: "uk_UA",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true },
-  },
-  alternates: {
-    canonical: baseUrlForMeta,
-  },
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const baseUrl = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+  const baseUrl = getSiteOrigin();
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const homeUk = absoluteLocaleUrl("/", "uk");
+  const homeRu = absoluteLocaleUrl("/", "ru");
 
   return (
-    <html lang="uk" className={montserrat.className}>
+    <html lang={locale === "ru" ? "ru" : "uk"} className={montserrat.className}>
       <head>
         {/* Google Tag Manager */}
         <Script id="gtm" strategy="beforeInteractive">{`
@@ -81,9 +76,14 @@ export default function RootLayout({
         `}</Script>
         {/* End Google Tag Manager */}
         <OrganizationStructuredData url={baseUrl} baseUrl={baseUrl} />
-        <WebSiteStructuredData baseUrl={baseUrl} />
+        <WebSiteStructuredData
+          baseUrl={locale === "ru" ? homeRu : homeUk}
+          description={dict.meta.description}
+          locale={locale === "ru" ? "ru-RU" : "uk-UA"}
+        />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <link rel="alternate" type="text/plain" href="/ai.txt" title="AI context (ai.txt)" />
+        {/* hreflang uk/ru/x-default — через Metadata.alternates на кожній сторінці */}
         {/* Mobile viewport optimization */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta name="format-detection" content="telephone=no" />
@@ -172,11 +172,13 @@ export default function RootLayout({
           <AppProvider>
             <BasketProvider>
               <CategoriesProvider>
-                <Header />
-                <Suspense fallback={<main id="main-content" className="bg-[var(--background-warm-yellow)] mt-[var(--site-header-offset)] min-h-screen" />}>
-                  <MainContent id="main-content">{children}</MainContent>
-                </Suspense>
-                <Footer />
+                <LocaleProvider initialLocale={locale}>
+                  <Header />
+                  <Suspense fallback={<main id="main-content" className="bg-[var(--background-warm-yellow)] mt-[var(--site-header-offset)] min-h-screen" />}>
+                    <MainContent id="main-content">{children}</MainContent>
+                  </Suspense>
+                  <Footer />
+                </LocaleProvider>
               </CategoriesProvider>
             </BasketProvider>
           </AppProvider>

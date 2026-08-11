@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useBasket } from "@/lib/BasketProvider";
 import Image from "next/image";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { getDiscountedPrice } from "@/lib/pricing";
 import {
   GA4_BRAND,
@@ -27,6 +28,7 @@ function getSubtotal(items: { price: number | string; quantity: number; discount
 }
 
 export default function FinalCard() {
+  const { dict } = useLocale();
   // GENERAL
   const { items, updateQuantity, removeItem, clearBasket } = useBasket();
   const [mounted, setMounted] = useState(false);
@@ -820,28 +822,28 @@ export default function FinalCard() {
           <nav className="mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center gap-2 text-sm font-['Montserrat'] font-normal">
               <li>
-                <Link href="/" className="text-[#3D1A00] hover:opacity-80 transition-opacity">
-                  Головна
-                </Link>
+                <LocaleLink href="/" className="text-[#3D1A00] hover:opacity-80 transition-opacity">
+                  {dict.nav.home}
+                </LocaleLink>
               </li>
               <li className="text-gray-400">|</li>
-              <li className="text-gray-400">Оформлення замовлення</li>
+              <li className="text-gray-400">{dict.checkout.title}</li>
             </ol>
           </nav>
 
           <div className="text-center py-12 sm:py-16">
             <h1 className="font-['Montserrat'] font-bold text-3xl sm:text-4xl lg:text-5xl text-[#3D1A00] uppercase tracking-tight mb-4">
-              Дякуємо!
+              {dict.success.title}
             </h1>
             <p className="font-['Montserrat'] font-bold text-2xl sm:text-3xl lg:text-4xl text-[#3D1A00] uppercase tracking-tight mb-10 sm:mb-12">
               Ваше замовлення оформлене!
             </p>
-            <Link
+            <LocaleLink
               href="/"
               className="inline-flex items-center justify-center px-8 py-4 rounded-lg font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-base tracking-tight bg-[#9B9B5A] hover:bg-[#8a8a4e] transition-colors"
             >
-              Повернутися на головну
-            </Link>
+              {dict.success.backHome}
+            </LocaleLink>
           </div>
         </div>
       </section>
@@ -862,28 +864,28 @@ export default function FinalCard() {
             </svg>
           </div>
           <h2 className="text-center text-2xl sm:text-4xl md:text-5xl font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight leading-tight">
-            Ваш кошик порожній
+            {dict.common.emptyBasket}
           </h2>
-          <Link
+          <LocaleLink
             href="/catalog"
             className="w-full sm:w-80 h-14 sm:h-16 px-6 py-3 rounded-xl bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-base sm:text-lg uppercase tracking-tight inline-flex items-center justify-center text-center transition-colors"
           >
-            Продовжити покупки
-          </Link>
+            {dict.common.continueShopping}
+          </LocaleLink>
         </div>
       ) : (
         <>
           {/* Breadcrumbs */}
           <nav className="mb-6 pt-2" aria-label="Breadcrumb">
             <ol className="flex items-center gap-2 text-sm font-['Montserrat'] font-normal text-[#3D1A00]/70">
-              <li><Link href="/" className="hover:text-[#3D1A00] transition-colors">Головна</Link></li>
+              <li><LocaleLink href="/" className="hover:text-[#3D1A00] transition-colors">{dict.nav.home}</LocaleLink></li>
               <li aria-hidden className="text-[#3D1A00]/40">|</li>
-              <li className="text-[#3D1A00]/80">Оформлення замовлення</li>
+              <li className="text-[#3D1A00]/80">{dict.checkout.title}</li>
             </ol>
           </nav>
 
           <h1 className="font-['Montserrat'] font-semibold text-2xl sm:text-3xl lg:text-4xl text-[#3D1A00] uppercase tracking-tight text-center mb-10 sm:mb-12">
-            ОФОРМЛЕННЯ ЗАМОВЛЕННЯ
+            {dict.checkout.title}
           </h1>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-10">
@@ -892,7 +894,7 @@ export default function FinalCard() {
             <div className="w-full lg:w-1/2 flex flex-col gap-6">
               {/* ІНФОРМАЦІЯ ПРО ПОКУПЦЯ */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">Інформація про покупця</h2>
+                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">{dict.checkout.personalData}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="email" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">E-mail</label>
@@ -909,7 +911,7 @@ export default function FinalCard() {
                     {fieldErrors.email && <p className="text-red-500 text-xs">{fieldErrors.email}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="phone" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">Телефон <span className="text-red-500">*</span></label>
+                    <label htmlFor="phone" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">{dict.checkout.phone} <span className="text-red-500">*</span></label>
                     <input
                       type="tel"
                       id="phone"
@@ -924,7 +926,7 @@ export default function FinalCard() {
                     {fieldErrors.phone && <p className="text-red-500 text-xs">{fieldErrors.phone}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="firstName" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">Ім&apos;я <span className="text-red-500">*</span></label>
+                    <label htmlFor="firstName" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">{dict.checkout.name} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       id="firstName"
@@ -937,7 +939,7 @@ export default function FinalCard() {
                     {fieldErrors.firstName && <p className="text-red-500 text-xs">{fieldErrors.firstName}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="lastName" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">Прізвище <span className="text-red-500">*</span></label>
+                    <label htmlFor="lastName" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">{dict.checkout.surname} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       id="lastName"
@@ -954,7 +956,7 @@ export default function FinalCard() {
 
               {/* СПОСІБ ДОСТАВКИ */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">Спосіб доставки</h2>
+                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">{dict.checkout.delivery}</h2>
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-3 cursor-pointer py-1 group">
                     <input type="radio" name="delivery" value="nova_poshta_branch" checked={deliveryMethod === "nova_poshta_branch"} onChange={(e) => setDeliveryMethod(e.target.value)} className="sr-only" />
@@ -983,10 +985,10 @@ export default function FinalCard() {
               {/* АДРЕСА ДОСТАВКИ */}
               {(deliveryMethod === "nova_poshta_branch" || deliveryMethod === "nova_poshta_courier" || deliveryMethod === "nova_poshta_locker") && (
                 <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                  <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">Адреса доставки</h2>
+                  <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">{dict.checkout.address}</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="city" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">Місто <span className="text-red-500">*</span></label>
+                      <label htmlFor="city" className="text-sm font-['Montserrat'] text-[#3D1A00]/80">{dict.checkout.city} <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         id="city"
@@ -1039,7 +1041,7 @@ export default function FinalCard() {
 
               {/* СПОСІБ ОПЛАТИ */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">Спосіб оплати</h2>
+                <h2 className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm tracking-wide mb-4">{dict.checkout.payment}</h2>
                 <div className="flex flex-col gap-3">
                   <label className="flex items-center gap-3 cursor-pointer py-1 group">
                     <input type="radio" name="payment" value="full" checked={paymentType === "full"} onChange={(e) => handlePaymentTypeChange(e.target.value)} className="sr-only" />
@@ -1205,7 +1207,7 @@ export default function FinalCard() {
                       }}
                       className="w-full sm:w-auto sm:shrink-0 px-4 py-3 font-['Montserrat'] text-sm font-medium rounded-lg bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20 disabled:opacity-50 transition-colors text-center"
                     >
-                      {promoValidating ? "Перевірка…" : "Застосувати"}
+                      {promoValidating ? dict.common.loading : dict.common.apply}
                     </button>
                   </div>
                   {promoError && <p className="text-xs text-red-600 font-['Montserrat']">{promoError}</p>}
@@ -1234,7 +1236,7 @@ export default function FinalCard() {
                           <span>−{discount.toLocaleString("uk-UA")} грн</span>
                         </div>
                       )}
-                      <div className="flex justify-between font-semibold pt-1 border-t border-gray-100"><span>Всього:</span><span>{Math.round(total).toLocaleString("uk-UA")} грн</span></div>
+                      <div className="flex justify-between font-semibold pt-1 border-t border-gray-100"><span>{dict.common.total}:</span><span>{Math.round(total).toLocaleString("uk-UA")} {dict.common.uah}</span></div>
                     </div>
                   );
                 })()}
@@ -1265,13 +1267,13 @@ export default function FinalCard() {
                 onClick={() => setAgreedToPolicy(!agreedToPolicy)}
               >
                 Я приймаю умови{" "}
-                <Link href="/terms-of-service" className="underline hover:text-[#3D1A00] transition-colors">
-                  Публічної оферти
-                </Link>{" "}
+                <LocaleLink href="/terms-of-service" className="underline hover:text-[#3D1A00] transition-colors">
+                  {dict.footer.terms}
+                </LocaleLink>{" "}
                 та надаю згоду на обробку персональних даних згідно з{" "}
-                <Link href="/privacy-policy" className="underline hover:text-[#3D1A00] transition-colors">
-                  Політикою конфіденційності
-                </Link>
+                <LocaleLink href="/privacy-policy" className="underline hover:text-[#3D1A00] transition-colors">
+                  {dict.footer.privacy}
+                </LocaleLink>
               </span>
             </label>
           </div>
@@ -1282,7 +1284,7 @@ export default function FinalCard() {
               disabled={loading || !agreedToPolicy}
               className="w-full sm:w-auto min-w-[300px] max-w-md py-4 px-10 bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-['Montserrat'] font-semibold uppercase text-base tracking-tight rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Обробка..." : "ОФОРМИТИ ЗАМОВЛЕННЯ"}
+              {loading ? dict.common.loading : dict.checkout.placeOrder}
             </button>
           </div>
 

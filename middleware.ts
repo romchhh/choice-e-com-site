@@ -28,6 +28,32 @@ function base64Decode(str: string): string {
   }
 }
 
+const LOCALE_HEADER = "x-locale";
+
+function applySecurityHeaders(response: NextResponse, pathname: string, request: NextRequest) {
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "origin-when-cross-origin");
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+
+  if (pathname.startsWith("/images/") || pathname.startsWith("/api/images/")) {
+    response.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    response.headers.set("Accept-Ranges", "bytes");
+  }
+
+  if (pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$/)) {
+    response.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    response.headers.set("Vary", "Accept-Encoding");
+  }
+
+  const userAgent = request.headers.get("user-agent") || "";
+  const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
+  if (isMobile) {
+    response.headers.set("X-Mobile-Optimized", "true");
+    response.headers.set("Critical-CH", "Viewport-Width, Device-Memory");
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
@@ -41,6 +67,43 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
+  // Russian locale: /ru → rewrite to same page without prefix, set x-locale
+  const isRuPath =
+    (pathname === "/ru" || pathname.startsWith("/ru/")) &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/admin");
+
+  if (isRuPath) {
+    const barePath =
+      pathname === "/ru" || pathname === "/ru/"
+        ? "/"
+        : pathname.slice("/ru".length) || "/";
+
+    // POST to /ru/success → redirect to GET
+    if (barePath === "/success" && request.method === "POST") {
+      const base =
+        process.env.PUBLIC_URL ||
+        process.env.NEXT_PUBLIC_PUBLIC_URL ||
+        "http://localhost:3000";
+      const successUrl = `${base.replace(/\/$/, "")}/ru/success${request.nextUrl.search}`;
+      return NextResponse.redirect(successUrl, 303);
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = barePath;
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set(LOCALE_HEADER, "ru");
+    const response = NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
+    response.headers.set(LOCALE_HEADER, "ru");
+    applySecurityHeaders(response, barePath, request);
+    // Continue to admin check below only if needed — storefront rewrite returns here
+    if (!barePath.startsWith("/admin") && !barePath.startsWith("/api")) {
+      return response;
+    }
+  }
+
   // POST to /success (e.g. WayForPay redirect): redirect to GET to avoid Next.js Invalid URL when origin/url is null
   if (pathname === "/success" && request.method === "POST") {
     const base = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
@@ -48,34 +111,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(successUrl, 303);
   }
 
-  const response = NextResponse.next();
-
-  // Security headers
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-
-  // Performance headers for images
-  if (pathname.startsWith('/images/') || pathname.startsWith('/api/images/')) {
-    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-    response.headers.set('Accept-Ranges', 'bytes');
-  }
-
-  // Static assets caching
-  if (pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$/)) {
-    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-    response.headers.set('Vary', 'Accept-Encoding');
-  }
-
-  // Mobile optimizations
-  const userAgent = request.headers.get('user-agent') || '';
-  const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
-  
-  if (isMobile) {
-    response.headers.set('X-Mobile-Optimized', 'true');
-    response.headers.set('Critical-CH', 'Viewport-Width, Device-Memory');
-  }
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(LOCALE_HEADER, "uk");
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  response.headers.set(LOCALE_HEADER, "uk");
+  applySecurityHeaders(response, pathname, request);
 
   // Admin authentication logic (for /admin pages, /api/admin, and sensitive APIs)
   const method = request.method;

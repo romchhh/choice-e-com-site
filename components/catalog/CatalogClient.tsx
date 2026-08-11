@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useAppContext } from "@/lib/GeneralProvider";
 import { useBasket } from "@/lib/BasketProvider";
@@ -16,12 +17,7 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
-import {
-  LABEL_FREE_DELIVERY_FROM_2000,
-  LABEL_PRODUCT_COURSE,
-  LABEL_PRODUCT_PACKAGE,
-  SITE_STORE_NAME,
-} from "@/lib/siteBrand";
+import { SITE_STORE_NAME } from "@/lib/siteBrand";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
 
 interface Product {
@@ -79,6 +75,7 @@ export default function CatalogClient({
 }: CatalogClientProps) {
   const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
   const { addItem } = useBasket();
+  const { dict } = useLocale();
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recommended" | "newest" | "asc" | "desc" | "sale">("recommended");
@@ -369,18 +366,18 @@ export default function CatalogClient({
         <nav className="mb-4" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 text-sm font-['Montserrat'] text-gray-400">
             <li>
-              <Link href="/" className="hover:text-gray-700 transition-colors">
-                Головна
-              </Link>
+              <LocaleLink href="/" className="hover:text-gray-700 transition-colors">
+                {dict.nav.home}
+              </LocaleLink>
             </li>
             <li aria-hidden className="text-gray-300">|</li>
-            <li className="text-[#3D1A00]">Каталог товарів</li>
+            <li className="text-[#3D1A00]">{dict.catalog.title}</li>
           </ol>
         </nav>
 
         {/* Великий заголовок по центру */}
         <h1 className="text-center text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-10">
-          Каталог товарів
+          {dict.catalog.title}
         </h1>
 
         {/* Мобільна кнопка фільтрів — відкриває ті самі фільтри, що й на десктопі */}
@@ -388,7 +385,7 @@ export default function CatalogClient({
           onClick={() => setMobileFiltersOpen(true)}
           className="lg:hidden mb-4 flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-['Montserrat'] text-gray-700 hover:border-gray-400 transition-colors"
         >
-          <span className="text-lg">≡</span> Фільтри
+          <span className="text-lg">≡</span> {dict.common.filters}
         </button>
 
         {/* Мобільна панель фільтрів — ті самі Ціна, Категорія, Очистити, Застосувати */}
@@ -402,7 +399,7 @@ export default function CatalogClient({
             <div className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white shadow-xl z-50 flex flex-col overflow-y-auto lg:hidden">
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="text-lg font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00]">
-                  Фільтри
+                  {dict.common.filters}
                 </h2>
                 <button
                   type="button"
@@ -446,7 +443,7 @@ export default function CatalogClient({
                 {hasPromoProducts && (
                   <div>
                     <h3 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                      Акції
+                      {dict.nav.promo}
                     </h3>
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <span
@@ -477,7 +474,7 @@ export default function CatalogClient({
                         className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
                         onClick={() => setPromoOnly((v) => !v)}
                       >
-                        Лише акційні товари (знижка, стара ціна або плашка «Акція»)
+                        {dict.catalog.promoOnly}
                       </span>
                     </label>
                   </div>
@@ -585,13 +582,13 @@ export default function CatalogClient({
                     onClick={handleClearFilters}
                     className="flex-1 py-2.5 px-4 border border-gray-300 rounded text-sm font-semibold font-['Montserrat'] text-gray-700 hover:border-gray-500 hover:text-[#3D1A00] transition-colors"
                   >
-                    Очистити
+                    {dict.common.reset}
                   </button>
                   <button
                     onClick={handleApplyFilters}
                     className="flex-1 py-2.5 px-4 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded text-sm font-semibold font-['Montserrat'] transition-colors"
                   >
-                    Застосувати
+                    {dict.common.apply}
                   </button>
                 </div>
               </div>
@@ -636,7 +633,7 @@ export default function CatalogClient({
             {hasPromoProducts && (
               <div>
                 <h2 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
-                  Акції
+                  {dict.nav.promo}
                 </h2>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <span
@@ -667,7 +664,7 @@ export default function CatalogClient({
                     className="text-sm font-['Montserrat'] text-gray-700 group-hover:text-[#3D1A00] transition-colors"
                     onClick={() => setPromoOnly((v) => !v)}
                   >
-                    Лише акційні товари (знижка, стара ціна або плашка «Акція»)
+                    {dict.catalog.promoOnly}
                   </span>
                 </label>
               </div>
@@ -777,13 +774,13 @@ export default function CatalogClient({
                 onClick={handleClearFilters}
                 className="flex-1 py-2.5 px-4 border border-gray-300 rounded text-sm font-semibold font-['Montserrat'] text-gray-700 hover:border-gray-500 hover:text-[#3D1A00] transition-colors"
               >
-                Очистити
+                {dict.common.reset}
               </button>
               <button
                 onClick={handleApplyFilters}
                 className="flex-1 py-2.5 px-4 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded text-sm font-semibold font-['Montserrat'] transition-colors"
               >
-                Застосувати
+                {dict.common.apply}
               </button>
             </div>
           </aside>
@@ -819,7 +816,7 @@ export default function CatalogClient({
                         : "bg-white text-[#3D1A00] border-gray-200 hover:border-[#3D1A00]/40"
                     }`}
                   >
-                    Акції
+                    {dict.nav.promo}
                   </button>
                 </div>
               )}
@@ -854,10 +851,10 @@ export default function CatalogClient({
               ) : visibleProducts.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 gap-4">
                   <h3 className="text-xl font-bold font-['Montserrat'] uppercase tracking-wider text-[#3D1A00]">
-                    Товарів не знайдено
+                    {dict.common.noResults}
                   </h3>
                   <p className="text-sm font-['Montserrat'] text-gray-400 text-center max-w-md">
-                    Спробуйте змінити параметри фільтрів або перегляньте інші категорії
+                    {dict.common.noResultsHint}
                   </p>
                 </div>
               ) : (
@@ -874,7 +871,7 @@ export default function CatalogClient({
                     rawDesc.length > 60 ? rawDesc.slice(0, 60).trim() + "…" : rawDesc || null;
 
                   return (
-                    <Link
+                    <LocaleLink
                       href={`/product/${(product.slug && String(product.slug).trim()) ? product.slug : product.id}`}
                       key={product.id}
                       scroll={false}
@@ -921,7 +918,7 @@ export default function CatalogClient({
                         {/* Подарунок — зверху справа, щоб не перетинав плашки знизу */}
                         {product.gift_product_id != null && product.gift_product_id > 0 && (
                           <span className="absolute right-2 top-2 z-20 text-[10px] font-semibold font-['Montserrat'] text-[#3D1A00] bg-white/90 border border-[#3D1A00]/15 px-1.5 py-0.5 rounded shadow-sm">
-                            + Подарунок
+                            {dict.common.gift}
                           </span>
                         )}
 
@@ -934,22 +931,22 @@ export default function CatalogClient({
                             <div className="flex flex-wrap gap-2">
                               {product.is_promo === true && (
                                 <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-[#3D1A00]/12 bg-[#D7D799] px-2.5 py-1.5 text-[11px] font-bold font-['Montserrat'] uppercase tracking-wide text-[#3D1A00] shadow-md shadow-black/20">
-                                  Акція
+                                  {dict.common.promo}
                                 </span>
                               )}
                               {product.is_hit === true && (
                                 <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg bg-[#3D1A00] px-2.5 py-1.5 text-[11px] font-bold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/25">
-                                  Хіт
+                                  {dict.common.hit}
                                 </span>
                               )}
                               {product.dietitian_approved === true && (
                                 <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border-2 border-[#3D1A00]/20 bg-white px-2.5 py-1.5 text-left text-[10px] font-bold font-['Montserrat'] leading-snug tracking-tight text-[#3D1A00] shadow-md shadow-black/15 sm:text-[11px]">
-                                  Схвалено асоціацією дієтологів
+                                  {dict.common.dietitian}
                                 </span>
                               )}
                               {product.free_delivery_badge === true && (
                                 <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-emerald-800/25 bg-emerald-50/95 px-2.5 py-1.5 text-left text-[9px] font-bold font-['Montserrat'] leading-snug tracking-tight text-emerald-900 shadow-md shadow-black/10 sm:text-[10px]">
-                                  {LABEL_FREE_DELIVERY_FROM_2000}
+                                  {dict.brand.freeDelivery}
                                 </span>
                               )}
                             </div>
@@ -972,7 +969,7 @@ export default function CatalogClient({
                             {product.package_weight ? (
                               <p>
                                 <span className="font-semibold text-[#3D1A00]/90">
-                                  {LABEL_PRODUCT_PACKAGE}:
+                                  {dict.brand.productPackage}:
                                 </span>{" "}
                                 {product.package_weight}
                               </p>
@@ -980,7 +977,7 @@ export default function CatalogClient({
                             {product.course ? (
                               <p>
                                 <span className="font-semibold text-[#3D1A00]/90">
-                                  {LABEL_PRODUCT_COURSE}:
+                                  {dict.brand.productCourse}:
                                 </span>{" "}
                                 {product.course}
                               </p>
@@ -991,11 +988,11 @@ export default function CatalogClient({
                           <div className="flex flex-col leading-none space-y-0.5">
                             {strikePrice != null && (
                               <span className="font-['Montserrat'] font-normal text-sm sm:text-base lg:text-xl leading-none tracking-[-0.02em] text-[#3D1A00]/70 line-through">
-                                {strikePrice.toLocaleString("uk-UA")} грн
+                                {strikePrice.toLocaleString("uk-UA")} {dict.common.uah}
                               </span>
                             )}
                             <span className="font-['Montserrat'] font-normal text-lg sm:text-xl lg:text-3xl leading-none tracking-[-0.02em] text-[#3D1A00] align-middle">
-                              {displayPrice.toLocaleString("uk-UA")} грн
+                              {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
                             </span>
                           </div>
                           <button
@@ -1008,11 +1005,11 @@ export default function CatalogClient({
                                 : "bg-[#8B9A47] hover:bg-[#7a8940] text-white"
                             }`}
                           >
-                            {outOfStock ? "Немає в наявності" : "В кошик"}
+                            {outOfStock ? dict.common.outOfStock : dict.common.addToCart}
                           </button>
                         </div>
                       </div>
-                    </Link>
+                    </LocaleLink>
                   );
                 })
               )}
@@ -1022,7 +1019,7 @@ export default function CatalogClient({
             {singleSelectedCategoryDescription && (
               <div className="mt-10 border-t border-[#3D1A00]/10 pt-8">
                 <p className="text-xs uppercase tracking-wider text-[#3D1A00]/60 font-['Montserrat'] font-semibold">
-                  Про категорію
+                  {dict.common.aboutCategory}
                 </p>
                 <div className="mt-3 max-w-3xl">
                   <CategoryDescriptionMarkdown content={singleSelectedCategoryDescription} />

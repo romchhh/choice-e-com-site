@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function AboutUs() {
+  const { dict } = useLocale();
   return (
     <section
       id="about"
@@ -10,7 +12,7 @@ export default function AboutUs() {
     >
       <div className="flex flex-col items-center gap-6 lg:gap-8">
         <div className="text-black text-center text-3xl lg:text-5xl font-bold font-['Montserrat'] tracking-wider">
-          Про бренд Choice
+          {dict.info.title}
         </div>
 
         <div className="max-w-3xl mx-auto text-center space-y-6">

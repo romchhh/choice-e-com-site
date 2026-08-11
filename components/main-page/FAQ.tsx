@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function FAQ() {
+  const { dict } = useLocale();
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
   const sectionRef = useRef<HTMLElement>(null);
@@ -43,28 +45,7 @@ export default function FAQ() {
     };
   }, []);
 
-  const faqItems = [
-    {
-      number: "01",
-      title: "Чи це оригінальна продукція Choice?",
-      content: "Так. Всі продукти є оригінальною продукцією Choice.",
-    },
-    {
-      number: "02",
-      title: "Як обрати продукт?",
-      content: "Ви можете обрати самостійно або звернутись за консультацією.",
-    },
-    {
-      number: "03",
-      title: "Як швидко відправляється замовлення?",
-      content: "Зазвичай протягом 1–2 робочих днів.",
-    },
-    {
-      number: "04",
-      title: "Чи можна отримати консультацію?",
-      content: "Так. Ви можете звернутись через форму або месенджери.",
-    },
-  ];
+  const faqItems = dict.home.faqItems;
 
   return (
     <section
@@ -83,16 +64,10 @@ export default function FAQ() {
           }`}
         >
           <h2 className="text-4xl lg:text-6xl font-bold font-['Montserrat'] uppercase tracking-wider text-white leading-tight mb-6">
-            <span className="inline-block transition-all duration-700 delay-100">
-              Часті
-            </span>
-            <br />
-            <span className="inline-block transition-all duration-700 delay-200">
-              запитання
-            </span>
+            {dict.home.faqTitle}
           </h2>
           <p className="text-lg lg:text-xl font-normal font-['Montserrat'] text-white/70 leading-relaxed transition-all duration-1000 delay-300">
-            Відповіді на популярні питання про продукцію та замовлення
+            {dict.home.faqSubtitle}
           </p>
         </div>
 

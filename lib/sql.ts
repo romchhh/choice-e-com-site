@@ -5,6 +5,7 @@ import path from "path";
 import { unstable_cache } from "next/cache";
 import { textToSlug, ensureUniqueSlug } from "./slug";
 import { normalizeProductPricing, parseOptionalNumber } from "./pricing";
+import { scheduleProductRuSync, scheduleCategoryRuSync, scheduleSubcategoryRuSync } from "./translate/catalogRu";
 
 function formatProductPricing(
   price: unknown,
@@ -16,6 +17,32 @@ function formatProductPricing(
     parseOptionalNumber(oldPrice),
     parseOptionalNumber(discountPercentage)
   );
+}
+
+/** Raw RU fields for client-side / server-side locale overlay */
+function productRuApiFields(p: any) {
+  return {
+    name_ru: p.nameRu ?? null,
+    subtitle_ru: p.subtitleRu ?? null,
+    release_form_ru: p.releaseFormRu ?? null,
+    course_ru: p.courseRu ?? null,
+    package_weight_ru: p.packageWeightRu ?? null,
+    main_info_ru: p.mainInfoRu ?? null,
+    short_description_ru: p.shortDescriptionRu ?? null,
+    description_ru: p.descriptionRu ?? null,
+    main_action_ru: p.mainActionRu ?? null,
+    indications_for_use_ru: p.indicationsForUseRu ?? null,
+    benefits_ru: p.benefitsRu ?? null,
+    full_composition_ru: p.fullCompositionRu ?? null,
+    usage_method_ru: p.usageMethodRu ?? null,
+    contraindications_ru: p.contraindicationsRu ?? null,
+    storage_conditions_ru: p.storageConditionsRu ?? null,
+    fabric_composition_ru: p.fabricCompositionRu ?? null,
+    lining_description_ru: p.liningDescriptionRu ?? null,
+    category_name_ru: p.category?.nameRu ?? null,
+    category_description_ru: p.category?.descriptionRu ?? null,
+    subcategory_name_ru: p.subcategory?.nameRu ?? null,
+  };
 }
 
 // Keep sql template literal for backward compatibility (used in migrate route)
@@ -118,6 +145,7 @@ async function _sqlGetAllProducts() {
     package_weight: p.packageWeight ?? null,
     course: p.course ?? null,
     first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+    ...productRuApiFields(p),
   }));
 }
 
@@ -138,8 +166,8 @@ export async function sqlGetProduct(id: number) {
       const product = await prisma.product.findUnique({
         where: { id },
         include: {
-          category: { select: { name: true, slug: true, description: true } },
-          subcategory: { select: { name: true } },
+          category: { select: { name: true, nameRu: true, slug: true, description: true, descriptionRu: true } },
+          subcategory: { select: { name: true, nameRu: true } },
           media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
           categoryLinks: { select: { categoryId: true } },
           subcategoryLinks: { select: { subcategoryId: true } },
@@ -234,6 +262,7 @@ export async function sqlGetProduct(id: number) {
           : null,
         bought_together_ids: (product as any).boughtTogetherIds ?? [],
         pair_together_ids: (product as any).pairTogetherIds ?? [],
+        ...productRuApiFields(product),
       };
     },
     [`product-${id}`],
@@ -246,8 +275,8 @@ export async function sqlGetProductBySlug(slug: string) {
   const product = (await prisma.product.findUnique({
     where: { slug: slug || undefined },
     include: {
-      category: { select: { name: true, slug: true, description: true } },
-      subcategory: { select: { name: true } },
+      category: { select: { name: true, nameRu: true, slug: true, description: true, descriptionRu: true } },
+      subcategory: { select: { name: true, nameRu: true } },
       media: { orderBy: { id: "asc" }, select: { type: true, url: true } },
       categoryLinks: { select: { categoryId: true } },
       subcategoryLinks: { select: { subcategoryId: true } },
@@ -338,6 +367,7 @@ export async function sqlGetProductBySlug(slug: string) {
       : null,
     bought_together_ids: product.boughtTogetherIds ?? [],
     pair_together_ids: product.pairTogetherIds ?? [],
+    ...productRuApiFields(product),
   };
 }
 
@@ -730,6 +760,7 @@ export async function sqlPostProduct(product: {
     });
   }
 
+  scheduleProductRuSync(created.id, true);
   return { id: created.id };
 }
 
@@ -930,6 +961,7 @@ export async function sqlPutProduct(
     }
   }
 
+  scheduleProductRuSync(id, true);
   return { updated: true };
 }
 
@@ -1362,7 +1394,17 @@ async function _sqlGetAllCategories() {
     orderBy: { priority: "desc" },
   });
 
-  const result: { id: number; name: string; slug: string | null; priority: number; mediaType: string | null; mediaUrl: string | null; description: string | null }[] = [];
+  const result: {
+    id: number;
+    name: string;
+    slug: string | null;
+    priority: number;
+    mediaType: string | null;
+    mediaUrl: string | null;
+    description: string | null;
+    name_ru: string | null;
+    description_ru: string | null;
+  }[] = [];
   for (const c of categories) {
     let slug = c.slug;
     if (!slug) {
@@ -1383,6 +1425,8 @@ async function _sqlGetAllCategories() {
       mediaType: c.mediaType || null,
       mediaUrl: c.mediaUrl || null,
       description: (c as any).description ?? null,
+      name_ru: (c as any).nameRu ?? null,
+      description_ru: (c as any).descriptionRu ?? null,
     });
   }
   return result;
@@ -1414,6 +1458,8 @@ export async function sqlGetCategory(id: number) {
     mediaType: category.mediaType || null,
     mediaUrl: category.mediaUrl || null,
     description: (category as any).description ?? null,
+    name_ru: (category as any).nameRu ?? null,
+    description_ru: (category as any).descriptionRu ?? null,
   };
 }
 
@@ -1431,6 +1477,8 @@ export async function sqlGetCategoryBySlug(slug: string) {
     mediaType: category.mediaType || null,
     mediaUrl: category.mediaUrl || null,
     description: (category as any).description ?? null,
+    name_ru: (category as any).nameRu ?? null,
+    description_ru: (category as any).descriptionRu ?? null,
   };
 }
 
@@ -1484,6 +1532,8 @@ export async function sqlPostCategory(
     data: createData,
   });
 
+  scheduleCategoryRuSync(created.id, true);
+
   return {
     id: created.id,
     name: created.name,
@@ -1492,6 +1542,8 @@ export async function sqlPostCategory(
     mediaType: created.mediaType,
     mediaUrl: created.mediaUrl,
     description: (created as any).description ?? null,
+    name_ru: (created as any).nameRu ?? null,
+    description_ru: (created as any).descriptionRu ?? null,
   };
 }
 
@@ -1536,6 +1588,8 @@ export async function sqlPutCategory(
     data: updateData,
   });
 
+  scheduleCategoryRuSync(updated.id, true);
+
   return {
     id: updated.id,
     name: updated.name,
@@ -1544,6 +1598,8 @@ export async function sqlPutCategory(
     mediaType: updated.mediaType ?? null,
     mediaUrl: updated.mediaUrl ?? null,
     description: (updated as any).description ?? null,
+    name_ru: (updated as any).nameRu ?? null,
+    description_ru: (updated as any).descriptionRu ?? null,
   };
 }
 
@@ -1570,6 +1626,7 @@ export async function sqlGetAllSubcategories() {
     name: sc.name,
     slug: sc.slug ?? null,
     category_id: sc.categoryId,
+    name_ru: (sc as any).nameRu ?? null,
   }));
 }
 
@@ -1580,7 +1637,7 @@ export async function sqlGetSubcategoriesByCategory(categoryId: number) {
     orderBy: { id: "asc" },
   });
 
-  const result: { id: number; name: string; slug: string | null; category_id: number }[] = [];
+  const result: { id: number; name: string; slug: string | null; category_id: number; name_ru: string | null }[] = [];
   for (const sc of subcategories) {
     let slug = sc.slug;
     if (!slug) {
@@ -1598,6 +1655,7 @@ export async function sqlGetSubcategoriesByCategory(categoryId: number) {
       name: sc.name,
       slug,
       category_id: sc.categoryId,
+      name_ru: (sc as any).nameRu ?? null,
     });
   }
   return result;
@@ -1645,11 +1703,14 @@ export async function sqlPostSubcategory(name: string, categoryId: number) {
     data: { name, slug, categoryId },
   });
 
+  scheduleSubcategoryRuSync(created.id, true);
+
   return {
     id: created.id,
     name: created.name,
     slug: created.slug,
     category_id: created.categoryId,
+    name_ru: (created as any).nameRu ?? null,
   };
 }
 
@@ -1676,11 +1737,14 @@ export async function sqlPutSubcategory(
     data: updateData,
   });
 
+  scheduleSubcategoryRuSync(updated.id, true);
+
   return {
     id: updated.id,
     name: updated.name,
     slug: updated.slug ?? null,
     category_id: updated.categoryId,
+    name_ru: (updated as any).nameRu ?? null,
   };
 }
 

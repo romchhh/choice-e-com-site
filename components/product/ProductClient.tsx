@@ -4,7 +4,8 @@ import { useAppContext } from "@/lib/GeneralProvider";
 import { useState, useEffect, useRef } from "react";
 import { useBasket } from "@/lib/BasketProvider";
 import Image from "next/image";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Alert from "@/components/shared/Alert";
 import CartAlert from "@/components/shared/CartAlert";
 import { getFirstProductImage } from "@/lib/getFirstProductImage";
@@ -15,11 +16,6 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
-import {
-  LABEL_FREE_DELIVERY_FROM_2000,
-  LABEL_PRODUCT_COURSE,
-  LABEL_PRODUCT_PACKAGE,
-} from "@/lib/siteBrand";
 import OneClickOrderModal from "@/components/product/OneClickOrderModal";
 import ProductDeliveryPaymentTab from "@/components/product/ProductDeliveryPaymentTab";
 import YouMightLike from "@/components/product/YouMightLike";
@@ -35,13 +31,13 @@ type TabId =
   | "contraindications"
   | "delivery_payment";
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "description", label: "ОПИС" },
-  { id: "action", label: "ДІЯ АКТИВНИХ КОМПОНЕНТІВ" },
-  { id: "usage", label: "СПОСІБ ВИКОРИСТАННЯ" },
-  { id: "composition", label: "СКЛАД" },
-  { id: "contraindications", label: "ПРОТИПОКАЗАННЯ" },
-  { id: "delivery_payment", label: "ДОСТАВКА ТА ОПЛАТА" },
+const TAB_IDS: TabId[] = [
+  "description",
+  "action",
+  "usage",
+  "composition",
+  "contraindications",
+  "delivery_payment",
 ];
 
 interface ProductClientProps {
@@ -101,6 +97,7 @@ interface ProductClientProps {
 }
 
 export default function ProductClient({ product }: ProductClientProps) {
+  const { dict } = useLocale();
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>("description");
@@ -232,10 +229,10 @@ export default function ProductClient({ product }: ProductClientProps) {
 
   const attributesLine1 = product.release_form || product.subtitle || null;
   const packageLine = product.package_weight
-    ? `${LABEL_PRODUCT_PACKAGE}: ${product.package_weight}`
+    ? `${dict.brand.productPackage}: ${product.package_weight}`
     : null;
   const courseLine = product.course
-    ? `${LABEL_PRODUCT_COURSE}: ${product.course}`
+    ? `${dict.brand.productCourse}: ${product.course}`
     : null;
   const purposeText = product.main_info || product.short_description || product.description;
 
@@ -295,20 +292,20 @@ export default function ProductClient({ product }: ProductClientProps) {
         <nav className="hidden md:block mb-4" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 text-sm font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-[#3D1A00]/70">
             <li>
-              <Link href="/" className="hover:text-[#3D1A00] transition-colors">
-                Головна
-              </Link>
+              <LocaleLink href="/" className="hover:text-[#3D1A00] transition-colors">
+                {dict.nav.home}
+              </LocaleLink>
             </li>
             <li aria-hidden className="text-[#3D1A00]/50">|</li>
             <li>
               {product.category_name ? (
-                <Link href={categoryUrl} className="hover:text-[#3D1A00] transition-colors">
+                <LocaleLink href={categoryUrl} className="hover:text-[#3D1A00] transition-colors">
                   {product.category_name}
-                </Link>
+                </LocaleLink>
               ) : (
-                <Link href="/catalog" className="hover:text-[#3D1A00] transition-colors">
-                  Каталог
-                </Link>
+                <LocaleLink href="/catalog" className="hover:text-[#3D1A00] transition-colors">
+                  {dict.product.breadcrumbCatalog}
+                </LocaleLink>
               )}
             </li>
             <li aria-hidden className="text-[#3D1A00]/50">|</li>
@@ -421,22 +418,22 @@ export default function ProductClient({ product }: ProductClientProps) {
                   <div className="flex flex-wrap gap-2.5">
                     {product.is_promo === true && (
                       <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-[#3D1A00]/12 bg-[#D7D799] px-3 py-2 text-xs font-bold font-['Montserrat'] uppercase tracking-wide text-[#3D1A00] shadow-md shadow-black/20 sm:text-sm">
-                        Акція
+                        {dict.common.promo}
                       </span>
                     )}
                     {product.is_hit === true && (
                       <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg bg-[#3D1A00] px-3 py-2 text-xs font-bold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/30 sm:text-sm">
-                        Хіт
+                        {dict.common.hit}
                       </span>
                     )}
                     {product.dietitian_approved === true && (
                       <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border-2 border-[#3D1A00]/20 bg-white px-3 py-2 text-left text-[11px] font-bold font-['Montserrat'] leading-snug tracking-tight text-[#3D1A00] shadow-md shadow-black/15 sm:text-sm">
-                        Схвалено асоціацією дієтологів
+                        {dict.common.dietitian}
                       </span>
                     )}
                     {product.free_delivery_badge === true && (
                       <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-emerald-800/25 bg-emerald-50 px-3 py-2 text-left text-[10px] font-bold font-['Montserrat'] leading-snug tracking-tight text-emerald-900 shadow-md shadow-black/15 sm:text-xs">
-                        {LABEL_FREE_DELIVERY_FROM_2000}
+                        {dict.brand.freeDelivery}
                       </span>
                     )}
                   </div>
@@ -452,7 +449,7 @@ export default function ProductClient({ product }: ProductClientProps) {
             </h1>
 
             <p className="text-sm md:text-base font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-[#3D1A00]/80">
-              {outOfStock ? "Немає в наявності" : "В наявності"}
+              {outOfStock ? dict.common.outOfStock : dict.common.inStock}
             </p>
 
             {(attributesLine1 || packageLine || courseLine) && (
@@ -471,7 +468,7 @@ export default function ProductClient({ product }: ProductClientProps) {
 
             <div className="flex items-center justify-between gap-4 pt-2 flex-wrap">
               <span className="text-2xl md:text-2xl font-['Montserrat'] font-normal leading-[1.59] tracking-[-0.02em] text-[#3D1A00]">
-                {displayPrice.toLocaleString("uk-UA")} грн
+                {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
               </span>
               <div className="flex items-center border border-[#3D1A00]/20 rounded overflow-hidden shrink-0">
                 <button
@@ -508,21 +505,21 @@ export default function ProductClient({ product }: ProductClientProps) {
             {product.gift_product && (
               <div className="rounded-lg border border-[#3D1A00]/15 bg-[#FFF9F0] p-4">
                 <p className="text-sm font-['Montserrat'] font-semibold text-[#3D1A00]">
-                  Подарунок до цього товару:
+                  {dict.common.giftToProduct}
                 </p>
                 <div className="mt-2 flex items-center justify-between gap-4 flex-wrap">
-                  <Link
+                  <LocaleLink
                     href={`/product/${(product.gift_product.slug && String(product.gift_product.slug).trim()) ? product.gift_product.slug : product.gift_product.id}`}
                     className="text-sm font-['Montserrat'] text-[#3D1A00] underline hover:opacity-80"
                   >
                     {product.gift_product.name}
-                  </Link>
+                  </LocaleLink>
                   <div className="flex items-center gap-2">
                     <span className="text-sm line-through text-[#3D1A00]/60">
-                      {Math.round(product.gift_product.price).toLocaleString("uk-UA")} грн
+                      {Math.round(product.gift_product.price).toLocaleString("uk-UA")} {dict.common.uah}
                     </span>
                     <span className="text-sm font-bold text-[#3D1A00]">
-                      безкоштовно
+                      {dict.common.free}
                     </span>
                   </div>
                 </div>
@@ -535,7 +532,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 disabled={outOfStock || isAddingToCart}
                 className="flex-1 py-3 px-6 text-center border-2 border-[#3D1A00] bg-white text-[#3D1A00] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] uppercase text-sm md:text-base transition-colors hover:bg-[#3D1A00]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isAddingToCart ? "Додавання..." : "В КОШИК"}
+                {isAddingToCart ? dict.common.loading : dict.common.addToCart}
               </button>
               <button
                 type="button"
@@ -543,7 +540,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 disabled={outOfStock || isAddingToCart}
                 className="flex-1 py-3 px-6 text-center bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] uppercase text-sm md:text-base transition-colors border border-[#b8b87a] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isAddingToCart ? "Додавання..." : "КУПИТИ В 1 КЛІК"}
+                {isAddingToCart ? dict.common.loading : dict.common.buyOneClick}
               </button>
             </div>
 
@@ -579,7 +576,7 @@ export default function ProductClient({ product }: ProductClientProps) {
             {product.category_description && (
               <div className="border-t border-[#3D1A00]/10 pt-6">
                 <p className="text-xs uppercase tracking-wider text-[#3D1A00]/60 font-['Montserrat'] font-semibold">
-                  Про категорію
+                  {dict.common.aboutCategory}
                 </p>
                 <div className="mt-2">
                   <CategoryDescriptionMarkdown content={product.category_description} />
@@ -592,27 +589,37 @@ export default function ProductClient({ product }: ProductClientProps) {
         {/* Купують разом */}
         {product.bought_together_products && product.bought_together_products.length > 0 && (
           <div className="mt-10">
-            <YouMightLike title="Купують разом" suggestedProducts={product.bought_together_products} />
+            <YouMightLike title={dict.common.boughtTogether} suggestedProducts={product.bought_together_products} />
           </div>
         )}
 
         {/* Tabs */}
         <div className="mt-12 pt-8 border-t border-[#3D1A00]/10">
           <div className="flex flex-wrap gap-6 md:gap-8 border-b border-[#3D1A00]/15 pb-1 mb-6">
-            {TABS.map((tab) => (
+            {TAB_IDS.map((tabId) => {
+              const tabLabels: Record<TabId, string> = {
+                description: dict.product.tabs.description,
+                action: dict.product.tabs.action,
+                usage: dict.product.tabs.usage,
+                composition: dict.product.tabs.composition,
+                contraindications: dict.product.tabs.contraindications,
+                delivery_payment: dict.product.tabs.delivery,
+              };
+              return (
               <button
-                key={tab.id}
+                key={tabId}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setActiveTab(tabId)}
                 className={`font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm uppercase transition-colors ${
-                  activeTab === tab.id
+                  activeTab === tabId
                     ? "text-[#3D1A00] font-semibold border-b-2 border-[#3D1A00] pb-1 -mb-[3px]"
                     : "text-[#3D1A00]/70 hover:text-[#3D1A00]"
                 }`}
               >
-                {tab.label}
+                {tabLabels[tabId]}
               </button>
-            ))}
+              );
+            })}
           </div>
           <div className="min-h-[120px]">{renderTabContent()}</div>
         </div>

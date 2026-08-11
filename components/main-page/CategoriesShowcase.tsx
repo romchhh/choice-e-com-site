@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useCategories } from "@/lib/CategoriesProvider";
 
@@ -17,6 +18,7 @@ function CategoriesLoadingPlaceholder() {
 }
 
 export default function CategoriesShowcase() {
+  const { dict } = useLocale();
   const { categories, loading } = useCategories();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -50,7 +52,7 @@ export default function CategoriesShowcase() {
         {/* Заголовок КАТЕГОРІЇ та стрілки */}
         <div className="flex items-center justify-between gap-4 mb-8 lg:mb-10">
           <h2 className="text-2xl lg:text-3xl font-bold font-['Montserrat'] uppercase tracking-tight text-[#3D1A00]">
-            Категорії
+            {dict.home.categories}
           </h2>
           <div className="flex items-center gap-2">
             <button
@@ -81,7 +83,7 @@ export default function CategoriesShowcase() {
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {categories.map((category) => (
-            <Link
+            <LocaleLink
               key={category.id}
               href={`/catalog?categoryId=${category.id}`}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
@@ -114,19 +116,19 @@ export default function CategoriesShowcase() {
               <p className="text-[#3D1A00] font-['Montserrat'] font-semibold text-sm lg:text-base text-left">
                 {category.name}
               </p>
-            </Link>
+            </LocaleLink>
           ))}
         </div>
 
         {/* Весь каталог — справа внизу */}
         <div className="flex justify-end mt-8 lg:mt-10">
-          <Link
+          <LocaleLink
             href="/catalog"
             className="inline-flex items-center gap-1 text-[#8B9A47] font-['Montserrat'] font-semibold hover:opacity-80 transition-opacity"
           >
             Весь каталог
             <span aria-hidden>→</span>
-          </Link>
+          </LocaleLink>
         </div>
       </div>
     </section>

@@ -1,107 +1,87 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SITE_STORE_NAME } from "@/lib/siteBrand";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { getReturnsCopy } from "@/lib/i18n/content/returns";
+import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
 
-const baseUrl =
-  process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = getReturnsCopy(locale);
+  return buildPageMetadata(locale, "/returns-and-exchange", {
+    title: t.metaTitle,
+    description: t.metaDescription,
+    ogDescription: t.ogDescription,
+    imageAlt: t.imageAlt,
+  });
+}
 
-export const metadata: Metadata = {
-  title: `Повернення та обмін | ${SITE_STORE_NAME}`,
-  description:
-    "Обмін і повернення: звернення до продавця, строк і спосіб повернення коштів, витрати на доставку при поверненні, 14 днів, обмеження за КМУ №172.",
-  openGraph: {
-    title: `Повернення та обмін | ${SITE_STORE_NAME}`,
-    description:
-      "Умови обміну та повернення, повернення коштів, доставка при поверненні, контакти та юридичні підстави.",
-    type: "article",
-    locale: "uk_UA",
-    url: `${baseUrl}/returns-and-exchange`,
-    images: [
-      {
-        url: `${baseUrl}/images/tg_image_3614117882.png`,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_STORE_NAME} — повернення та обмін`,
-      },
-    ],
-    siteName: SITE_STORE_NAME,
-  },
-};
+export default async function ReturnsAndExchangePage() {
+  const locale = await getLocale();
+  const t = getReturnsCopy(locale);
 
-export default function ReturnsAndExchangePage() {
   return (
     <div className="min-h-screen w-full bg-[#FFFFFF] py-20 px-6">
       <div className="max-w-3xl mx-auto">
         <div className="mb-16">
-          <Link
+          <LocaleLink
             href="/"
             className="inline-block mb-8 text-lg opacity-60 hover:opacity-100 transition-opacity duration-300"
           >
-            ← На головну
-          </Link>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            Повернення та обмін
-          </h1>
+            {t.backHome}
+          </LocaleLink>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">{t.title}</h1>
           <div className="w-20 h-1 bg-black mt-6" />
         </div>
 
         <div className="space-y-12 text-base leading-relaxed">
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Обмін та повернення</h2>
-            <p className="opacity-80">
-              Кожне замовлення перевіряється перед відправкою. Якщо виникає питання — ми
-              оперативно його вирішуємо.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.exchangeTitle}</h2>
+            <p className="opacity-80">{t.exchangeIntro}</p>
           </section>
 
           <section className="space-y-6 rounded-lg border border-black/10 p-6 md:p-8 bg-black/[0.02]">
-            <h2 className="text-2xl md:text-3xl font-semibold">Порядок звернення та повернення коштів</h2>
-            <p className="opacity-90">
-              Обмін або повернення товару здійснюється після звернення покупця до продавця за
-              контактами, вказаними на сайті, та погодження деталей відправлення.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.procedureTitle}</h2>
+            <p className="opacity-90">{t.procedureIntro}</p>
 
             <div className="space-y-3 pt-2">
-              <h3 className="text-xl font-semibold">Строк повернення коштів</h3>
+              <h3 className="text-xl font-semibold">{t.refundTermTitle}</h3>
               <p className="opacity-90">
-                У разі погодження повернення кошти повертаються в день розірвання договору. Якщо
-                повернення коштів у цей день неможливе, вони повертаються в інший погоджений строк,
-                але не пізніше ніж протягом <strong>7 календарних днів</strong>.
+                {t.refundTerm}
+                <strong>{t.refundTermStrong}</strong>
+                {t.refundTermEnd}
               </p>
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xl font-semibold">Спосіб повернення коштів</h3>
-              <p className="opacity-90">
-                Повернення коштів здійснюється на банківську картку покупця, з якої була проведена
-                оплата, або іншим погодженим з покупцем способом.
-              </p>
+              <h3 className="text-xl font-semibold">{t.refundMethodTitle}</h3>
+              <p className="opacity-90">{t.refundMethod}</p>
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xl font-semibold">Витрати на доставку при поверненні</h3>
+              <h3 className="text-xl font-semibold">{t.shippingCostTitle}</h3>
               <p className="opacity-90">
-                Якщо товар повертається з причин, не пов&apos;язаних із недоліками товару або помилкою
-                продавця, витрати на доставку повернення сплачує <strong>покупець</strong>.
+                {t.shippingBuyer}
+                <strong>{t.shippingBuyerStrong}</strong>
+                {t.shippingBuyerEnd}
               </p>
               <p className="opacity-90">
-                Якщо повернення пов&apos;язане з виробничим недоліком, пошкодженням товару під час
-                доставки або помилкою з боку продавця, витрати на доставку компенсує{" "}
-                <strong>продавець</strong>.
+                {t.shippingSeller}
+                <strong>{t.shippingSellerStrong}</strong>
+                {t.shippingSellerEnd}
               </p>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Невідповідність або пошкодження</h2>
-            <p className="opacity-80">Якщо при отриманні ви виявили:</p>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.damageTitle}</h2>
+            <p className="opacity-80">{t.damageIntro}</p>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>інший товар;</li>
-              <li>пошкоджену упаковку;</li>
-              <li>виробничий брак.</li>
+              {t.damageItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
             <p className="opacity-80">
-              📩 Напишіть:{" "}
+              {t.writeUs}
               <a
                 href="mailto:mari.choice26@gmail.com"
                 className="font-semibold underline underline-offset-2 hover:opacity-100"
@@ -109,72 +89,64 @@ export default function ReturnsAndExchangePage() {
                 mari.choice26@gmail.com
               </a>
             </p>
-            <p className="opacity-80">Додайте фото товару.</p>
-            <p className="opacity-80">
-              Після перевірки ми запропонуємо рішення: обмін, повернення коштів або інший варіант.
-            </p>
+            <p className="opacity-80">{t.addPhoto}</p>
+            <p className="opacity-80">{t.afterCheck}</p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Повернення товару належної якості</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.qualityTitle}</h2>
             <p className="opacity-80">
-              Повернення можливе протягом <strong>14 днів</strong> з моменту отримання.
+              {t.qualityDaysBefore}
+              <strong>{t.qualityDaysStrong}</strong>
+              {t.qualityDaysAfter}
             </p>
-            <p className="opacity-80 font-semibold">Умови:</p>
+            <p className="opacity-80 font-semibold">{t.conditionsLabel}</p>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>товар не використовувався;</li>
-              <li>збережений товарний вигляд та упаковка.</li>
+              {t.conditions.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
-            <p className="opacity-80">
-              Відповідно до ст. 9 Закону України «Про захист прав споживачів», ви маєте право:
-            </p>
+            <p className="opacity-80">{t.lawIntro}</p>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>обміняти товар;</li>
-              <li>обрати інший із перерахунком вартості;</li>
-              <li>отримати повернення коштів;</li>
-              <li>здійснити обмін після надходження товару в продаж.</li>
+              {t.lawRights.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Обмеження</h2>
-            <p className="opacity-80">
-              Згідно з постановою КМУ №172 від 19.03.1994 р., не підлягають обміну та поверненню:
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.limitsTitle}</h2>
+            <p className="opacity-80">{t.limitsIntro}</p>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>продовольчі товари;</li>
-              <li>лікарські засоби;</li>
-              <li>засоби гігієни;</li>
-              <li>парфумерно-косметична продукція;</li>
-              <li>інші товари, визначені законодавством.</li>
+              {t.limits.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Юридичні умови</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.legalTitle}</h2>
+            <p className="opacity-80">{t.legalP1}</p>
             <p className="opacity-80">
-              Споживач має право обміняти непродовольчий товар належної якості, якщо він не підійшов за
-              формою, розміром, фасоном чи з інших причин не може бути використаний за призначенням.
+              {t.legalP2Before}
+              <strong>{t.legalP2Strong}</strong>
+              {t.legalP2After}
             </p>
-            <p className="opacity-80">
-              Обмін або повернення здійснюється протягом <strong>14 днів</strong> (без урахування дня
-              покупки) за умови збереження товарного вигляду.
-            </p>
-            <p className="opacity-80">Якщо аналогічного товару немає в наявності, споживач має право:</p>
+            <p className="opacity-80">{t.legalP3}</p>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>придбати інший товар із перерахунком вартості;</li>
-              <li>розірвати договір та отримати кошти;</li>
-              <li>здійснити обмін після надходження товару.</li>
+              {t.legalOptions.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
-            <p className="opacity-80">Продавець зобов&apos;язаний повідомити про надходження товару.</p>
+            <p className="opacity-80">{t.legalNotify}</p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold">Перевірка при отриманні</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold">{t.checkTitle}</h2>
             <ul className="space-y-2 opacity-80 list-disc pl-5">
-              <li>Усі відправлення застраховані.</li>
-              <li>Перевіряйте замовлення у відділенні або при кур&apos;єрі.</li>
-              <li>У разі пошкодження — оформіть акт на місці.</li>
+              {t.checkItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </section>
         </div>

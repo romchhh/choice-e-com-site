@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { useCategories } from "@/lib/CategoriesProvider";
 
 interface SidebarMenuProps {
@@ -15,8 +15,7 @@ export default function SidebarMenu({
   isOpen,
   setIsOpen,
 }: SidebarMenuProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { dict } = useLocale();
   // Use categories from context instead of fetching
   const { categories, subcategories: subcategoriesMap, loading, error, fetchSubcategoriesForCategory } = useCategories();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -24,30 +23,6 @@ export default function SidebarMenu({
   // Avoid hydration mismatch: server and initial client render show placeholder; real content after mount
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
-  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, anchor: string) => {
-    e.preventDefault();
-    setIsOpen(false);
-    if (pathname === "/") {
-      // Якщо вже на головній сторінці, просто прокручуємо до якоря
-      setTimeout(() => {
-        const element = document.getElementById(anchor.replace("#", ""));
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    } else {
-      // Якщо на іншій сторінці, переходимо на головну з якорем
-      router.push(`/${anchor}`);
-      // Після переходу прокручуємо до якоря
-      setTimeout(() => {
-        const element = document.getElementById(anchor.replace("#", ""));
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 200);
-    }
-  };
 
   // Convert Map to array for selected category
   const selectedSubcategories = selectedCategoryId 
@@ -112,11 +87,11 @@ export default function SidebarMenu({
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex flex-row gap-3 px-4 py-4 min-w-max">
               {!mounted ? (
-                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">Завантаження...</div>
+                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">{dict.common.loading}</div>
               ) : loading ? (
-                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">Завантаження...</div>
+                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">{dict.common.loading}</div>
               ) : error ? (
-                <div className="px-4 py-2 text-sm text-red-500 font-['Montserrat']">Помилка: {error}</div>
+                <div className="px-4 py-2 text-sm text-red-500 font-['Montserrat']">{dict.common.error}: {error}</div>
               ) : (
                 <>
                   {categories.map((cat) => (
@@ -145,41 +120,41 @@ export default function SidebarMenu({
             <div className="px-6 pt-6 pb-2">
               {loadingSubcategories ? (
                 <div className="py-4 text-center text-sm text-[#3D1A00]/60 font-['Montserrat']">
-                  Завантаження...
+                  {dict.common.loading}
                 </div>
               ) : selectedSubcategories.length > 0 ? (
                 <>
                   <div className="space-y-1">
                     {selectedSubcategories.map((sub) => (
-                      <Link
+                      <LocaleLink
                         key={sub.id}
                         href={`/catalog?subcategory=${encodeURIComponent(sub.name)}`}
                         className="block py-3 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors border-b border-[#3D1A00]/5 font-['Montserrat']"
                         onClick={() => setIsOpen(false)}
                       >
                         {sub.name}
-                      </Link>
+                      </LocaleLink>
                     ))}
                   </div>
                   <div className="pt-4 pb-0 mt-2 border-t border-[#3D1A00]/10">
-                    <Link
+                    <LocaleLink
                       href="/catalog"
                       className="text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-medium font-['Montserrat']"
                       onClick={() => setIsOpen(false)}
                     >
-                      Подивитися все
-                    </Link>
+                      {dict.nav.allProducts}
+                    </LocaleLink>
                   </div>
                 </>
               ) : (
                 <div className="pt-2 pb-2">
-                  <Link
+                  <LocaleLink
                     href="/catalog"
                     className="text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-medium font-['Montserrat']"
                     onClick={() => setIsOpen(false)}
                   >
-                    Подивитися все
-                  </Link>
+                    {dict.nav.allProducts}
+                  </LocaleLink>
                 </div>
               )}
             </div>
@@ -195,58 +170,58 @@ export default function SidebarMenu({
           {/* Information Section */}
           <div className="px-6 py-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#3D1A00]/60 mb-4 font-['Montserrat']">
-              ІНФОРМАЦІЯ
+              {dict.nav.info}
             </h3>
             <nav className="space-y-1">
-              <Link
+              <LocaleLink
                 href="/info#about"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                ПРО БРЕНД
-              </Link>
-              <Link
+                {dict.nav.aboutBrand}
+              </LocaleLink>
+              <LocaleLink
                 href="/partnership"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                ПАРТНЕРСТВО
-              </Link>
-              <Link
+                {dict.nav.partnership}
+              </LocaleLink>
+              <LocaleLink
                 href="/delivery-and-payment"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                ДОСТАВКА ТА ОПЛАТА
-              </Link>
-              <Link
+                {dict.nav.deliveryPayment}
+              </LocaleLink>
+              <LocaleLink
                 href="/returns-and-exchange"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                ПОВЕРНЕННЯ ТА ОБМІН
-              </Link>
-              <Link
+                {dict.nav.returnsExchange}
+              </LocaleLink>
+              <LocaleLink
                 href="/info#faq"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                FAQ
-              </Link>
-              <Link
+                {dict.nav.faq}
+              </LocaleLink>
+              <LocaleLink
                 href="/contacts"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                КОНТАКТИ
-              </Link>
-              <Link
+                {dict.nav.contacts}
+              </LocaleLink>
+              <LocaleLink
                 href="/catalog?promo=1"
                 className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
                 onClick={() => setIsOpen(false)}
               >
-                АКЦІЇ
-              </Link>
+                {dict.nav.promo}
+              </LocaleLink>
             </nav>
           </div>
 
@@ -256,10 +231,10 @@ export default function SidebarMenu({
         <div className="border-t border-[#3D1A00]/10 bg-white">
           <div className="px-6 py-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#3D1A00]/60 mb-4 font-['Montserrat']">
-              ЗВ&apos;ЯЗОК
+              {dict.contacts.title}
             </h3>
             <div className="flex flex-row gap-4 flex-wrap">
-              <Link
+              <LocaleLink
                 href="https://www.instagram.com/my_choice_mari"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -273,8 +248,8 @@ export default function SidebarMenu({
                   className="w-6 h-6"
                 />
                 <span>Instagram</span>
-              </Link>
-              <Link
+              </LocaleLink>
+              <LocaleLink
                 href="https://t.me/m_maksyakova"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -289,7 +264,7 @@ export default function SidebarMenu({
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z"/>
                 </svg>
                 <span>Telegram</span>
-              </Link>
+              </LocaleLink>
             </div>
           </div>
         </div>

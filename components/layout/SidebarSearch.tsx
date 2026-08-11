@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
@@ -84,6 +85,7 @@ export default function SearchSidebar({
   isOpen,
   setIsOpen,
 }: SearchSidebarProps) {
+  const { dict } = useLocale();
   const [query, setQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -322,13 +324,13 @@ export default function SearchSidebar({
                 className="h-5 w-5 brightness-0 opacity-80"
               />
               <span className="text-xl sm:text-2xl font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight">
-                Пошук
+                {dict.nav.search}
               </span>
             </div>
             <button
               className="w-10 h-10 flex items-center justify-center rounded-lg text-[#3D1A00] hover:bg-[#3D1A00]/10 transition-colors text-2xl leading-none font-['Montserrat']"
               onClick={() => setIsOpen(false)}
-              aria-label="Закрити пошук"
+              aria-label={dict.common.close}
             >
               ×
             </button>
@@ -351,7 +353,7 @@ export default function SearchSidebar({
                 onChange={(e) => handleQueryChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => query.length >= 2 && setShowSuggestions(true)}
-                placeholder="Введіть запит для пошуку"
+                placeholder={dict.common.searchPlaceholder}
                 className="pl-12 pr-12 py-3.5 bg-transparent text-lg rounded-xl w-full focus:outline-none text-[#3D1A00] placeholder-[#3D1A00]/50 font-['Montserrat'] transition-all"
               />
               {query && (
@@ -359,7 +361,7 @@ export default function SearchSidebar({
                   type="button"
                   onClick={handleClearInput}
                   className="absolute right-3 p-1 text-[#3D1A00]/50 hover:text-[#3D1A00] transition-colors"
-                  aria-label="Очистити"
+                  aria-label={dict.common.reset}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -416,8 +418,8 @@ export default function SearchSidebar({
                 <svg className="w-16 h-16 text-[#3D1A00]/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-[#3D1A00]/70 text-lg font-medium font-['Montserrat'] mb-2">Нічого не знайдено</p>
-                <p className="text-[#3D1A00]/50 text-sm font-['Montserrat']">Спробуйте інший запит або перегляньте популярні товари</p>
+                <p className="text-[#3D1A00]/70 text-lg font-medium font-['Montserrat'] mb-2">{dict.common.noResults}</p>
+                <p className="text-[#3D1A00]/50 text-sm font-['Montserrat']">{dict.common.noResultsHint}</p>
               </div>
             )}
 
@@ -431,7 +433,7 @@ export default function SearchSidebar({
                 <ul className="flex flex-col gap-3">
                   {filteredProducts.map((product) => (
                     <li key={product.id}>
-                      <Link
+                      <LocaleLink
                         href={`/product/${product.slug ?? product.id}`}
                         onClick={() => { handleSearch(query); setIsOpen(false); }}
                         className="flex items-center gap-4 p-3 rounded-xl border border-[#3D1A00]/10 hover:border-[#3D1A00]/20 hover:bg-[#3D1A00]/5 transition-all duration-200 group"
@@ -456,7 +458,7 @@ export default function SearchSidebar({
                         <svg className="w-5 h-5 text-[#3D1A00]/40 group-hover:text-[#8B9A47] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                      </Link>
+                      </LocaleLink>
                     </li>
                   ))}
                 </ul>
@@ -477,7 +479,7 @@ export default function SearchSidebar({
                         onClick={() => { clearSearchHistory(); setSearchHistory([]); }}
                         className="text-xs font-['Montserrat'] text-[#3D1A00]/60 hover:text-[#3D1A00] underline transition-colors"
                       >
-                        Очистити
+                        {dict.common.reset}
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -539,7 +541,7 @@ export default function SearchSidebar({
                     <ul className="flex flex-col gap-3">
                       {popularProducts.map((product) => (
                         <li key={product.id}>
-                          <Link
+                          <LocaleLink
                             href={`/product/${product.slug ?? product.id}`}
                             onClick={() => setIsOpen(false)}
                             className="flex items-center gap-4 p-3 rounded-xl border border-[#3D1A00]/10 hover:border-[#3D1A00]/20 hover:bg-[#3D1A00]/5 transition-all duration-200 group"
@@ -564,13 +566,13 @@ export default function SearchSidebar({
                             <svg className="w-5 h-5 text-[#3D1A00]/40 group-hover:text-[#8B9A47] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
-                          </Link>
+                          </LocaleLink>
                         </li>
                       ))}
                     </ul>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-[#3D1A00]/50 text-sm font-['Montserrat']">Введіть запит для пошуку</p>
+                      <p className="text-[#3D1A00]/50 text-sm font-['Montserrat']">{dict.common.searchPlaceholder}</p>
                     </div>
                   )}
                 </div>

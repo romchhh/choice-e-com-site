@@ -1,12 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useProducts } from "@/lib/useProducts";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 
 export default function Bestsellers() {
+  const { dict } = useLocale();
   const { products, loading } = useProducts({ topSale: true });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +28,7 @@ export default function Bestsellers() {
     return (
       <section className="w-full bg-[#FFFFFF] py-12 lg:py-16">
         <div className="max-w-[1920px] mx-auto px-6 lg:px-10">
-          <p className="text-[#3D1A00] font-['Montserrat']">Завантаження...</p>
+          <p className="text-[#3D1A00] font-['Montserrat']">{dict.common.loading}</p>
         </div>
       </section>
     );
@@ -42,7 +44,7 @@ export default function Bestsellers() {
         {/* Заголовок та стрілки */}
         <div className="flex items-center justify-between gap-4 mb-8 lg:mb-10">
           <h2 className="text-2xl lg:text-3xl font-bold font-['Montserrat'] uppercase tracking-tight text-[#3D1A00]">
-            Наші бестселери
+            {dict.home.bestsellers}
           </h2>
           <div className="flex items-center gap-2">
             <button
@@ -73,7 +75,7 @@ export default function Bestsellers() {
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {items.map((product) => (
-            <Link
+            <LocaleLink
               key={product.id}
               href={`/product/${product.slug ?? product.id}`}
               className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
@@ -108,7 +110,7 @@ export default function Bestsellers() {
                   {product.description}
                 </p>
               )}
-            </Link>
+            </LocaleLink>
           ))}
         </div>
       </div>

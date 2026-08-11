@@ -2,7 +2,8 @@
 
 import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useBasket } from "@/lib/BasketProvider";
 import { GA4_BRAND, GA4_CURRENCY, GA4_VERTICAL, pushGA4EcommerceEvent } from "@/lib/ga4Ecommerce";
 
@@ -40,6 +41,7 @@ function normalizePhoneForAds(phone?: string | null): string {
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const { clearBasket } = useBasket();
+  const { dict } = useLocale();
   const [orderId, setOrderId] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderData | null>(null);
   const [state, setState] = useState<PageState>("loading");
@@ -253,12 +255,12 @@ function PaymentSuccessContent() {
               >
                 {refreshing ? "Перевірка..." : "Перевірити статус"}
               </button>
-              <Link
+              <LocaleLink
                 href="/final"
                 className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-[var(--background-warm-yellow)] hover:bg-black/5"
               >
                 Повернутися до оформлення
-              </Link>
+              </LocaleLink>
             </div>
           </div>
         </div>
@@ -285,12 +287,12 @@ function PaymentSuccessContent() {
                 ? "У посиланні відсутній номер замовлення."
                 : "Замовлення з таким номером не знайдено або посилання застаріле."}
             </p>
-            <Link
+            <LocaleLink
               href="/catalog"
               className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800"
             >
               Перейти в каталог
-            </Link>
+            </LocaleLink>
           </div>
         </div>
       </div>
@@ -308,18 +310,18 @@ function PaymentSuccessContent() {
         <nav className="mb-8" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 text-sm font-['Montserrat'] font-normal">
             <li>
-              <Link href="/" className="text-[#3D1A00] hover:opacity-80 transition-opacity">
-                Головна
-              </Link>
+              <LocaleLink href="/" className="text-[#3D1A00] hover:opacity-80 transition-opacity">
+                {dict.nav.home}
+              </LocaleLink>
             </li>
             <li className="text-gray-400">|</li>
-            <li className="text-gray-400">Оформлення замовлення</li>
+            <li className="text-gray-400">{dict.checkout.title}</li>
           </ol>
         </nav>
 
         <div className="text-center py-8 sm:py-12">
           <h1 className="font-['Montserrat'] font-bold text-3xl sm:text-4xl lg:text-5xl text-[#3D1A00] uppercase tracking-tight mb-4">
-            Дякуємо!
+            {dict.success.title}
           </h1>
           <p className="font-['Montserrat'] font-bold text-2xl sm:text-3xl lg:text-4xl text-[#3D1A00] uppercase tracking-tight mb-2">
             Ваше замовлення оформлене!
@@ -373,18 +375,18 @@ function PaymentSuccessContent() {
               })}
             </ul>
             <p className="font-['Montserrat'] font-bold text-[#3D1A00] text-lg mt-4 text-right">
-              Разом: {total.toFixed(2)} ₴
+              {dict.common.total}: {total.toFixed(2)} ₴
             </p>
           </div>
         )}
 
         <div className="text-center">
-          <Link
+          <LocaleLink
             href="/"
             className="inline-flex items-center justify-center px-8 py-4 rounded-lg font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-base tracking-tight bg-[#9B9B5A] hover:bg-[#8a8a4e] transition-colors"
           >
-            Повернутися на головну
-          </Link>
+            {dict.success.backHome}
+          </LocaleLink>
         </div>
       </div>
     </div>

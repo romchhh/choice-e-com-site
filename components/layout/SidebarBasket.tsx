@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useBasket } from "@/lib/BasketProvider";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { getDiscountedPrice, getItemSubtotal } from "@/lib/pricing";
 
@@ -23,6 +24,7 @@ export default function SidebarBasket({
   setIsOpen,
 }: SidebarBasketProps) {
   const { items, removeItem, updateQuantity, clearBasket } = useBasket();
+  const { dict } = useLocale();
   const [quantityError, setQuantityError] = useState<Record<string, string>>({});
 
   const total = items.reduce(
@@ -47,13 +49,13 @@ export default function SidebarBasket({
         {/* Заголовок: ВАШ КОШИК (N) + X */}
         <div className="flex justify-between items-center px-3 py-3 sm:px-4 sm:py-4 border-b border-[#3D1A00]/10">
           <h2 className="font-['Montserrat'] font-semibold text-lg sm:text-xl text-[#3D1A00] uppercase tracking-tight">
-            ВАШ КОШИК ({items.length > 0 ? items.reduce((acc, i) => acc + i.quantity, 0) : 0})
+            {dict.basket.title} ({items.length > 0 ? items.reduce((acc, i) => acc + i.quantity, 0) : 0})
           </h2>
           <button
             type="button"
             className="w-10 h-10 flex items-center justify-center text-[#3D1A00]/70 hover:text-[#3D1A00] text-2xl leading-none"
             onClick={() => setIsOpen(false)}
-            aria-label="Закрити кошик"
+            aria-label={dict.common.close}
           >
             ×
           </button>
@@ -63,15 +65,15 @@ export default function SidebarBasket({
           {items.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-6">
               <p className="font-['Montserrat'] font-medium text-[#3D1A00] text-lg sm:text-xl text-center">
-                Ваш кошик порожній
+                {dict.common.emptyBasket}
               </p>
-              <Link
+              <LocaleLink
                 href="/catalog"
                 onClick={() => setIsOpen(false)}
                 className="w-full sm:w-auto min-w-[200px] py-3.5 px-6 rounded-xl bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-sm uppercase tracking-tight text-center transition-colors"
               >
-                Продовжити покупки
-              </Link>
+                {dict.common.continueShopping}
+              </LocaleLink>
             </div>
           )}
 
@@ -163,7 +165,7 @@ export default function SidebarBasket({
                       </button>
                     </div>
                     <span className="font-['Montserrat'] font-normal text-[#3D1A00] text-sm sm:text-base">
-                      {displayPrice.toLocaleString("uk-UA")} грн
+                      {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
                     </span>
                   </div>
                 </div>
@@ -197,8 +199,8 @@ export default function SidebarBasket({
               {/* Всього */}
               <div className="mt-4 pt-4 border-t border-[#3D1A00]/10 space-y-1 font-['Montserrat'] text-[#3D1A00]">
                 <div className="flex justify-between items-center text-sm sm:text-base font-medium">
-                  <span>Всього:</span>
-                  <span>{Math.round(total).toLocaleString("uk-UA")} грн</span>
+                  <span>{dict.common.total}:</span>
+                  <span>{Math.round(total).toLocaleString("uk-UA")} {dict.common.uah}</span>
                 </div>
               </div>
 
@@ -212,15 +214,15 @@ export default function SidebarBasket({
                   }}
                   className="flex-1 py-3 px-4 text-center border-2 border-[#3D1A00] bg-white text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#3D1A00]/5 transition-colors"
                 >
-                  ОЧИСТИТИ
+                  {dict.basket.clear}
                 </button>
-                <Link
+                <LocaleLink
                   href="/final"
                   className="flex-1 py-3 px-4 text-center bg-[#D7D799] text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#c5c58a] transition-colors border border-[#b8b87a]"
                   onClick={() => setIsOpen(false)}
                 >
-                  ПРОДОВЖИТИ
-                </Link>
+                  {dict.basket.continue}
+                </LocaleLink>
               </div>
             </>
           )}

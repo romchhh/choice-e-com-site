@@ -1,16 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAppContext } from "@/lib/GeneralProvider";
 import { useBasket } from "@/lib/BasketProvider";
 import { useCategories } from "@/lib/CategoriesProvider";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import SidebarBasket from "./SidebarBasket";
 import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
-import { siteOfficialRepLine, SITE_WORDMARK } from "@/lib/siteBrand";
+import { SITE_WORDMARK } from "@/lib/siteBrand";
+import { stripLocalePrefix } from "@/lib/i18n/paths";
 
 interface Subcategory {
   id: number;
@@ -30,31 +33,10 @@ export default function Header() {
     setIsSearchOpen,
   } = useAppContext();
 
-  const router = useRouter();
   const pathname = usePathname();
+  const { dict, locale } = useLocale();
   const { items } = useBasket();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-
-  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, anchor: string) => {
-    e.preventDefault();
-    if (pathname === "/") {
-      // Якщо вже на головній сторінці, просто прокручуємо до якоря
-      const element = document.getElementById(anchor.replace("#", ""));
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    } else {
-      // Якщо на іншій сторінці, переходимо на головну з якорем
-      router.push(`/${anchor}`);
-      // Після переходу прокручуємо до якоря
-      setTimeout(() => {
-        const element = document.getElementById(anchor.replace("#", ""));
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    }
-  };
 
   // Use categories from context instead of fetching
   const { categories } = useCategories();
@@ -92,7 +74,8 @@ export default function Header() {
   const [infoLeftPosition, setInfoLeftPosition] = useState<number>(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const isHeroMode = pathname === "/" && !isScrolled;
+  const isHome = stripLocalePrefix(pathname || "/") === "/";
+  const isHeroMode = isHome && !isScrolled;
   // Коли бургер відкритий — хедер завжди білий (навіть якщо був прозорий)
   const headerTransparent = isHeroMode && !isSidebarOpen;
 
@@ -102,6 +85,15 @@ export default function Header() {
     handleScroll(); // init
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Скидаємо стан хедера при зміні мови/шляху — інакше «нашарування» після UA↔RU
+  useEffect(() => {
+    setIsScrolled(window.scrollY > 20);
+    setHoveredCategoryId(null);
+    setInfoMenuOpen(false);
+    setPinnedCatalog(false);
+    cancelCatalogMenuClose();
+  }, [pathname, locale]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -219,16 +211,19 @@ export default function Header() {
           <div className="flex justify-center bg-white text-[#3D1A00] border-b border-[#3D1A00]/10">
             <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-10 flex items-center justify-center min-h-8 py-1.5">
               <p className="text-[10px] sm:text-xs font-['Montserrat'] font-semibold tracking-wide text-center uppercase leading-tight">
-                Безкоштовна доставка від 2&nbsp;000 грн
+                {dict.brand.freeDelivery}
               </p>
             </div>
           </div>
           {/* Top info bar — роздільна лінія тільки в межах контенту (не на весь екран) */}
           <div className={`hidden lg:flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
             <div className="w-full max-w-[1920px] mx-auto px-10 flex justify-between items-center h-11 text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span>{siteOfficialRepLine}</span>
+              <span>{dict.brand.officialRep}</span>
               <div className="flex items-center gap-4">
-                <Link href="/contacts" className="hover:opacity-80 transition-colors">Контакти</Link>
+                <Suspense fallback={null}>
+                  <LanguageSwitcher />
+                </Suspense>
+                <LocaleLink href="/contacts" className="hover:opacity-80 transition-colors">{dict.nav.contacts}</LocaleLink>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Instagram</a>
                 <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
               </div>
@@ -237,9 +232,12 @@ export default function Header() {
           {/* Top info bar — mobile */}
           <div className={`lg:hidden flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center min-h-10 py-2.5 px-3 sm:px-4 text-[10px] sm:text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span className="truncate mr-2 max-w-[55%] sm:max-w-none">{siteOfficialRepLine}</span>
+              <span className="truncate mr-2 max-w-[45%] sm:max-w-none">{dict.brand.officialRep}</span>
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <Link href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">Контакти</Link>
+                <Suspense fallback={null}>
+                  <LanguageSwitcher />
+                </Suspense>
+                <LocaleLink href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">{dict.nav.contacts}</LocaleLink>
                 <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Instagram</a>
                 <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Telegram</a>
               </div>
@@ -248,7 +246,7 @@ export default function Header() {
           {/* Top nav — трохи вищий */}
           <div className="hidden lg:flex justify-center">
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-stretch h-20 px-10">
-            <Link href="/" className="flex items-center self-center pt-1 group shrink-0">
+            <LocaleLink href="/" className="flex items-center self-center pt-1 group shrink-0">
               <span
                 className={`font-['Montserrat'] font-light text-[1.75rem] lg:text-[2.35rem] leading-none tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
                   headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
@@ -256,7 +254,7 @@ export default function Header() {
               >
                 {SITE_WORDMARK}
               </span>
-            </Link>
+            </LocaleLink>
 
             <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 text-xs font-bold font-['Montserrat'] min-w-0">
               {/* Product Categories — hover лише на тексті посилання, не на всю висоту рядка (items-stretch давав «раннє» відкриття). */}
@@ -272,7 +270,7 @@ export default function Header() {
                   }}
                   className="relative group flex items-center self-center min-h-0"
                 >
-                  <Link
+                  <LocaleLink
                     href={`/catalog?categoryId=${category.id}`}
                     onMouseEnter={() => {
                       cancelCatalogMenuClose();
@@ -285,8 +283,10 @@ export default function Header() {
                       headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                     }`}
                   >
-                    {category.name}
-                  </Link>
+                    {locale === "ru" && (category as { name_ru?: string | null }).name_ru
+                      ? (category as { name_ru?: string | null }).name_ru
+                      : category.name}
+                  </LocaleLink>
 
                   {/* Subcategories dropdown */}
                   {hoveredCategoryId === category.id && (
@@ -302,12 +302,12 @@ export default function Header() {
                         <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${categoryLeftPositions.get(category.id) || 0}px` }}>
                         {subcategoriesLoading ? (
                           <p className="text-gray-500 text-xs py-2 font-['Montserrat']">
-                            Завантаження…
+                            {dict.common.loading}
                           </p>
                         ) : (
                           <>
                             {subcategories.map((subcat) => (
-                              <Link
+                              <LocaleLink
                                 key={subcat.id}
                                 href={`/catalog?subcategory=${encodeURIComponent(
                                   subcat.name
@@ -315,14 +315,14 @@ export default function Header() {
                                 className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                               >
                                 {subcat.name}
-                              </Link>
+                              </LocaleLink>
                             ))}
-                            <Link
+                            <LocaleLink
                               href={`/catalog?categoryId=${category.id}`}
                               className={`text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200 underline ${subcategories.length > 0 ? "mt-2" : ""}`}
                             >
-                              Переглянути всі
-                            </Link>
+                              {dict.nav.allProducts}
+                            </LocaleLink>
                           </>
                         )}
                         </div>
@@ -348,7 +348,7 @@ export default function Header() {
                     headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
                   } ${infoMenuOpen ? (headerTransparent ? "bg-white text-[#3D1A00]" : "bg-[#3D1A00] text-white") : ""}`}
                 >
-                  ІНФО
+                  {dict.nav.info}
                 </span>
 
                 <div
@@ -367,48 +367,48 @@ export default function Header() {
                   }}
                 >
                   <div className="max-w-[1920px] mx-auto w-full flex flex-col gap-1" style={{ paddingLeft: `${infoLeftPosition}px` }}>
-                    <Link
+                    <LocaleLink
                       href="/info#about"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Про бренд
-                    </Link>
-                    <Link
+                      {dict.nav.aboutBrand}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/partnership"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Партнерство
-                    </Link>
-                    <Link
+                      {dict.nav.partnership}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/delivery-and-payment"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Доставка та оплата
-                    </Link>
-                    <Link
+                      {dict.nav.deliveryPayment}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/returns-and-exchange"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Повернення та обмін
-                    </Link>
-                    <Link
+                      {dict.nav.returnsExchange}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/info#faq"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      FAQ
-                    </Link>
-                    <Link
+                      {dict.nav.faq}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/contacts"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Контакти
-                    </Link>
-                    <Link
+                      {dict.nav.contacts}
+                    </LocaleLink>
+                    <LocaleLink
                       href="/catalog?promo=1"
                       className="text-gray-600 hover:text-[#3D1A00] text-xs py-2 font-bold font-['Montserrat'] transition-colors duration-200"
                     >
-                      Акції
-                    </Link>
+                      {dict.nav.promo}
+                    </LocaleLink>
                   </div>
                 </div>
               </div>
@@ -419,7 +419,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
-                aria-label="Пошук"
+                aria-label={dict.nav.search}
                 className="cursor-pointer relative flex h-12 w-12 shrink-0 items-center justify-center transition-opacity hover:opacity-80"
               >
                 <Image
@@ -498,7 +498,7 @@ export default function Header() {
                 </svg>
               )}
             </button>
-            <Link
+            <LocaleLink
               href="/"
               className="flex items-center pt-0.5 group"
               onClick={(e) => {
@@ -521,7 +521,7 @@ export default function Header() {
               >
                 {SITE_WORDMARK}
               </span>
-            </Link>
+            </LocaleLink>
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
@@ -537,7 +537,7 @@ export default function Header() {
                 className="h-[18px] w-[18px] mr-1.5 brightness-0"
                 style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)" }}
               />
-              <span className="text-xs font-['Montserrat'] text-[#3D1A00]">Пошук</span>
+              <span className="text-xs font-['Montserrat'] text-[#3D1A00]">{dict.nav.search}</span>
             </button>
 
             <button

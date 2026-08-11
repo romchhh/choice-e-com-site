@@ -1,23 +1,41 @@
 import ProductClientWrapper from "./ProductClientWrapper";
 import { ProductStructuredData, BreadcrumbStructuredData } from "@/components/shared/StructuredData";
 import type { Product } from "@/lib/types/product";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { absoluteLocaleUrl, getSiteOrigin } from "@/lib/i18n/seo";
 
 interface ProductServerProps {
   product: Product;
 }
 
 export default async function ProductServer({ product }: ProductServerProps) {
-
-  const baseUrl = process.env.PUBLIC_URL || "http://localhost:3000";
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const origin = getSiteOrigin();
   const productSlug = product.slug || String(product.id);
-  const categorySlug = product.category_slug ?? (product.category_name ? encodeURIComponent(product.category_name) : null);
+  const categorySlug =
+    product.category_slug ??
+    (product.category_name ? encodeURIComponent(product.category_name) : null);
+
   const breadcrumbs = [
-    { name: "Головна", url: baseUrl },
-    { name: "Каталог", url: `${baseUrl}/catalog` },
+    { name: dict.nav.home, url: absoluteLocaleUrl("/", locale) },
+    { name: dict.catalog.title, url: absoluteLocaleUrl("/catalog", locale) },
     ...(product.category_name
-      ? [{ name: product.category_name, url: `${baseUrl}/catalog/${categorySlug || encodeURIComponent(product.category_name)}` }]
+      ? [
+          {
+            name: product.category_name,
+            url: absoluteLocaleUrl(
+              `/catalog/${categorySlug || encodeURIComponent(product.category_name)}`,
+              locale
+            ),
+          },
+        ]
       : []),
-    { name: product.name, url: `${baseUrl}/product/${productSlug}` },
+    {
+      name: product.name,
+      url: absoluteLocaleUrl(`/product/${productSlug}`, locale),
+    },
   ];
 
   const productForStructuredData = {
@@ -34,10 +52,13 @@ export default async function ProductServer({ product }: ProductServerProps) {
 
   return (
     <>
-      <ProductStructuredData product={productForStructuredData} baseUrl={baseUrl} slug={productSlug} />
+      <ProductStructuredData
+        product={productForStructuredData}
+        baseUrl={origin}
+        slug={productSlug}
+        locale={locale}
+      />
       <BreadcrumbStructuredData items={breadcrumbs} />
-      {/* key змушує клієнтську обгортку перемонтовуватись при переході на інший товар,
-          щоб скрол завжди повертався на початок сторінки */}
       <ProductClientWrapper key={product.id} product={product} />
     </>
   );

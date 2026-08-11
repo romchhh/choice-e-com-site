@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo, useRef } from "react";
-import Link from "next/link";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import { useProducts } from "@/lib/useProducts";
@@ -22,6 +23,7 @@ interface YouMightLikeProps {
 }
 
 export default function YouMightLike({ suggestedProducts, title }: YouMightLikeProps = {}) {
+  const { dict } = useLocale();
   const { products: clientProducts, loading } = useProducts();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +50,7 @@ export default function YouMightLike({ suggestedProducts, title }: YouMightLikeP
     return (
       <section className="w-full bg-[#FFFFFF] py-12 lg:py-16">
         <div className="max-w-[1920px] mx-auto px-6 lg:px-10">
-          <p className="text-[#3D1A00] font-['Montserrat']">Завантаження...</p>
+          <p className="text-[#3D1A00] font-['Montserrat']">{dict.common.loading}</p>
         </div>
       </section>
     );
@@ -64,7 +66,7 @@ export default function YouMightLike({ suggestedProducts, title }: YouMightLikeP
         {/* Заголовок та стрілки — як у Наші бестселери */}
         <div className="flex items-center justify-between gap-4 mb-8 lg:mb-10">
           <h2 className="text-2xl lg:text-3xl font-bold font-['Montserrat'] uppercase tracking-tight text-[#3D1A00]">
-            {title || "Схожі товари"}
+            {title || dict.common.similarProducts}
           </h2>
           <div className="flex items-center gap-2">
             <button
@@ -95,7 +97,7 @@ export default function YouMightLike({ suggestedProducts, title }: YouMightLikeP
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {products.map((product) => (
-            <Link
+            <LocaleLink
               key={product.id}
               href={`/product/${(product.slug && String(product.slug).trim()) ? product.slug : product.id}`}
               scroll={false}
@@ -142,7 +144,7 @@ export default function YouMightLike({ suggestedProducts, title }: YouMightLikeP
                   {product.description}
                 </p>
               )}
-            </Link>
+            </LocaleLink>
           ))}
         </div>
       </div>

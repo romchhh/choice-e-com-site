@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export default function Reviews() {
+  const { dict } = useLocale();
   return (
     <section
       id="reviews"
@@ -11,14 +13,12 @@ export default function Reviews() {
       <div className="flex flex-col lg:flex-row justify-between lg:items-end gap-8 lg:gap-16">
         <div>
           <h2 className="text-4xl lg:text-6xl font-bold font-['Montserrat'] uppercase tracking-wider text-black leading-tight mb-6">
-            Враження
-            <br />
-            наших клієнтів
+            {dict.home.reviewsTitle}
           </h2>
         </div>
 
         <div className="text-base lg:text-xl font-normal font-['Montserrat'] text-black/70 leading-relaxed">
-          Більше відгуків дивіться у нашому{" "}
+          {dict.home.reviews.moreBefore}{" "}
           <Link
             href="https://www.instagram.com/my_choice_mari"
             target="_blank"
@@ -27,7 +27,7 @@ export default function Reviews() {
           >
             Instagram
           </Link>{" "}
-          профілі
+          {dict.home.reviews.moreAfter}
         </div>
       </div>
     </section>

@@ -6,15 +6,19 @@ import { cachedFetch, CACHE_KEYS } from "@/lib/cache";
 interface Category {
   id: number;
   name: string;
+  name_ru?: string | null;
   slug?: string | null;
   priority: number;
   mediaType?: string | null;
   mediaUrl?: string | null;
+  description?: string | null;
+  description_ru?: string | null;
 }
 
 interface Subcategory {
   id: number;
   name: string;
+  name_ru?: string | null;
   parent_category_id: number;
 }
 

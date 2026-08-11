@@ -89,8 +89,10 @@ model Wishlist {
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
+  nameRu      String?   @map("name_ru")
   slug        String?   @unique // ЧПУ: англ. транскрипція назви (nullable для існуючих записів до backfill)
   description String?   @db.Text
+  descriptionRu String? @map("description_ru") @db.Text
   priority    Int       @default(0)
   mediaType   String?   @map("media_type") // "photo" or "video"
   mediaUrl    String?   @map("media_url")
@@ -104,6 +106,7 @@ model Category {
 model Subcategory {
   id         Int      @id @default(autoincrement())
   name       String
+  nameRu     String?  @map("name_ru")
   slug       String?  @unique // ЧПУ для URL
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -116,21 +119,36 @@ model Subcategory {
 model Product {
   id                   Int            @id @default(autoincrement())
   name                 String
+  nameRu               String?        @map("name_ru")
   slug                 String?        @unique
   subtitle             String?        @map("subtitle")
+  subtitleRu           String?        @map("subtitle_ru")
   releaseForm          String?        @map("release_form")  // Форма випуску, напр. "30 саше по 2 г"
+  releaseFormRu        String?        @map("release_form_ru")
   course               String?        // Курс, напр. "30 днів"
+  courseRu             String?        @map("course_ru")
   packageWeight        String?        @map("package_weight") // Вага упаковки, напр. "60 г"
+  packageWeightRu      String?        @map("package_weight_ru")
   mainInfo             String?        @map("main_info") @db.Text
+  mainInfoRu           String?        @map("main_info_ru") @db.Text
   shortDescription     String?        @map("short_description") @db.Text
+  shortDescriptionRu   String?        @map("short_description_ru") @db.Text
   description          String?        @db.Text // Повний опис
+  descriptionRu        String?        @map("description_ru") @db.Text
   mainAction           String?        @map("main_action") @db.Text
+  mainActionRu         String?        @map("main_action_ru") @db.Text
   indicationsForUse    String?        @map("indications_for_use") @db.Text
+  indicationsForUseRu  String?        @map("indications_for_use_ru") @db.Text
   benefits             String?        @db.Text
+  benefitsRu           String?        @map("benefits_ru") @db.Text
   fullComposition      String?        @map("full_composition") @db.Text
+  fullCompositionRu    String?        @map("full_composition_ru") @db.Text
   usageMethod          String?        @map("usage_method") @db.Text
+  usageMethodRu        String?        @map("usage_method_ru") @db.Text
   contraindications    String?       @db.Text
+  contraindicationsRu  String?        @map("contraindications_ru") @db.Text
   storageConditions    String?        @map("storage_conditions") @db.Text
+  storageConditionsRu  String?        @map("storage_conditions_ru") @db.Text
   price                Decimal        @db.Decimal(10, 2)
   oldPrice             Decimal?       @map("old_price") @db.Decimal(10, 2)
   discountPercentage   Int?           @map("discount_percentage")
@@ -151,8 +169,10 @@ model Product {
   categoryId           Int?           @map("category_id")
   subcategoryId        Int?           @map("subcategory_id")
   fabricComposition    String?        @map("fabric_composition") @db.Text
+  fabricCompositionRu  String?        @map("fabric_composition_ru") @db.Text
   hasLining            Boolean        @default(false) @map("has_lining")
   liningDescription    String?        @map("lining_description") @db.Text
+  liningDescriptionRu  String?        @map("lining_description_ru") @db.Text
   createdAt            DateTime       @default(now()) @map("created_at")
 
   category             Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)

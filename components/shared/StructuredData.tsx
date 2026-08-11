@@ -21,6 +21,7 @@ interface ProductStructuredDataProps {
   };
   baseUrl?: string;
   slug?: string; // ЧПУ для URL
+  locale?: "uk" | "ru";
 }
 
 interface OrganizationStructuredDataProps {
@@ -49,6 +50,11 @@ export function WebSiteStructuredData({
   locale?: string;
 }) {
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const isRu =
+    locale === "ru-RU" || locale === "ru_RU" || locale.startsWith("ru");
+  const catalogSearchBase = isRu
+    ? `${normalizedBaseUrl}/ru/catalog`
+    : `${normalizedBaseUrl}/catalog`;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -60,7 +66,7 @@ export function WebSiteStructuredData({
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${normalizedBaseUrl}/catalog?q={search_term_string}`,
+        urlTemplate: `${catalogSearchBase}?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -82,12 +88,19 @@ export function WebSiteStructuredData({
   );
 }
 
-export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug }: ProductStructuredDataProps) {
+export function ProductStructuredData({
+  product,
+  baseUrl = defaultBaseUrl,
+  slug,
+  locale = "uk",
+}: ProductStructuredDataProps) {
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const imageUrl = product.first_media
     ? `${normalizedBaseUrl}/api/images/${product.first_media.url}`
     : `${normalizedBaseUrl}/images/browser-open.png`;
-  const productUrl = slug ? `${normalizedBaseUrl}/product/${slug}` : `${normalizedBaseUrl}/product/${product.id}`;
+  const path = `/product/${slug || product.id}`;
+  const productUrl =
+    locale === "ru" ? `${normalizedBaseUrl}/ru${path}` : `${normalizedBaseUrl}${path}`;
 
   const isInStock =
     product.in_stock !== false &&
@@ -99,6 +112,9 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
     priceCurrency: "UAH",
     availability: isInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     url: productUrl,
+    priceValidUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90)
+      .toISOString()
+      .slice(0, 10),
   };
 
   const structuredData = {
@@ -107,8 +123,10 @@ export function ProductStructuredData({ product, baseUrl = defaultBaseUrl, slug 
     name: product.name,
     description:
       product.description ||
-      `${product.name} — оригінальна продукція ${SITE_PRODUCT_BRAND}, ${SITE_STORE_NAME}`,
+      `${product.name} — ${SITE_PRODUCT_BRAND}, ${SITE_STORE_NAME}`,
     image: imageUrl,
+    url: productUrl,
+    inLanguage: locale === "ru" ? "ru-RU" : "uk-UA",
     brand: {
       "@type": "Brand",
       name: SITE_PRODUCT_BRAND,
@@ -149,7 +167,7 @@ export function OrganizationStructuredData({
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "Customer Service",
-      availableLanguage: ["Ukrainian"],
+      availableLanguage: ["Ukrainian", "Russian"],
     },
   };
 
@@ -188,6 +206,8 @@ interface CollectionPageStructuredDataProps {
   baseUrl: string;
   itemCount?: number;
   category?: string;
+  locale?: "uk" | "ru";
+  breadcrumbItems?: { name: string; url: string }[];
 }
 
 export function CollectionPageStructuredData({
@@ -197,13 +217,28 @@ export function CollectionPageStructuredData({
   baseUrl,
   itemCount = 0,
   category,
+  locale = "uk",
+  breadcrumbItems,
 }: CollectionPageStructuredDataProps) {
+  const origin = normalizeBaseUrl(baseUrl);
+  const homeUrl = locale === "ru" ? `${origin}/ru` : origin;
+  const catalogUrl = locale === "ru" ? `${origin}/ru/catalog` : `${origin}/catalog`;
+  const crumbs =
+    breadcrumbItems && breadcrumbItems.length > 0
+      ? breadcrumbItems
+      : [
+          { name: locale === "ru" ? "Главная" : "Головна", url: homeUrl },
+          { name: locale === "ru" ? "Каталог" : "Каталог", url: catalogUrl },
+          ...(category ? [{ name: category, url }] : []),
+        ];
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name,
     description,
     url,
+    inLanguage: locale === "ru" ? "ru-RU" : "uk-UA",
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: itemCount,
@@ -216,30 +251,12 @@ export function CollectionPageStructuredData({
     },
     breadcrumb: {
       "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Головна",
-          item: baseUrl,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Каталог",
-          item: `${baseUrl}/catalog`,
-        },
-        ...(category
-          ? [
-              {
-                "@type": "ListItem",
-                position: 3,
-                name: category,
-                item: url,
-              },
-            ]
-          : []),
-      ],
+      itemListElement: crumbs.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: item.url,
+      })),
     },
   };
 

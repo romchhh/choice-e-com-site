@@ -1,301 +1,171 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SITE_STORE_NAME } from "@/lib/siteBrand";
+import LocaleLink from "@/components/i18n/LocaleLink";
+import { getLocale } from "@/lib/i18n/getLocale";
+import { getPrivacyCopy } from "@/lib/i18n/content/privacy";
+import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
 
-const baseUrl =
-  process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = getPrivacyCopy(locale);
+  return buildPageMetadata(locale, "/privacy-policy", {
+    title: t.metaTitle,
+    description: t.metaDescription,
+    ogDescription: t.ogDescription,
+    twitterDescription: t.twitterDescription,
+    imageAlt: t.imageAlt,
+  });
+}
 
-export const metadata: Metadata = {
-  title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
-  description: `Політика конфіденційності інтернет-магазину ${SITE_STORE_NAME}. Як ми збираємо, зберігаємо та захищаємо персональні дані клієнтів при замовленні wellness та eco-продукції.`,
-  openGraph: {
-    title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
-    description: `Докладна політика конфіденційності ${SITE_STORE_NAME}: обробка персональних даних, захист інформації та використання даних при онлайн-замовленнях.`,
-    type: "article",
-    locale: "uk_UA",
-    url: `${baseUrl}/privacy-policy`,
-    images: [
-      {
-        url: `${baseUrl}/images/tg_image_3614117882.png`,
-        width: 1200,
-        height: 630,
-        alt: `${SITE_STORE_NAME} — політика конфіденційності`,
-      },
-    ],
-    siteName: SITE_STORE_NAME,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `Політика конфіденційності | ${SITE_STORE_NAME}`,
-    description: `Як інтернет-магазин ${SITE_STORE_NAME} працює з персональними даними при замовленні wellness та eco-продукції.`,
-    images: [`${baseUrl}/images/tg_image_3614117882.png`],
-  },
-};
+export default async function PrivacyPolicyPage() {
+  const locale = await getLocale();
+  const t = getPrivacyCopy(locale);
 
-export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen py-20 px-6">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="mb-16">
-          <Link
+          <LocaleLink
             href="/"
             className="inline-block mb-8 text-lg opacity-60 hover:opacity-100 transition-opacity duration-300"
           >
-            ← На головну
-          </Link>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            Політика конфіденційності
-          </h1>
+            {t.backHome}
+          </LocaleLink>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">{t.title}</h1>
           <div className="w-20 h-1 bg-black dark:bg-white mt-6"></div>
         </div>
 
-        {/* Content */}
         <div className="space-y-12 text-base leading-relaxed">
           <section className="space-y-4">
-            <p className="text-lg opacity-80">
-              Ця Політика конфіденційності персональних даних (далі – Політика
-              конфіденційності) діє щодо всієї інформації, яку Інтернет-магазин
-              «{SITE_STORE_NAME}», може отримати про Користувача під час використання сайту
-              Інтернет-магазину, програм та продуктів Інтернет-магазину.
-            </p>
+            <p className="text-lg opacity-80">{t.intro}</p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">1. ВИЗНАЧЕННЯ ТЕРМІНІВ</h2>
-            <p className="opacity-70">
-              У цій Політиці конфіденційності використовуються такі терміни:
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s1Title}</h2>
+            <p className="opacity-70">{t.s1Intro}</p>
             <div className="space-y-5 mt-6">
-              <div className="pl-6 border-l-2 border-black/10 dark:border-white/10">
-                <p className="font-semibold mb-2">Адміністрація сайту Інтернет-магазину</p>
-                <p className="opacity-70 text-sm">
-                  Уповноважені співробітники на управління сайтом, що діють від імені інтернет-магазину,
-                  які організовують та здійснює обробку персональних даних, а також визначає
-                  цілі обробки персональних даних, склад персональних даних, що підлягають
-                  обробці, дії чи операції, що здійснюються з персональними даними.
-                </p>
-              </div>
-              <div className="pl-6 border-l-2 border-black/10 dark:border-white/10">
-                <p className="font-semibold mb-2">Персональні дані</p>
-                <p className="opacity-70 text-sm">
-                  Будь-яка інформація, що відноситься до
-                  прямо чи опосередковано визначеної чи визначеної фізичної особи (суб&apos;єкта
-                  персональних даних).
-                </p>
-              </div>
-              <div className="pl-6 border-l-2 border-black/10 dark:border-white/10">
-                <p className="font-semibold mb-2">Обробка персональних даних</p>
-                <p className="opacity-70 text-sm">
-                  Будь-яка дія (операція) або
-                  сукупність дій (операцій), що здійснюються з використанням засобів
-                  автоматизації або без використання таких засобів з персональними даними,
-                  включаючи збирання, записування, систематизацію, накопичення, зберігання,
-                  уточнення (оновлення, зміну), вилучення, використання, передачу
-                  (поширення, надання, доступ), знеособлення, блокування, видалення, знищення
-                  персональних даних.
-                </p>
-              </div>
+              {t.terms.map((term) => (
+                <div
+                  key={term.title}
+                  className="pl-6 border-l-2 border-black/10 dark:border-white/10"
+                >
+                  <p className="font-semibold mb-2">{term.title}</p>
+                  <p className="opacity-70 text-sm">{term.text}</p>
+                </div>
+              ))}
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">
-              2. ЗАГАЛЬНІ ПОЛОЖЕННЯ
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s2Title}</h2>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className="text-2xl leading-none mt-1">•</span>
-                <span className="opacity-80">
-                  Використання Користувачем сайту Інтернет-магазину означає згоду з цією
-                  Політикою конфіденційності та умовами обробки персональних даних Користувача.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl leading-none mt-1">•</span>
-                <span className="opacity-80">
-                  У разі незгоди з умовами Політики конфіденційності Користувач повинен припинити
-                  використання веб-сайту Інтернет-магазину.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl leading-none mt-1">•</span>
-                <span className="opacity-80">
-                  Ця Політика конфіденційності застосовується лише до сайту
-                  Інтернет-магазину. Інтернет-магазин не контролює та не несе відповідальності
-                  за сайти третіх осіб, на які Користувач може перейти за посиланнями, доступними
-                  на сайті Інтернет-магазину.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-2xl leading-none mt-1">•</span>
-                <span className="opacity-80">
-                  Адміністрація сайту не перевіряє достовірність персональних даних, які надає
-                  Користувач сайту Інтернет-магазину.
-                </span>
-              </li>
+              {t.s2Items.map((item) => (
+                <li key={item.slice(0, 40)} className="flex items-start gap-3">
+                  <span className="text-2xl leading-none mt-1">•</span>
+                  <span className="opacity-80">{item}</span>
+                </li>
+              ))}
             </ul>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">
-              3. ПРЕДМЕТ ПОЛІТИКИ КОНФІДЕНЦІЙНОСТІ
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s3Title}</h2>
             <div className="space-y-4">
-              <p className="opacity-80">
-                Ця Політика конфіденційності встановлює зобов&apos;язання Адміністрації сайту
-                інтернет-магазину щодо нерозголошення та забезпечення режиму захисту конфіденційності
-                персональних даних, які Користувач надає на запит Адміністрації сайту при реєстрації
-                на сайті інтернет-магазину або при оформленні замовлення на придбання Товару.
-              </p>
-              <p className="opacity-80">
-                Персональні дані, дозволені для обробки в рамках цієї Політики конфіденційності,
-                надаються Користувачем шляхом заповнення реєстраційної форми на Сайті
-                інтернет-магазину та включають наступну інформацію:
-              </p>
+              <p className="opacity-80">{t.s3P1}</p>
+              <p className="opacity-80">{t.s3P2}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                <div className="p-4 border border-black/10 dark:border-white/10 rounded-lg">
-                  <p className="text-sm opacity-70">ПІБ Користувача</p>
-                </div>
-                <div className="p-4 border border-black/10 dark:border-white/10 rounded-lg">
-                  <p className="text-sm opacity-70">Контактний телефон</p>
-                </div>
-                <div className="p-4 border border-black/10 dark:border-white/10 rounded-lg">
-                  <p className="text-sm opacity-70">E-mail адреса</p>
-                </div>
-                <div className="p-4 border border-black/10 dark:border-white/10 rounded-lg">
-                  <p className="text-sm opacity-70">Адреса доставки</p>
-                </div>
+                {t.s3Fields.map((field) => (
+                  <div
+                    key={field}
+                    className="p-4 border border-black/10 dark:border-white/10 rounded-lg"
+                  >
+                    <p className="text-sm opacity-70">{field}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">
-              4. ЦІЛІ ЗБОРУ ПЕРСОНАЛЬНОЇ ІНФОРМАЦІЇ КОРИСТУВАЧА
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s4Title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Ідентифікація Користувача</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Надання персоналізованих ресурсів</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Встановлення зворотного зв&apos;язку</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Підтвердження достовірності даних</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Створення облікового запису</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Повідомлення про стан Замовлення</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Оброблення платежів</p>
-              </div>
-              <div className="p-4 border-l-2 border-black/20 dark:border-white/20">
-                <p className="text-sm opacity-80">Клієнтська підтримка</p>
-              </div>
+              {t.s4Goals.map((goal) => (
+                <div key={goal} className="p-4 border-l-2 border-black/20 dark:border-white/20">
+                  <p className="text-sm opacity-80">{goal}</p>
+                </div>
+              ))}
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">
-              5. СПОСОБИ ТА ТЕРМІНИ ОБРОБКИ ПЕРСОНАЛЬНОЇ ІНФОРМАЦІЇ
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s5Title}</h2>
             <div className="space-y-4">
-              <p className="opacity-80">
-                Обробка персональних даних Користувача здійснюється без обмеження строку
-                будь-яким законним способом.
-              </p>
-              <p className="opacity-80">
-                Користувач погоджується з тим, що Адміністрація сайту має право передавати
-                персональні дані третім особам, зокрема кур&apos;єрським службам, організаціям
-                поштового зв&apos;язку, виключно з метою виконання замовлення.
-              </p>
+              <p className="opacity-80">{t.s5P1}</p>
+              <p className="opacity-80">{t.s5P2}</p>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">6. ОБОВ&apos;ЯЗКИ СТОРІН</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s6Title}</h2>
             <div className="space-y-6">
               <div>
-                <p className="font-semibold mb-3">Користувач зобов&apos;язаний:</p>
+                <p className="font-semibold mb-3">{t.userDutiesTitle}</p>
                 <ul className="space-y-2 opacity-70">
-                  <li className="flex items-start gap-2">
-                    <span>↪</span>
-                    <span>Надати інформацію про персональні дані, необхідну для користування Сайтом</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span>↪</span>
-                    <span>Оновити, доповнити надану інформацію про персональні дані у разі зміни даної
-                      інформації</span>
-                  </li>
+                  {t.userDuties.map((duty) => (
+                    <li key={duty} className="flex items-start gap-2">
+                      <span>↪</span>
+                      <span>{duty}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div>
-                <p className="font-semibold mb-3">Адміністрація сайту зобов&apos;язана:</p>
+                <p className="font-semibold mb-3">{t.adminDutiesTitle}</p>
                 <ul className="space-y-2 opacity-70">
-                  <li className="flex items-start gap-2">
-                    <span>↪</span>
-                    <span>Використовувати отриману інформацію виключно для вказаних цілей</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span>↪</span>
-                    <span>
-                      Забезпечити зберігання конфіденційної інформації в таємниці
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span>↪</span>
-                    <span>
-                      Вживати запобіжних заходів для захисту конфіденційності персональних даних
-                    </span>
-                  </li>
+                  {t.adminDuties.map((duty) => (
+                    <li key={duty} className="flex items-start gap-2">
+                      <span>↪</span>
+                      <span>{duty}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6">7. РЕКВІЗИТИ</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6">{t.s7Title}</h2>
             <div className="bg-black/5 dark:bg-white/5 p-8 rounded-2xl border border-black/10 dark:border-white/10 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm font-semibold mb-2 opacity-60">Отримувач</p>
-                  <p className="text-sm opacity-90">ФОП Максякова Марія Олександрівна</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqRecipient}</p>
+                  <p className="text-sm opacity-90">{t.reqRecipientValue}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold mb-2 opacity-60">ІПН/ЄДРПОУ</p>
-                  <p className="text-sm opacity-90">3285005389</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqTaxId}</p>
+                  <p className="text-sm opacity-90">{t.reqTaxIdValue}</p>
                 </div>
                 <div className="md:col-span-2">
-                  <p className="text-sm font-semibold mb-2 opacity-60">IBAN</p>
-                  <p className="text-sm opacity-90">UA443220010000026001350065476</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqIban}</p>
+                  <p className="text-sm opacity-90">{t.reqIbanValue}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold mb-2 opacity-60">Акціонерне товариство</p>
-                  <p className="text-sm opacity-90">Акціонерне Товариство УНІВЕРСАЛ БАНК</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqBank}</p>
+                  <p className="text-sm opacity-90">{t.reqBankValue}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold mb-2 opacity-60">МФО</p>
-                  <p className="text-sm opacity-90">322001</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqMfo}</p>
+                  <p className="text-sm opacity-90">{t.reqMfoValue}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold mb-2 opacity-60">ЄДРПОУ Банку</p>
-                  <p className="text-sm opacity-90">21133352</p>
+                  <p className="text-sm font-semibold mb-2 opacity-60">{t.reqBankEdrpou}</p>
+                  <p className="text-sm opacity-90">{t.reqBankEdrpouValue}</p>
                 </div>
               </div>
             </div>
           </section>
 
           <section className="mt-16 pt-8 border-t border-black/10 dark:border-white/10">
-            <p className="text-sm opacity-50">
-              Дата останнього оновлення: 10 березня 2026 року
-            </p>
+            <p className="text-sm opacity-50">{t.updated}</p>
           </section>
         </div>
       </div>
