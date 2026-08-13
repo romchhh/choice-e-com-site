@@ -1,20 +1,19 @@
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
+import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { SITE_STORE_NAME } from "@/lib/siteBrand";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import { buildForbiddenMetadata } from "@/lib/i18n/pages/forbiddenMeta";
 
-export async function generateMetadata() {
-  const locale = await getLocale();
-  const dict = getDictionary(locale);
-  return {
-    title: `${dict.forbidden.title} | ${SITE_STORE_NAME}`,
-    description: dict.forbidden.title,
-    robots: { index: false, follow: false },
-  };
+export function generateMetadata() {
+  return buildForbiddenMetadata(LOCALE_UK);
 }
 
-export default async function ForbiddenPage() {
-  const locale = await getLocale();
+export default function ForbiddenPage() {
+  return <ForbiddenPageContent locale={LOCALE_UK} />;
+}
+
+export function ForbiddenPageContent({ locale }: { locale: Locale }) {
   const dict = getDictionary(locale);
 
   return (

@@ -1,16 +1,17 @@
 import ProductClientWrapper from "./ProductClientWrapper";
 import { ProductStructuredData, BreadcrumbStructuredData } from "@/components/shared/StructuredData";
 import type { Product } from "@/lib/types/product";
-import { getLocale } from "@/lib/i18n/getLocale";
+import type { Locale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { absoluteLocaleUrl, getSiteOrigin } from "@/lib/i18n/seo";
 
 interface ProductServerProps {
   product: Product;
+  locale?: Locale;
 }
 
-export default async function ProductServer({ product }: ProductServerProps) {
-  const locale = await getLocale();
+export default async function ProductServer({ product, locale = DEFAULT_LOCALE }: ProductServerProps) {
   const dict = getDictionary(locale);
   const origin = getSiteOrigin();
   const productSlug = product.slug || String(product.id);

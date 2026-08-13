@@ -39,6 +39,9 @@ export const uk = {
     ctaPartner: "Стати партнером",
     imageAlt: `${SITE_STORE_NAME} - eco та wellness`,
   },
+  a11y: {
+    skipToContent: "Перейти до основного контенту",
+  },
   common: {
     addToCart: "В кошик",
     outOfStock: "Немає в наявності",

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
 import { getTermsCopy } from "@/lib/i18n/content/terms";
 import { buildPageMetadata, getBaseUrl } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import type { Locale } from "@/lib/i18n/config";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
+export function buildTermsMetadata(locale: Locale): Metadata {
   const t = getTermsCopy(locale);
   return buildPageMetadata(locale, "/terms-of-service", {
     title: t.metaTitle,
@@ -16,8 +16,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function TermsOfServicePage() {
-  const locale = await getLocale();
+export function generateMetadata(): Metadata {
+  return buildTermsMetadata(LOCALE_UK);
+}
+
+export default function TermsOfServicePage() {
+  return <TermsOfServicePageContent locale={LOCALE_UK} />;
+}
+
+export function TermsOfServicePageContent({ locale }: { locale: Locale }) {
   const t = getTermsCopy(locale);
   const baseUrl = getBaseUrl();
 

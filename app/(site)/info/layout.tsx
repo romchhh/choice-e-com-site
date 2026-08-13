@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { getLocale } from "@/lib/i18n/getLocale";
-import { getInfoCopy } from "@/lib/i18n/content/info";
-import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import { buildInfoLayoutMetadata } from "@/lib/i18n/pages/infoMeta";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  const t = getInfoCopy(locale);
-  return buildPageMetadata(locale, "/info", {
-    title: t.metaTitle,
-    description: t.metaDescription,
-    ogType: "website",
-  });
+export function generateMetadata(): Metadata {
+  return buildInfoLayoutMetadata(LOCALE_UK);
 }
 
 export default function InfoLayout({ children }: { children: ReactNode }) {

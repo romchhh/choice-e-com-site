@@ -3,13 +3,13 @@ import type { NextRequest } from "next/server";
 
 function base64Decode(str: string): string {
   try {
-    if (typeof atob !== 'undefined') {
+    if (typeof atob !== "undefined") {
       return atob(str);
     }
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-    let output = '';
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    let output = "";
     let i = 0;
-    str = str.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+    str = str.replace(/[^A-Za-z0-9\+\/\=]/g, "");
     while (i < str.length) {
       const enc1 = chars.indexOf(str.charAt(i++));
       const enc2 = chars.indexOf(str.charAt(i++));
@@ -23,12 +23,10 @@ function base64Decode(str: string): string {
       if (enc4 !== 64) output += String.fromCharCode(chr3);
     }
     return output;
-  } catch (e) {
-    throw new Error('Invalid base64 string');
+  } catch {
+    throw new Error("Invalid base64 string");
   }
 }
-
-const LOCALE_HEADER = "x-locale";
 
 function applySecurityHeaders(response: NextResponse, pathname: string, request: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
@@ -56,8 +54,7 @@ function applySecurityHeaders(response: NextResponse, pathname: string, request:
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Handle payment webhook routes so Server Actions validation doesn't block them
+
   if (pathname.startsWith("/api/mono-webhook")) {
     const response = NextResponse.next();
     response.headers.delete("x-forwarded-host");
@@ -67,59 +64,27 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Russian locale: /ru → rewrite to same page without prefix, set x-locale
-  const isRuPath =
-    (pathname === "/ru" || pathname.startsWith("/ru/")) &&
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/admin");
-
-  if (isRuPath) {
-    const barePath =
-      pathname === "/ru" || pathname === "/ru/"
-        ? "/"
-        : pathname.slice("/ru".length) || "/";
-
-    // POST to /ru/success → redirect to GET
-    if (barePath === "/success" && request.method === "POST") {
-      const base =
-        process.env.PUBLIC_URL ||
-        process.env.NEXT_PUBLIC_PUBLIC_URL ||
-        "http://localhost:3000";
-      const successUrl = `${base.replace(/\/$/, "")}/ru/success${request.nextUrl.search}`;
-      return NextResponse.redirect(successUrl, 303);
-    }
-
-    const url = request.nextUrl.clone();
-    url.pathname = barePath;
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set(LOCALE_HEADER, "ru");
-    const response = NextResponse.rewrite(url, {
-      request: { headers: requestHeaders },
-    });
-    response.headers.set(LOCALE_HEADER, "ru");
-    applySecurityHeaders(response, barePath, request);
-    // Continue to admin check below only if needed — storefront rewrite returns here
-    if (!barePath.startsWith("/admin") && !barePath.startsWith("/api")) {
-      return response;
-    }
+  // POST to /ru/success → redirect to GET (payment gateway callback)
+  if (pathname === "/ru/success" && request.method === "POST") {
+    const base =
+      process.env.PUBLIC_URL ||
+      process.env.NEXT_PUBLIC_PUBLIC_URL ||
+      "http://localhost:3000";
+    const successUrl = `${base.replace(/\/$/, "")}/ru/success${request.nextUrl.search}`;
+    return NextResponse.redirect(successUrl, 303);
   }
 
-  // POST to /success (e.g. WayForPay redirect): redirect to GET to avoid Next.js Invalid URL when origin/url is null
+  // POST to /success → redirect to GET
   if (pathname === "/success" && request.method === "POST") {
-    const base = process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
+    const base =
+      process.env.PUBLIC_URL || process.env.NEXT_PUBLIC_PUBLIC_URL || "http://localhost:3000";
     const successUrl = `${base.replace(/\/$/, "")}${pathname}${request.nextUrl.search}`;
     return NextResponse.redirect(successUrl, 303);
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set(LOCALE_HEADER, "uk");
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-  response.headers.set(LOCALE_HEADER, "uk");
+  const response = NextResponse.next();
   applySecurityHeaders(response, pathname, request);
 
-  // Admin authentication logic (for /admin pages, /api/admin, and sensitive APIs)
   const method = request.method;
   const isAdminPage = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
@@ -138,7 +103,6 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Check authentication
   const authCookie = request.cookies.get("admin_auth");
   let isAuthenticated = false;
 
@@ -159,7 +123,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // API admin and sensitive routes: require auth, return 401 if not authenticated
   if (isSensitiveApi) {
     if (!isAuthenticated) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
@@ -170,17 +133,14 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Redirect authenticated users away from login
   if (pathname === "/admin/login" && isAuthenticated) {
     return NextResponse.redirect(new URL("/admin", request.url));
   }
 
-  // Allow login page
   if (pathname === "/admin/login") {
     return response;
   }
 
-  // Redirect unauthenticated users to login
   if (!isAuthenticated) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }

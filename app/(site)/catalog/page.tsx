@@ -2,31 +2,13 @@ import { Suspense } from "react";
 import CatalogServer from "@/components/catalog/CatalogServer";
 import type { Metadata } from "next";
 import { CatalogGridSkeleton } from "@/components/shared/SkeletonLoader";
-import { getLocale } from "@/lib/i18n/getLocale";
-import { buildSeoMetadata, catalogSeoCopy } from "@/lib/i18n/seo";
-import { sqlGetAllProducts } from "@/lib/sql";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import { buildCatalogMetadata } from "@/lib/i18n/pages/catalogMeta";
 
-export const revalidate = 1200; // ISR every 20 minutes
+export const revalidate = 1200;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  let productCount: number | null = null;
-  try {
-    const products = await sqlGetAllProducts();
-    productCount = products.length;
-  } catch {
-    /* ignore */
-  }
-  const copy = catalogSeoCopy(locale, { productCount });
-  return buildSeoMetadata({
-    locale,
-    path: "/catalog",
-    title: copy.title,
-    description: copy.description,
-    keywords: copy.keywords,
-    ogType: "website",
-    imageAlt: copy.ogTitle,
-  });
+  return buildCatalogMetadata(LOCALE_UK);
 }
 
 export default async function CatalogPage() {
@@ -43,7 +25,7 @@ export default async function CatalogPage() {
         </section>
       }
     >
-      <CatalogServer category={null} subcategory={null} />
+      <CatalogServer locale={LOCALE_UK} category={null} subcategory={null} />
     </Suspense>
   );
 }

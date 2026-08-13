@@ -8,6 +8,7 @@ import ClientLayoutShell from "@/components/admin/ClientLayoutShell";
 const montserrat = Montserrat({
   subsets: ["latin", "cyrillic"],
   display: "swap",
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {

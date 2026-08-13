@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
 import { getDeliveryCopy } from "@/lib/i18n/content/delivery";
 import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import type { Locale } from "@/lib/i18n/config";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
+export function buildDeliveryMetadata(locale: Locale): Metadata {
   const t = getDeliveryCopy(locale);
   return buildPageMetadata(locale, "/delivery-and-payment", {
     title: t.metaTitle,
@@ -16,8 +16,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function DeliveryAndPaymentPage() {
-  const locale = await getLocale();
+export function generateMetadata(): Metadata {
+  return buildDeliveryMetadata(LOCALE_UK);
+}
+
+export default function DeliveryAndPaymentPage() {
+  return <DeliveryAndPaymentPageContent locale={LOCALE_UK} />;
+}
+
+export function DeliveryAndPaymentPageContent({ locale }: { locale: Locale }) {
   const t = getDeliveryCopy(locale);
 
   return (

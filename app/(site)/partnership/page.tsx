@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
 import { getPartnershipCopy } from "@/lib/i18n/content/partnership";
 import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import type { Locale } from "@/lib/i18n/config";
 
 const collageImages = [
   "/images/partnership/0068.jpg",
@@ -12,8 +13,7 @@ const collageImages = [
   "/images/partnership/HL5A8688.jpg",
 ];
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
+export function buildPartnershipMetadata(locale: Locale): Metadata {
   const t = getPartnershipCopy(locale);
   return buildPageMetadata(locale, "/partnership", {
     title: t.metaTitle,
@@ -26,8 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function PartnershipPage() {
-  const locale = await getLocale();
+export function generateMetadata(): Metadata {
+  return buildPartnershipMetadata(LOCALE_UK);
+}
+
+export default function PartnershipPage() {
+  return <PartnershipPageContent locale={LOCALE_UK} />;
+}
+
+export function PartnershipPageContent({ locale }: { locale: Locale }) {
   const t = getPartnershipCopy(locale);
   const regUrl = locale === "ru" ? t.regUrlRu : t.regUrlUk;
 

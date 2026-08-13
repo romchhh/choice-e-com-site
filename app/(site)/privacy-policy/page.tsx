@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
 import { getPrivacyCopy } from "@/lib/i18n/content/privacy";
 import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import type { Locale } from "@/lib/i18n/config";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
+export function buildPrivacyMetadata(locale: Locale): Metadata {
   const t = getPrivacyCopy(locale);
   return buildPageMetadata(locale, "/privacy-policy", {
     title: t.metaTitle,
@@ -16,8 +16,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function PrivacyPolicyPage() {
-  const locale = await getLocale();
+export function generateMetadata(): Metadata {
+  return buildPrivacyMetadata(LOCALE_UK);
+}
+
+export default function PrivacyPolicyPage() {
+  return <PrivacyPolicyPageContent locale={LOCALE_UK} />;
+}
+
+export function PrivacyPolicyPageContent({ locale }: { locale: Locale }) {
   const t = getPrivacyCopy(locale);
 
   return (

@@ -6,7 +6,8 @@ import {
   sqlGetAllCategories
 } from "@/lib/sql";
 import { CollectionPageStructuredData, BreadcrumbStructuredData } from "@/components/shared/StructuredData";
-import { getLocale } from "@/lib/i18n/getLocale";
+import type { Locale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { localizeList, localizeCategoryFields } from "@/lib/i18n/localizeCatalog";
 import {
@@ -39,6 +40,7 @@ interface Product {
 }
 
 interface CatalogServerProps {
+  locale?: Locale;
   category?: string | null;
   subcategory?: string | null;
   categoryId?: number | null;
@@ -80,7 +82,7 @@ async function getCategories(): Promise<{ id: number; name: string; description?
 }
 
 export default async function CatalogServer(props: CatalogServerProps) {
-  const locale = await getLocale();
+  const locale = props.locale ?? DEFAULT_LOCALE;
   const dict = getDictionary(locale);
 
   const [productsRaw, categoriesRaw] = await Promise.all([

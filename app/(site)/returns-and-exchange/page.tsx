@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import LocaleLink from "@/components/i18n/LocaleLink";
-import { getLocale } from "@/lib/i18n/getLocale";
 import { getReturnsCopy } from "@/lib/i18n/content/returns";
 import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
+import { LOCALE_UK } from "@/lib/i18n/localePage";
+import type { Locale } from "@/lib/i18n/config";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
+export function buildReturnsMetadata(locale: Locale): Metadata {
   const t = getReturnsCopy(locale);
   return buildPageMetadata(locale, "/returns-and-exchange", {
     title: t.metaTitle,
@@ -15,8 +15,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function ReturnsAndExchangePage() {
-  const locale = await getLocale();
+export function generateMetadata(): Metadata {
+  return buildReturnsMetadata(LOCALE_UK);
+}
+
+export default function ReturnsAndExchangePage() {
+  return <ReturnsAndExchangePageContent locale={LOCALE_UK} />;
+}
+
+export function ReturnsAndExchangePageContent({ locale }: { locale: Locale }) {
   const t = getReturnsCopy(locale);
 
   return (
