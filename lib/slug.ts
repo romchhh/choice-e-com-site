@@ -15,6 +15,28 @@ const UA_TO_LATIN: Record<string, string> = {
 };
 
 /**
+ * Linux ext4: max 255 bytes per path component. Next.js creates dirs like
+ * `.next/server/app/product/{slug}.segments` — keep slug well under 255.
+ */
+export const MAX_SLUG_LENGTH = 120;
+
+/** Slugs longer than this are skipped in generateStaticParams (still served on demand). */
+export const MAX_SLUG_STATIC_PRERENDER = 200;
+
+export function truncateSlug(slug: string, maxLen = MAX_SLUG_LENGTH): string {
+  if (slug.length <= maxLen) return slug;
+  const cut = slug.slice(0, maxLen);
+  const lastHyphen = cut.lastIndexOf("-");
+  const trimmed =
+    lastHyphen > Math.floor(maxLen * 0.4) ? cut.slice(0, lastHyphen) : cut;
+  return trimmed.replace(/-+$/, "") || "item";
+}
+
+export function isSlugSafeForStaticGeneration(slug: string): boolean {
+  return slug.length > 0 && slug.length <= MAX_SLUG_STATIC_PRERENDER;
+}
+
+/**
  * Перетворює український текст на латинський (транслітерація).
  */
 export function transliterateUaToEn(text: string): string {
@@ -36,7 +58,7 @@ export function textToSlug(text: string): string {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  return slug || "item";
+  return truncateSlug(slug || "item");
 }
 
 /**

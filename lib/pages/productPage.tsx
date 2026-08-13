@@ -9,6 +9,7 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 import { localizeProductFields, localizeList } from "@/lib/i18n/localizeCatalog";
 import { localePath } from "@/lib/i18n/paths";
 import { buildProductMetadata } from "@/lib/i18n/pages/productMeta";
+import { isSlugSafeForStaticGeneration } from "@/lib/slug";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -34,12 +35,20 @@ export async function ProductPageContent({
   let product = await sqlGetProductBySlug(slugStr);
   if (!product && /^\d+$/.test(slugStr)) {
     product = await sqlGetProduct(Number(slugStr));
-    if (product?.slug) {
+    if (
+      product?.slug &&
+      isSlugSafeForStaticGeneration(product.slug) &&
+      product.slug !== slugStr
+    ) {
       redirect(localePath(`/product/${product.slug}`, locale));
     }
   }
   if (!product) {
     notFound();
+  }
+
+  if (!isSlugSafeForStaticGeneration(slugStr)) {
+    redirect(localePath(`/product/${product.id}`, locale));
   }
 
   product = localizeProductFields(product, locale);

@@ -7,6 +7,7 @@ import {
 } from "@/lib/pages/productPage";
 
 export const revalidate = 1200;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return productSlugsStaticParams();
