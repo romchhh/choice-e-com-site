@@ -226,7 +226,7 @@ export default function ContactsPage() {
                       !form.message.trim() ||
                       sending
                     }
-                    className="w-full px-10 py-4 bg-[#3D1A00] text-white uppercase transition-all hover:bg-[#3D1A00]/85 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full rounded-full px-10 py-4 bg-[#3D1A00] text-white uppercase transition-all hover:bg-[#3D1A00]/85 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{
                       fontFamily: "Montserrat, sans-serif",
                       fontWeight: 600,

@@ -14,6 +14,7 @@ import Image from "next/image";
 interface Category {
   id: number;
   name: string;
+  name_ru?: string | null;
   slug?: string | null;
 }
 
@@ -23,14 +24,35 @@ type MediaFile = {
   preview?: string;
 };
 
+async function translateUkToRuClient(text: string): Promise<string> {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  const res = await fetch("/api/admin/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: trimmed }),
+  });
+  if (!res.ok) throw new Error("translate failed");
+  const data = await res.json();
+  return typeof data.text === "string" ? data.text : trimmed;
+}
+
 export default function CategoriesTable() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryNameRu, setNewCategoryNameRu] = useState("");
+  const [newNameRuTouched, setNewNameRuTouched] = useState(false);
+  const [translatingNew, setTranslatingNew] = useState(false);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingNameRu, setEditingNameRu] = useState("");
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+  const translateTimer = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const newNameRuTouchedRef = React.useRef(false);
 
   useEffect(() => {
     fetchCategories();
@@ -79,6 +101,25 @@ export default function CategoriesTable() {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const scheduleAutoRu = (ua: string) => {
+    if (translateTimer.current) clearTimeout(translateTimer.current);
+    if (newNameRuTouchedRef.current) return;
+    const text = ua.trim();
+    if (!text) {
+      setNewCategoryNameRu("");
+      return;
+    }
+    translateTimer.current = setTimeout(() => {
+      setTranslatingNew(true);
+      void translateUkToRuClient(text)
+        .then((ru) => {
+          if (!newNameRuTouchedRef.current) setNewCategoryNameRu(ru);
+        })
+        .catch(() => {})
+        .finally(() => setTranslatingNew(false));
+    }, 450);
+  };
+
   async function handleAddCategory() {
     if (!newCategoryName.trim()) {
       alert("Введіть назву категорії");
@@ -109,21 +150,34 @@ export default function CategoriesTable() {
         }
       }
 
+      let nameRu = newCategoryNameRu.trim();
+      if (!nameRu) {
+        try {
+          nameRu = await translateUkToRuClient(newCategoryName.trim());
+        } catch {
+          nameRu = "";
+        }
+      }
+
       const res = await fetch("/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: newCategoryName.trim(),
+          name_ru: nameRu || null,
           mediaType: finalMediaType,
           mediaUrl: finalMediaUrl,
         }),
       });
 
       if (!res.ok) throw new Error("Failed to create category");
-      
+
       const newCategory = await res.json();
       setCategories([...categories, newCategory]);
       setNewCategoryName("");
+      setNewCategoryNameRu("");
+      setNewNameRuTouched(false);
+      newNameRuTouchedRef.current = false;
       setMediaFiles([]);
       setIsAddingNew(false);
     } catch (error) {
@@ -139,22 +193,33 @@ export default function CategoriesTable() {
     }
 
     try {
+      let nameRu = editingNameRu.trim();
+      if (!nameRu) {
+        try {
+          nameRu = await translateUkToRuClient(name.trim());
+        } catch {
+          nameRu = "";
+        }
+      }
+
       const res = await fetch(`/api/categories/${encodeURIComponent(slug)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          name_ru: nameRu || null,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to update category");
 
       const updatedCategory = await res.json();
       setCategories(
-        categories.map((cat) =>
-          cat.slug === slug ? updatedCategory : cat
-        )
+        categories.map((cat) => (cat.slug === slug ? updatedCategory : cat))
       );
       setEditingSlug(null);
       setEditingName("");
+      setEditingNameRu("");
     } catch (error) {
       console.error("Error updating category:", error);
       alert("Помилка при оновленні категорії");
@@ -181,6 +246,7 @@ export default function CategoriesTable() {
   function cancelEditing() {
     setEditingSlug(null);
     setEditingName("");
+    setEditingNameRu("");
   }
 
   return (
@@ -212,7 +278,7 @@ export default function CategoriesTable() {
                   isHeader
                   className="px-5 py-3 text-left text-sm font-semibold text-gray-900"
                 >
-                  Назва
+                  Назва (UA / RU)
                 </TableCell>
                 <TableCell
                   isHeader
@@ -232,26 +298,68 @@ export default function CategoriesTable() {
                       —
                     </TableCell>
                     <TableCell className="px-5 py-4">
-                      <input
-                        type="text"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") handleAddCategory();
-                          if (e.key === "Escape") {
-                            setIsAddingNew(false);
-                            setNewCategoryName("");
-                            setMediaFiles([]);
-                          }
-                        }}
-                        placeholder="Введіть назву категорії"
-                        className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        autoFocus
-                      />
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={newCategoryName}
+                          onChange={(e) => {
+                            setNewCategoryName(e.target.value);
+                            scheduleAutoRu(e.target.value);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") void handleAddCategory();
+                            if (e.key === "Escape") {
+                              setIsAddingNew(false);
+                              setNewCategoryName("");
+                              setNewCategoryNameRu("");
+                              setNewNameRuTouched(false);
+                              newNameRuTouchedRef.current = false;
+                              setMediaFiles([]);
+                            }
+                          }}
+                          placeholder="Назва (UA)"
+                          className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={newCategoryNameRu}
+                            onChange={(e) => {
+                              setNewNameRuTouched(true);
+                              newNameRuTouchedRef.current = true;
+                              setNewCategoryNameRu(e.target.value);
+                            }}
+                            placeholder={
+                              translatingNew
+                                ? "Переклад…"
+                                : "Назва (RU, авто)"
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const text = newCategoryName.trim();
+                              if (!text) return;
+                              setTranslatingNew(true);
+                              setNewNameRuTouched(false);
+                              newNameRuTouchedRef.current = false;
+                              void translateUkToRuClient(text)
+                                .then((ru) => setNewCategoryNameRu(ru))
+                                .catch(() => {})
+                                .finally(() => setTranslatingNew(false));
+                            }}
+                            className="shrink-0 text-xs font-medium text-[#8B9A47] hover:underline"
+                          >
+                            ↻
+                          </button>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="px-5 py-4 space-x-2">
                       <button
-                        onClick={handleAddCategory}
+                        onClick={() => void handleAddCategory()}
                         className="inline-block rounded-md bg-green-500 px-3 py-1.5 text-white text-sm font-medium hover:bg-green-600 transition shadow-sm"
                       >
                         Зберегти
@@ -260,6 +368,9 @@ export default function CategoriesTable() {
                         onClick={() => {
                           setIsAddingNew(false);
                           setNewCategoryName("");
+                          setNewCategoryNameRu("");
+                          setNewNameRuTouched(false);
+                          newNameRuTouchedRef.current = false;
                           setMediaFiles([]);
                         }}
                         className="inline-block rounded-md bg-gray-500 px-3 py-1.5 text-white text-sm font-medium hover:bg-gray-600 transition shadow-sm"
@@ -361,22 +472,39 @@ export default function CategoriesTable() {
                       </TableCell>
                       <TableCell className="px-5 py-4 text-sm">
                         {editingSlug === slug ? (
-                          <input
-                            type="text"
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === "Enter")
-                                handleUpdateCategory(slug, editingName);
-                              if (e.key === "Escape") cancelEditing();
-                            }}
-                            className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            autoFocus
-                          />
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter")
+                                  void handleUpdateCategory(slug, editingName);
+                                if (e.key === "Escape") cancelEditing();
+                              }}
+                              placeholder="Назва (UA)"
+                              className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              autoFocus
+                            />
+                            <input
+                              type="text"
+                              value={editingNameRu}
+                              onChange={(e) => setEditingNameRu(e.target.value)}
+                              placeholder="Назва (RU)"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </div>
                         ) : (
-                          <span className="text-gray-900 font-medium">
-                            {category.name}
-                          </span>
+                          <div>
+                            <span className="text-gray-900 font-medium">
+                              {category.name}
+                            </span>
+                            {category.name_ru ? (
+                              <p className="mt-0.5 text-xs text-gray-500">
+                                RU: {category.name_ru}
+                              </p>
+                            ) : null}
+                          </div>
                         )}
                       </TableCell>
                       <TableCell className="px-5 py-4 space-x-2">

@@ -129,6 +129,12 @@ export async function PUT(
       subtitle: body.subtitle ?? undefined,
       release_form: body.release_form ?? undefined,
       course: body.course ?? undefined,
+      course_days:
+        body.course_days === undefined
+          ? undefined
+          : body.course_days === null || body.course_days === ""
+            ? null
+            : Number(body.course_days) || null,
       package_weight: body.package_weight ?? undefined,
       main_info: body.main_info ?? undefined,
       short_description: body.short_description ?? undefined,
@@ -137,6 +143,11 @@ export async function PUT(
       indications_for_use: body.indications_for_use ?? undefined,
       benefits: body.benefits ?? undefined,
       full_composition: body.full_composition ?? undefined,
+      composition_items: Array.isArray(body.composition_items)
+        ? body.composition_items
+        : body.composition_items === null
+          ? null
+          : undefined,
       usage_method: body.usage_method ?? undefined,
       contraindications: body.contraindications ?? undefined,
       storage_conditions: body.storage_conditions ?? undefined,

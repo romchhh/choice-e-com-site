@@ -87,6 +87,7 @@ export async function POST(req: Request) {
         subtitle,
         release_form,
         course,
+        course_days,
         package_weight,
         main_info,
         short_description,
@@ -95,6 +96,7 @@ export async function POST(req: Request) {
         indications_for_use,
         benefits,
         full_composition,
+        composition_items,
         usage_method,
         contraindications,
         storage_conditions,
@@ -142,6 +144,10 @@ export async function POST(req: Request) {
         subtitle: subtitle ?? null,
         release_form: release_form ?? null,
         course: course ?? null,
+        course_days:
+          course_days === undefined || course_days === null || course_days === ""
+            ? null
+            : Number(course_days) || null,
         package_weight: package_weight ?? null,
         main_info: main_info ?? null,
         short_description: short_description ?? null,
@@ -150,6 +156,9 @@ export async function POST(req: Request) {
         indications_for_use: indications_for_use ?? null,
         benefits: benefits ?? null,
         full_composition: full_composition ?? null,
+        composition_items: Array.isArray(composition_items)
+          ? composition_items
+          : null,
         usage_method: usage_method ?? null,
         contraindications: contraindications ?? null,
         storage_conditions: storage_conditions ?? null,

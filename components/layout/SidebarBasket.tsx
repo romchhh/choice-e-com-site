@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useBasket } from "@/lib/BasketProvider";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import LocaleLink from "@/components/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { getDiscountedPrice, getItemSubtotal } from "@/lib/pricing";
+import FreeDeliveryProgress from "@/components/shared/FreeDeliveryProgress";
 
 interface SidebarBasketProps {
   isOpen: boolean;
@@ -28,9 +30,13 @@ export default function SidebarBasket({
   const [quantityError, setQuantityError] = useState<Record<string, string>>({});
 
   const total = items.reduce(
-    (sum, item) => sum + getItemSubtotal(item.price, item.quantity, item.discount_percentage),
+    (sum, item) =>
+      sum + getItemSubtotal(item.price, item.quantity, item.discount_percentage),
     0
   );
+  const units = items.reduce((acc, i) => acc + i.quantity, 0);
+
+  useBodyScrollLock(isOpen);
 
   return (
     <div className="relative z-50">
@@ -44,12 +50,11 @@ export default function SidebarBasket({
       <div
         className={`fixed top-0 right-0 h-full w-full sm:w-4/5 sm:max-w-md bg-white shadow-lg z-40 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } overflow-y-auto flex flex-col`}
+        } flex flex-col`}
       >
-        {/* Заголовок: ВАШ КОШИК (N) + X */}
-        <div className="flex justify-between items-center px-3 py-3 sm:px-4 sm:py-4 border-b border-[#3D1A00]/10">
+        <div className="flex shrink-0 justify-between items-center px-3 py-3 sm:px-4 sm:py-4 border-b border-[#3D1A00]/10">
           <h2 className="font-['Montserrat'] font-semibold text-lg sm:text-xl text-[#3D1A00] uppercase tracking-tight">
-            {dict.basket.title} ({items.length > 0 ? items.reduce((acc, i) => acc + i.quantity, 0) : 0})
+            {dict.basket.title} ({units})
           </h2>
           <button
             type="button"
@@ -61,7 +66,7 @@ export default function SidebarBasket({
           </button>
         </div>
 
-        <div className="flex flex-col flex-1 px-3 py-3 sm:px-4 sm:py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
           {items.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 sm:py-16 gap-6">
               <p className="font-['Montserrat'] font-medium text-[#3D1A00] text-lg sm:text-xl text-center">
@@ -70,7 +75,7 @@ export default function SidebarBasket({
               <LocaleLink
                 href="/catalog"
                 onClick={() => setIsOpen(false)}
-                className="w-full sm:w-auto min-w-[200px] py-3.5 px-6 rounded-xl bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-sm uppercase tracking-tight text-center transition-colors"
+                className="w-full sm:w-auto min-w-[200px] py-3.5 px-6 rounded-full bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-sm uppercase tracking-tight text-center transition-colors"
               >
                 {dict.common.continueShopping}
               </LocaleLink>
@@ -82,15 +87,18 @@ export default function SidebarBasket({
               item.price,
               item.discount_percentage
             );
+            const key = `${item.id}-${item.size}`;
             return (
               <div
-                key={`${item.id}-${item.size}`}
+                key={key}
                 className="border border-[#3D1A00]/15 rounded-lg flex flex-row items-stretch gap-2 min-h-[120px] px-3 py-3 mb-4 last:mb-0"
               >
-                {/* Ліва частина: назва, опис, кількість, ціна */}
                 <div className="min-w-0 flex-1 flex flex-col justify-between py-0.5">
                   <div>
-                    <p className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm sm:text-base">
+                    <p
+                      className="font-['Montserrat'] font-semibold text-[#3D1A00] uppercase text-sm sm:text-base line-clamp-2"
+                      title={item.name}
+                    >
                       {item.name}
                     </p>
                     {item.subtitle && (
@@ -98,9 +106,9 @@ export default function SidebarBasket({
                         {item.subtitle}
                       </p>
                     )}
-                    {quantityError[`${item.id}-${item.size}`] && (
+                    {quantityError[key] && (
                       <p className="text-red-600 text-xs mt-1 font-['Montserrat']">
-                        {quantityError[`${item.id}-${item.size}`]}
+                        {quantityError[key]}
                       </p>
                     )}
                   </div>
@@ -111,10 +119,14 @@ export default function SidebarBasket({
                         className="w-9 h-9 flex items-center justify-center text-[#3D1A00] hover:bg-[#3D1A00]/5 disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat'] text-lg"
                         onClick={async () => {
                           try {
-                            await updateQuantity(item.id, item.size, item.quantity - 1);
+                            await updateQuantity(
+                              item.id,
+                              item.size,
+                              item.quantity - 1
+                            );
                             setQuantityError((prev) => {
                               const next = { ...prev };
-                              delete next[`${item.id}-${item.size}`];
+                              delete next[key];
                               return next;
                             });
                           } catch (e) {
@@ -138,22 +150,28 @@ export default function SidebarBasket({
                         className="w-9 h-9 flex items-center justify-center text-[#3D1A00] hover:bg-[#3D1A00]/5 font-['Montserrat'] text-lg"
                         onClick={async () => {
                           try {
-                            await updateQuantity(item.id, item.size, item.quantity + 1);
+                            await updateQuantity(
+                              item.id,
+                              item.size,
+                              item.quantity + 1
+                            );
                             setQuantityError((prev) => {
                               const next = { ...prev };
-                              delete next[`${item.id}-${item.size}`];
+                              delete next[key];
                               return next;
                             });
                           } catch (err) {
                             setQuantityError((prev) => ({
                               ...prev,
-                              [`${item.id}-${item.size}`]:
-                                err instanceof Error ? err.message : "Недостатньо товару",
+                              [key]:
+                                err instanceof Error
+                                  ? err.message
+                                  : "Недостатньо товару",
                             }));
                             setTimeout(() => {
                               setQuantityError((prev) => {
                                 const next = { ...prev };
-                                delete next[`${item.id}-${item.size}`];
+                                delete next[key];
                                 return next;
                               });
                             }, 5000);
@@ -170,7 +188,6 @@ export default function SidebarBasket({
                   </div>
                 </div>
 
-                {/* Права частина: фото 90% висоти блоку */}
                 <div className="shrink-0 flex items-center self-stretch w-28 sm:w-32">
                   <div className="relative w-full h-[90%] min-h-[100px] rounded overflow-hidden bg-[#fafafa]">
                     <button
@@ -193,40 +210,40 @@ export default function SidebarBasket({
               </div>
             );
           })}
-
-          {items.length > 0 && (
-            <>
-              {/* Всього */}
-              <div className="mt-4 pt-4 border-t border-[#3D1A00]/10 space-y-1 font-['Montserrat'] text-[#3D1A00]">
-                <div className="flex justify-between items-center text-sm sm:text-base font-medium">
-                  <span>{dict.common.total}:</span>
-                  <span>{Math.round(total).toLocaleString("uk-UA")} {dict.common.uah}</span>
-                </div>
-              </div>
-
-              {/* Кнопки: ОЧИСТИТИ | ПРОДОВЖИТИ */}
-              <div className="flex gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    clearBasket();
-                    setIsOpen(false);
-                  }}
-                  className="flex-1 py-3 px-4 text-center border-2 border-[#3D1A00] bg-white text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#3D1A00]/5 transition-colors"
-                >
-                  {dict.basket.clear}
-                </button>
-                <LocaleLink
-                  href="/final"
-                  className="flex-1 py-3 px-4 text-center bg-[#D7D799] text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#c5c58a] transition-colors border border-[#b8b87a]"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {dict.basket.continue}
-                </LocaleLink>
-              </div>
-            </>
-          )}
         </div>
+
+        {items.length > 0 && (
+          <div className="shrink-0 border-t border-[#3D1A00]/10 bg-white px-3 py-3 sm:px-4 space-y-3 shadow-[0_-6px_16px_rgba(61,26,0,0.06)]">
+            <FreeDeliveryProgress cartTotal={total} compact />
+
+            <div className="flex justify-between items-center font-['Montserrat'] text-sm sm:text-base font-medium text-[#3D1A00]">
+              <span>{dict.common.total}:</span>
+              <span>
+                {Math.round(total).toLocaleString("uk-UA")} {dict.common.uah}
+              </span>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  clearBasket();
+                  setIsOpen(false);
+                }}
+                className="flex-1 rounded-full py-3 px-4 text-center border-2 border-[#3D1A00] bg-white text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#3D1A00]/5 transition-colors"
+              >
+                {dict.basket.clear}
+              </button>
+              <LocaleLink
+                href="/final"
+                className="flex-1 rounded-full py-3 px-4 text-center bg-[#D7D799] text-[#3D1A00] font-['Montserrat'] font-normal uppercase text-sm sm:text-base tracking-tight hover:bg-[#c5c58a] transition-colors border border-[#b8b87a]"
+                onClick={() => setIsOpen(false)}
+              >
+                {dict.basket.continue}
+              </LocaleLink>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

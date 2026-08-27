@@ -125,8 +125,10 @@ model Product {
   subtitleRu           String?        @map("subtitle_ru")
   releaseForm          String?        @map("release_form")  // Форма випуску, напр. "30 саше по 2 г"
   releaseFormRu        String?        @map("release_form_ru")
-  course               String?        // Курс, напр. "30 днів"
+  course               String?        // Курс, напр. "30 днів" (display)
   courseRu             String?        @map("course_ru")
+  /// Duration of one pack in days — used by product course calculator
+  courseDays           Int?           @map("course_days")
   packageWeight        String?        @map("package_weight") // Вага упаковки, напр. "60 г"
   packageWeightRu      String?        @map("package_weight_ru")
   mainInfo             String?        @map("main_info") @db.Text
@@ -143,6 +145,9 @@ model Product {
   benefitsRu           String?        @map("benefits_ru") @db.Text
   fullComposition      String?        @map("full_composition") @db.Text
   fullCompositionRu    String?        @map("full_composition_ru") @db.Text
+  /// Structured ingredients: [{ name, description }, ...]
+  compositionItems     Json?          @map("composition_items")
+  compositionItemsRu   Json?          @map("composition_items_ru")
   usageMethod          String?        @map("usage_method") @db.Text
   usageMethodRu        String?        @map("usage_method_ru") @db.Text
   contraindications    String?       @db.Text
@@ -184,6 +189,7 @@ model Product {
   wishlistedBy         Wishlist[]
   categoryLinks        ProductCategoryLink[]
   subcategoryLinks     ProductSubcategoryLink[]
+  reviews              Review[]
 
   @@map("products")
 }
@@ -259,7 +265,9 @@ model Order {
   user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   promoCode    PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
   items        OrderItem[]
-  
+  reviews      Review[]
+  reviewRequest ReviewRequest?
+
   @@map("orders")
 }
 
@@ -288,4 +296,76 @@ model NewsletterCampaign {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("newsletter_campaigns")
+}
+
+/// Homepage hero promo slides (admin-managed, rotated on storefront)
+model HeroBanner {
+  id              Int       @id @default(autoincrement())
+  title           String
+  titleRu         String?   @map("title_ru")
+  subtitle        String?   @db.Text
+  subtitleRu      String?   @map("subtitle_ru") @db.Text
+  badge           String?
+  badgeRu         String?   @map("badge_ru")
+  benefitText     String?   @map("benefit_text")
+  benefitTextRu   String?   @map("benefit_text_ru")
+  priceLabel      String?   @map("price_label")
+  priceLabelRu    String?   @map("price_label_ru")
+  ctaLabel        String    @default("Купити") @map("cta_label")
+  ctaLabelRu      String?   @map("cta_label_ru")
+  /// Palette key for CTA button, e.g. "sage" | "olive" | "brown"
+  ctaColor        String?   @map("cta_color")
+  href            String    @default("/catalog")
+  imageUrl        String    @map("image_url")
+  imageUrlMobile  String?   @map("image_url_mobile")
+  sortOrder       Int       @default(0) @map("sort_order")
+  isActive        Boolean   @default(true) @map("is_active")
+  startsAt        DateTime? @map("starts_at")
+  endsAt          DateTime? @map("ends_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder])
+  @@map("hero_banners")
+}
+
+/// Customer / admin product reviews (moderated)
+model Review {
+  id          Int       @id @default(autoincrement())
+  authorName  String    @map("author_name")
+  authorEmail String?   @map("author_email")
+  text        String    @db.Text
+  rating      Int       // 1–5 stars
+  photoUrl    String?   @map("photo_url")
+  productId   Int?      @map("product_id")
+  orderId     Int?      @map("order_id")
+  /// pending | approved | rejected
+  status      String    @default("pending")
+  /// customer | admin
+  source      String    @default("customer")
+  showOnHome  Boolean   @default(false) @map("show_on_home")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  moderatedAt DateTime? @map("moderated_at")
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([status, showOnHome, createdAt])
+  @@index([productId, status])
+  @@map("reviews")
+}
+
+/// Tracks 7-day post-order review invitation emails
+model ReviewRequest {
+  id        Int       @id @default(autoincrement())
+  orderId   Int       @unique @map("order_id")
+  email     String
+  token     String    @unique
+  sentAt    DateTime? @map("sent_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([sentAt])
+  @@map("review_requests")
 }

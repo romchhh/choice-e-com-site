@@ -13,7 +13,9 @@ import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescription
 type Subcategory = {
   id?: number;
   name: string;
+  name_ru?: string | null;
   slug?: string | null;
+  ruTouched?: boolean;
 };
 
 type MediaFile = {
@@ -21,6 +23,19 @@ type MediaFile = {
   type: "photo" | "video";
   preview?: string;
 };
+
+async function translateUkToRuClient(text: string): Promise<string> {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+  const res = await fetch("/api/admin/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: trimmed }),
+  });
+  if (!res.ok) throw new Error("translate failed");
+  const data = await res.json();
+  return typeof data.text === "string" ? data.text : trimmed;
+}
 
 export default function EditCategoryPage() {
   const params = useParams();
@@ -43,12 +58,21 @@ export default function EditCategoryPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    name_ru: "",
     priority: 0,
     description: "",
+    description_ru: "",
     subcategories: [] as Subcategory[],
   });
+  const [nameRuTouched, setNameRuTouched] = useState(false);
+  const [descriptionRuTouched, setDescriptionRuTouched] = useState(false);
+  const [translating, setTranslating] = useState<string | null>(null);
+  const nameRuTouchedRef = useRef(false);
+  const descriptionRuTouchedRef = useRef(false);
 
   const categoryDescriptionRef = useRef<HTMLTextAreaElement>(null);
+  const nameTranslateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const descTranslateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const wrapMarkdownSelection = (wrap: string) => {
     const el = categoryDescriptionRef.current;
@@ -149,10 +173,28 @@ export default function EditCategoryPage() {
 
         setFormData({
           name: category.name || "",
+          name_ru: category.name_ru || "",
           priority: category.priority ?? 0,
           description: category.description || "",
-          subcategories: subcategories || [],
+          description_ru: category.description_ru || "",
+          subcategories: (subcategories || []).map(
+            (s: Subcategory & { name_ru?: string | null }) => ({
+              ...s,
+              name_ru: s.name_ru || "",
+              ruTouched: !!(s.name_ru && String(s.name_ru).trim()),
+            })
+          ),
         });
+        setNameRuTouched(!!(category.name_ru && String(category.name_ru).trim()));
+        nameRuTouchedRef.current = !!(
+          category.name_ru && String(category.name_ru).trim()
+        );
+        setDescriptionRuTouched(
+          !!(category.description_ru && String(category.description_ru).trim())
+        );
+        descriptionRuTouchedRef.current = !!(
+          category.description_ru && String(category.description_ru).trim()
+        );
 
         if (category.mediaUrl) {
           setExistingMediaUrl(category.mediaUrl);
@@ -176,6 +218,146 @@ export default function EditCategoryPage() {
       ...prev,
       [field]: field === "priority" ? Number(value) : value,
     }));
+  };
+
+  const autoTranslateName = (ua: string) => {
+    if (nameTranslateTimer.current) clearTimeout(nameTranslateTimer.current);
+    if (nameRuTouchedRef.current) return;
+    const text = ua.trim();
+    if (!text) {
+      setFormData((p) => ({ ...p, name_ru: "" }));
+      return;
+    }
+    nameTranslateTimer.current = setTimeout(() => {
+      setTranslating("name");
+      void translateUkToRuClient(text)
+        .then((ru) => {
+          if (!nameRuTouchedRef.current) {
+            setFormData((p) => ({ ...p, name_ru: ru }));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setTranslating((t) => (t === "name" ? null : t)));
+    }, 500);
+  };
+
+  const autoTranslateDescription = (ua: string) => {
+    if (descTranslateTimer.current) clearTimeout(descTranslateTimer.current);
+    if (descriptionRuTouchedRef.current) return;
+    const text = ua.trim();
+    if (!text) {
+      setFormData((p) => ({ ...p, description_ru: "" }));
+      return;
+    }
+    descTranslateTimer.current = setTimeout(() => {
+      setTranslating("description");
+      void translateUkToRuClient(text)
+        .then((ru) => {
+          if (!descriptionRuTouchedRef.current) {
+            setFormData((p) => ({ ...p, description_ru: ru }));
+          }
+        })
+        .catch(() => {})
+        .finally(() =>
+          setTranslating((t) => (t === "description" ? null : t))
+        );
+    }, 700);
+  };
+
+  const regenerateNameRu = async () => {
+    const text = formData.name.trim();
+    if (!text) return;
+    setTranslating("name");
+    try {
+      const ru = await translateUkToRuClient(text);
+      setFormData((p) => ({ ...p, name_ru: ru }));
+      setNameRuTouched(false);
+      nameRuTouchedRef.current = false;
+    } catch {
+      setError("Не вдалося згенерувати російську назву");
+    } finally {
+      setTranslating((t) => (t === "name" ? null : t));
+    }
+  };
+
+  const regenerateDescriptionRu = async () => {
+    const text = formData.description.trim();
+    if (!text) return;
+    setTranslating("description");
+    try {
+      const ru = await translateUkToRuClient(text);
+      setFormData((p) => ({ ...p, description_ru: ru }));
+      setDescriptionRuTouched(false);
+      descriptionRuTouchedRef.current = false;
+    } catch {
+      setError("Не вдалося згенерувати російський опис");
+    } finally {
+      setTranslating((t) => (t === "description" ? null : t));
+    }
+  };
+
+  const handleSubcategoryNameChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const newSubs = [...prev.subcategories];
+      const current = newSubs[index];
+      newSubs[index] = { ...current, name: value };
+      return { ...prev, subcategories: newSubs };
+    });
+
+    const sub = formData.subcategories[index];
+    if (sub?.ruTouched) return;
+    const text = value.trim();
+    window.setTimeout(() => {
+      if (!text) {
+        setFormData((prev) => {
+          const newSubs = [...prev.subcategories];
+          if (!newSubs[index] || newSubs[index].ruTouched) return prev;
+          newSubs[index] = { ...newSubs[index], name_ru: "" };
+          return { ...prev, subcategories: newSubs };
+        });
+        return;
+      }
+      void translateUkToRuClient(text)
+        .then((ru) => {
+          setFormData((prev) => {
+            const newSubs = [...prev.subcategories];
+            if (!newSubs[index] || newSubs[index].ruTouched) return prev;
+            newSubs[index] = { ...newSubs[index], name_ru: ru };
+            return { ...prev, subcategories: newSubs };
+          });
+        })
+        .catch(() => {});
+    }, 500);
+  };
+
+  const handleSubcategoryRuChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const newSubs = [...prev.subcategories];
+      newSubs[index] = {
+        ...newSubs[index],
+        name_ru: value,
+        ruTouched: true,
+      };
+      return { ...prev, subcategories: newSubs };
+    });
+  };
+
+  const regenerateSubcategoryRu = async (index: number) => {
+    const name = formData.subcategories[index]?.name?.trim();
+    if (!name) return;
+    setTranslating(`sub-${index}`);
+    try {
+      const ru = await translateUkToRuClient(name);
+      setFormData((prev) => {
+        const newSubs = [...prev.subcategories];
+        newSubs[index] = { ...newSubs[index], name_ru: ru, ruTouched: false };
+        return { ...prev, subcategories: newSubs };
+      });
+    } catch {
+      setError("Не вдалося згенерувати переклад підкатегорії");
+    } finally {
+      setTranslating((t) => (t === `sub-${index}` ? null : t));
+    }
   };
 
   const handleDrop = (files: File[]) => {
@@ -210,18 +392,13 @@ export default function EditCategoryPage() {
     setMediaFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubcategoryNameChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const newSubs = [...prev.subcategories];
-      newSubs[index] = { ...newSubs[index], name: value };
-      return { ...prev, subcategories: newSubs };
-    });
-  };
-
   const handleAddSubcategory = () => {
     setFormData((prev) => ({
       ...prev,
-      subcategories: [...prev.subcategories, { name: "" }],
+      subcategories: [
+        ...prev.subcategories,
+        { name: "", name_ru: "", ruTouched: false },
+      ],
     }));
   };
 
@@ -283,10 +460,12 @@ export default function EditCategoryPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name,
+            name_ru: formData.name_ru,
             priority: formData.priority,
             mediaType: finalMediaType,
             mediaUrl: finalMediaUrl,
             description: formData.description,
+            description_ru: formData.description_ru,
           }),
         }
       );
@@ -309,6 +488,7 @@ export default function EditCategoryPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name: trimmedName,
+              name_ru: sub.name_ru?.trim() || null,
               parent_category_id: categoryId,
             }),
           });
@@ -318,6 +498,7 @@ export default function EditCategoryPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name: trimmedName,
+              name_ru: sub.name_ru?.trim() || null,
               parent_category_id: categoryId,
             }),
           });
@@ -345,13 +526,43 @@ export default function EditCategoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-4">
               <ComponentCard title="Редагування Категорії">
-                <Label>Назва категорії</Label>
+                <Label>Назва категорії (UA)</Label>
                 <Input
                   type="text"
                   value={formData.name || ""}
-                  onChange={(e) => handleChange("name", e.target.value)}
+                  onChange={(e) => {
+                    handleChange("name", e.target.value);
+                    autoTranslateName(e.target.value);
+                  }}
                   placeholder="Введіть назву категорії"
                 />
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <Label className="mb-0">Назва (RU)</Label>
+                  <button
+                    type="button"
+                    onClick={() => void regenerateNameRu()}
+                    disabled={!formData.name.trim() || translating === "name"}
+                    className="text-xs font-medium text-[#8B9A47] hover:underline disabled:opacity-50"
+                  >
+                    {translating === "name"
+                      ? "Переклад…"
+                      : "Згенерувати знову"}
+                  </button>
+                </div>
+                <Input
+                  type="text"
+                  value={formData.name_ru || ""}
+                  onChange={(e) => {
+                    setNameRuTouched(true);
+                    nameRuTouchedRef.current = true;
+                    handleChange("name_ru", e.target.value);
+                  }}
+                  placeholder="Російська назва (генерується автоматично)"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Заповнюється автоматично з UA. Можна відредагувати вручну.
+                </p>
 
                 <Label className="mt-4">Пріоритет</Label>
                 <Input
@@ -361,7 +572,7 @@ export default function EditCategoryPage() {
                 />
 
                 <Label className="mt-4">
-                  Опис категорії (каталог і сторінка товару) — Markdown
+                  Опис категорії (UA) — Markdown
                 </Label>
                 <p className="mt-1 text-xs text-gray-500">
                   Підтримується <strong>Markdown</strong> (жирний <code className="rounded bg-gray-100 px-1">**текст**</code>, курсив{" "}
@@ -413,19 +624,63 @@ export default function EditCategoryPage() {
                 <textarea
                   ref={categoryDescriptionRef}
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, description: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setFormData((prev) => ({ ...prev, description: v }));
+                    autoTranslateDescription(v);
+                  }}
                   placeholder="Опис категорії у форматі Markdown…"
                   className="mt-2 w-full min-h-[140px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
                 {formData.description.trim() ? (
                   <div className="mt-3 rounded-lg border border-dashed border-gray-200 bg-gray-50/80 p-3">
                     <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Перегляд
+                      Перегляд (UA)
                     </p>
                     <div className="rounded-md bg-white p-3 text-gray-900">
                       <CategoryDescriptionMarkdown content={formData.description} />
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <Label className="mb-0">Опис (RU)</Label>
+                  <button
+                    type="button"
+                    onClick={() => void regenerateDescriptionRu()}
+                    disabled={
+                      !formData.description.trim() ||
+                      translating === "description"
+                    }
+                    className="text-xs font-medium text-[#8B9A47] hover:underline disabled:opacity-50"
+                  >
+                    {translating === "description"
+                      ? "Переклад…"
+                      : "Згенерувати знову"}
+                  </button>
+                </div>
+                <textarea
+                  value={formData.description_ru}
+                  onChange={(e) => {
+                    setDescriptionRuTouched(true);
+                    descriptionRuTouchedRef.current = true;
+                    setFormData((prev) => ({
+                      ...prev,
+                      description_ru: e.target.value,
+                    }));
+                  }}
+                  placeholder="Російський опис (генерується автоматично)"
+                  className="mt-2 w-full min-h-[120px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {formData.description_ru.trim() ? (
+                  <div className="mt-3 rounded-lg border border-dashed border-gray-200 bg-gray-50/80 p-3">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Перегляд (RU)
+                    </p>
+                    <div className="rounded-md bg-white p-3 text-gray-900">
+                      <CategoryDescriptionMarkdown
+                        content={formData.description_ru}
+                      />
                     </div>
                   </div>
                 ) : null}
@@ -434,24 +689,46 @@ export default function EditCategoryPage() {
                 {formData.subcategories.map((sub, index) => (
                   <div
                     key={sub.id ?? `new-${index}`}
-                    className="flex items-center gap-2 mb-2"
+                    className="mb-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3"
                   >
-                    <Input
-                      type="text"
-                      value={sub.name}
-                      onChange={(e) =>
-                        handleSubcategoryNameChange(index, e.target.value)
-                      }
-                      placeholder="Назва підкатегорії"
-                    />
-                    <button
-                      type="button"
-                      className="text-red-600 font-bold px-2"
-                      onClick={() => handleRemoveSubcategory(index)}
-                      title="Видалити"
-                    >
-                      ×
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={sub.name}
+                        onChange={(e) =>
+                          handleSubcategoryNameChange(index, e.target.value)
+                        }
+                        placeholder="Назва (UA)"
+                      />
+                      <button
+                        type="button"
+                        className="text-red-600 font-bold px-2"
+                        onClick={() => handleRemoveSubcategory(index)}
+                        title="Видалити"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={sub.name_ru || ""}
+                        onChange={(e) =>
+                          handleSubcategoryRuChange(index, e.target.value)
+                        }
+                        placeholder="Назва (RU)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void regenerateSubcategoryRu(index)}
+                        disabled={
+                          !sub.name.trim() || translating === `sub-${index}`
+                        }
+                        className="shrink-0 whitespace-nowrap text-xs font-medium text-[#8B9A47] hover:underline disabled:opacity-50"
+                      >
+                        {translating === `sub-${index}` ? "…" : "↻ RU"}
+                      </button>
+                    </div>
                   </div>
                 ))}
 

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { unlink } from "fs/promises";
 import path from "path";
@@ -6,6 +6,11 @@ import { unstable_cache } from "next/cache";
 import { textToSlug, ensureUniqueSlug } from "./slug";
 import { normalizeProductPricing, parseOptionalNumber } from "./pricing";
 import { scheduleProductRuSync, scheduleCategoryRuSync, scheduleSubcategoryRuSync } from "./translate/catalogRu";
+import {
+  compositionItemsToPlainText,
+  normalizeCompositionItems,
+} from "./productComposition";
+import { parseCourseDays } from "./courseCalculator";
 
 function formatProductPricing(
   price: unknown,
@@ -34,6 +39,7 @@ function productRuApiFields(p: any) {
     indications_for_use_ru: p.indicationsForUseRu ?? null,
     benefits_ru: p.benefitsRu ?? null,
     full_composition_ru: p.fullCompositionRu ?? null,
+    composition_items_ru: p.compositionItemsRu ?? null,
     usage_method_ru: p.usageMethodRu ?? null,
     contraindications_ru: p.contraindicationsRu ?? null,
     storage_conditions_ru: p.storageConditionsRu ?? null,
@@ -99,6 +105,15 @@ async function _sqlGetAllProducts() {
           url: true,
         },
       },
+      giftProduct: {
+        select: {
+          id: true,
+          name: true,
+          nameRu: true,
+          slug: true,
+          price: true,
+        },
+      },
       categoryLinks: {
         select: { categoryId: true },
       },
@@ -118,7 +133,7 @@ async function _sqlGetAllProducts() {
     dietitian_approved: p.dietitianApproved ?? false,
     is_promo: p.isPromo ?? false,
     free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
-    gift_product_id: p.giftProductId ?? null,
+    ...mapListGiftProduct(p),
     category_id: p.categoryId,
     category_ids: Array.from(
       new Set([
@@ -195,6 +210,7 @@ export async function sqlGetProduct(id: number) {
         subtitle: product.subtitle ?? null,
         release_form: product.releaseForm ?? null,
         course: product.course ?? null,
+        course_days: product.courseDays ?? null,
         package_weight: product.packageWeight ?? null,
         main_info: product.mainInfo ?? null,
         short_description: product.shortDescription ?? null,
@@ -203,6 +219,7 @@ export async function sqlGetProduct(id: number) {
         indications_for_use: product.indicationsForUse ?? null,
         benefits: product.benefits ?? null,
         full_composition: product.fullComposition ?? null,
+        composition_items: normalizeCompositionItems(product.compositionItems),
         usage_method: product.usageMethod ?? null,
         contraindications: product.contraindications ?? null,
         storage_conditions: product.storageConditions ?? null,
@@ -304,6 +321,7 @@ export async function sqlGetProductBySlug(slug: string) {
     subtitle: product.subtitle ?? null,
     release_form: product.releaseForm ?? null,
     course: product.course ?? null,
+    course_days: product.courseDays ?? null,
     package_weight: product.packageWeight ?? null,
     main_info: product.mainInfo ?? null,
     short_description: product.shortDescription ?? null,
@@ -312,6 +330,7 @@ export async function sqlGetProductBySlug(slug: string) {
     indications_for_use: product.indicationsForUse ?? null,
     benefits: product.benefits ?? null,
     full_composition: product.fullComposition ?? null,
+    composition_items: normalizeCompositionItems(product.compositionItems),
     usage_method: product.usageMethod ?? null,
     contraindications: product.contraindications ?? null,
     storage_conditions: product.storageConditions ?? null,
@@ -417,6 +436,15 @@ export async function sqlGetProductsByCategory(categoryName: string) {
               url: true,
             },
           },
+          giftProduct: {
+            select: {
+              id: true,
+              name: true,
+              nameRu: true,
+              slug: true,
+              price: true,
+            },
+          },
         } as any,
       })) as any[];
 
@@ -432,7 +460,7 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         dietitian_approved: p.dietitianApproved ?? false,
         is_promo: p.isPromo ?? false,
         free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
-        gift_product_id: p.giftProductId ?? null,
+        ...mapListGiftProduct(p),
         category_id: p.categoryId,
         subcategory_id: p.subcategoryId,
         category_ids: Array.from(
@@ -512,6 +540,15 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
               url: true,
             },
           },
+          giftProduct: {
+            select: {
+              id: true,
+              name: true,
+              nameRu: true,
+              slug: true,
+              price: true,
+            },
+          },
         } as any,
       })) as any[];
 
@@ -527,7 +564,7 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         dietitian_approved: p.dietitianApproved ?? false,
         is_promo: p.isPromo ?? false,
         free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
-        gift_product_id: p.giftProductId ?? null,
+        ...mapListGiftProduct(p),
         category_id: p.categoryId,
         subcategory_id: p.subcategoryId,
         category_ids: Array.from(
@@ -564,33 +601,111 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
   )();
 }
 
-// Get only top sale products
-async function _sqlGetTopSaleProducts() {
-  const products = await prisma.product.findMany({
-    where: { topSale: true },
-    orderBy: { id: "desc" },
-    include: {
-      media: {
-        take: 1,
-        orderBy: { id: "asc" },
-        select: {
-          type: true,
-          url: true,
-        },
-      },
-    },
-  });
-
-  return products.map((p) => ({
+function mapHomeRailProduct(p: {
+  id: number;
+  name: string;
+  slug: string | null;
+  price: unknown;
+  oldPrice: unknown;
+  discountPercentage: number | null;
+  topSale: boolean;
+  limitedEdition: boolean;
+  isHit: boolean;
+  isPromo: boolean;
+  inStock: boolean;
+  stock: number;
+  giftProductId: number | null;
+  giftProduct?: {
+    id: number;
+    name: string;
+    slug: string | null;
+    price: unknown;
+    nameRu?: string | null;
+  } | null;
+  media: { type: string; url: string }[];
+  [key: string]: unknown;
+}) {
+  return {
     id: p.id,
     name: p.name,
     slug: p.slug ?? null,
     ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
     top_sale: p.topSale,
     limited_edition: p.limitedEdition,
-    first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
+    is_hit: p.isHit ?? false,
+    is_promo: p.isPromo ?? false,
+    stock: p.stock,
+    in_stock: p.inStock,
+    gift_product_id: p.giftProductId ?? null,
+    gift_product: p.giftProduct
+      ? {
+          id: p.giftProduct.id,
+          name: p.giftProduct.name,
+          slug: p.giftProduct.slug ?? null,
+          price: Number(p.giftProduct.price),
+          name_ru: p.giftProduct.nameRu ?? null,
+        }
+      : null,
+    first_media: p.media[0]
+      ? { type: p.media[0].type, url: p.media[0].url }
+      : null,
     ...productRuApiFields(p),
-  }));
+  };
+}
+
+const homeRailInclude = {
+  media: {
+    take: 1,
+    orderBy: { id: "asc" as const },
+    select: {
+      type: true,
+      url: true,
+    },
+  },
+  giftProduct: {
+    select: {
+      id: true,
+      name: true,
+      nameRu: true,
+      slug: true,
+      price: true,
+    },
+  },
+};
+
+function mapListGiftProduct(p: {
+  giftProductId?: number | null;
+  giftProduct?: {
+    id: number;
+    name: string;
+    nameRu?: string | null;
+    slug: string | null;
+    price: unknown;
+  } | null;
+}) {
+  return {
+    gift_product_id: p.giftProductId ?? null,
+    gift_product: p.giftProduct
+      ? {
+          id: p.giftProduct.id,
+          name: p.giftProduct.name,
+          slug: p.giftProduct.slug ?? null,
+          price: Number(p.giftProduct.price),
+          name_ru: p.giftProduct.nameRu ?? null,
+        }
+      : null,
+  };
+}
+
+// Get only top sale products
+async function _sqlGetTopSaleProducts() {
+  const products = await prisma.product.findMany({
+    where: { topSale: true },
+    orderBy: [{ priority: "desc" }, { id: "desc" }],
+    include: homeRailInclude,
+  });
+
+  return products.map(mapHomeRailProduct);
 }
 
 // Cached version with 20 minute revalidation
@@ -603,33 +718,15 @@ export const sqlGetTopSaleProducts = unstable_cache(
   }
 );
 
-// Get only limited edition products
+// Get only limited edition / new Choice products
 async function _sqlGetLimitedEditionProducts() {
   const products = await prisma.product.findMany({
     where: { limitedEdition: true },
-    orderBy: { id: "desc" },
-    include: {
-      media: {
-        take: 1,
-        orderBy: { id: "asc" },
-        select: {
-          type: true,
-          url: true,
-        },
-      },
-    },
+    orderBy: [{ priority: "desc" }, { id: "desc" }],
+    include: homeRailInclude,
   });
 
-  return products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug ?? null,
-    ...formatProductPricing(p.price, p.oldPrice, p.discountPercentage),
-    top_sale: p.topSale,
-    limited_edition: p.limitedEdition,
-    first_media: p.media[0] ? { type: p.media[0].type, url: p.media[0].url } : null,
-    ...productRuApiFields(p),
-  }));
+  return products.map(mapHomeRailProduct);
 }
 
 // Cached version with 20 minute revalidation
@@ -642,12 +739,33 @@ export const sqlGetLimitedEditionProducts = unstable_cache(
   }
 );
 
+// Get promo / акція products for homepage
+async function _sqlGetPromoProducts() {
+  const products = await prisma.product.findMany({
+    where: { isPromo: true },
+    orderBy: [{ priority: "desc" }, { id: "desc" }],
+    include: homeRailInclude,
+  });
+
+  return products.map(mapHomeRailProduct);
+}
+
+export const sqlGetPromoProducts = unstable_cache(
+  _sqlGetPromoProducts,
+  ["promo-products"],
+  {
+    revalidate: 1200,
+    tags: ["products"],
+  }
+);
+
 // Create new product
 export async function sqlPostProduct(product: {
   name: string;
   subtitle?: string | null;
   release_form?: string | null;
   course?: string | null;
+  course_days?: number | null;
   package_weight?: string | null;
   main_info?: string | null;
   short_description?: string | null;
@@ -656,6 +774,7 @@ export async function sqlPostProduct(product: {
   indications_for_use?: string | null;
   benefits?: string | null;
   full_composition?: string | null;
+  composition_items?: { name: string; description: string }[] | null;
   usage_method?: string | null;
   contraindications?: string | null;
   storage_conditions?: string | null;
@@ -694,6 +813,17 @@ export async function sqlPostProduct(product: {
     product.discount_percentage
   );
 
+  const compositionItems = normalizeCompositionItems(product.composition_items);
+  const compositionPlain =
+    compositionItems.length > 0
+      ? compositionItemsToPlainText(compositionItems)
+      : product.full_composition ?? null;
+
+  const resolvedCourseDays =
+    typeof product.course_days === "number" && product.course_days > 0
+      ? Math.round(product.course_days)
+      : parseCourseDays(product.course);
+
   const created = await prisma.product.create({
     data: {
       name: product.name,
@@ -701,6 +831,7 @@ export async function sqlPostProduct(product: {
       subtitle: product.subtitle ?? null,
       releaseForm: product.release_form ?? null,
       course: product.course ?? null,
+      courseDays: resolvedCourseDays,
       packageWeight: product.package_weight ?? null,
       mainInfo: product.main_info ?? null,
       shortDescription: product.short_description ?? null,
@@ -708,7 +839,8 @@ export async function sqlPostProduct(product: {
       mainAction: product.main_action ?? null,
       indicationsForUse: product.indications_for_use ?? null,
       benefits: product.benefits ?? null,
-      fullComposition: product.full_composition ?? null,
+      fullComposition: compositionPlain,
+      compositionItems: compositionItems.length > 0 ? compositionItems : Prisma.JsonNull,
       usageMethod: product.usage_method ?? null,
       contraindications: product.contraindications ?? null,
       storageConditions: product.storage_conditions ?? null,
@@ -786,6 +918,7 @@ export async function sqlPutProduct(
     subtitle?: string | null;
     release_form?: string | null;
     course?: string | null;
+    course_days?: number | null;
     package_weight?: string | null;
     main_info?: string | null;
     short_description?: string | null;
@@ -794,6 +927,7 @@ export async function sqlPutProduct(
     indications_for_use?: string | null;
     benefits?: string | null;
     full_composition?: string | null;
+    composition_items?: { name: string; description: string }[] | null;
     usage_method?: string | null;
     contraindications?: string | null;
     storage_conditions?: string | null;
@@ -834,6 +968,28 @@ export async function sqlPutProduct(
     discount_percentage: pricing.discount_percentage,
   };
 
+  const compositionItems =
+    update.composition_items !== undefined
+      ? normalizeCompositionItems(update.composition_items)
+      : undefined;
+  const compositionPlain =
+    compositionItems !== undefined
+      ? compositionItems.length > 0
+        ? compositionItemsToPlainText(compositionItems)
+        : update.full_composition ?? null
+      : undefined;
+
+  const resolvedCourseDays =
+    update.course_days !== undefined
+      ? typeof update.course_days === "number" && update.course_days > 0
+        ? Math.round(update.course_days)
+        : update.course_days === null
+          ? null
+          : parseCourseDays(update.course)
+      : update.course !== undefined
+        ? parseCourseDays(update.course)
+        : undefined;
+
   const oldMedia = await prisma.productMedia.findMany({
     where: { productId: id },
     select: { url: true },
@@ -862,6 +1018,7 @@ export async function sqlPutProduct(
         subtitle: update.subtitle ?? undefined,
         releaseForm: update.release_form ?? undefined,
         course: update.course ?? undefined,
+        courseDays: resolvedCourseDays,
         packageWeight: update.package_weight ?? undefined,
         mainInfo: update.main_info ?? undefined,
         shortDescription: update.short_description ?? undefined,
@@ -869,7 +1026,16 @@ export async function sqlPutProduct(
         mainAction: update.main_action ?? undefined,
         indicationsForUse: update.indications_for_use ?? undefined,
         benefits: update.benefits ?? undefined,
-        fullComposition: update.full_composition ?? undefined,
+        fullComposition:
+          compositionPlain !== undefined
+            ? compositionPlain
+            : update.full_composition ?? undefined,
+        compositionItems:
+          compositionItems !== undefined
+            ? compositionItems.length > 0
+              ? compositionItems
+              : Prisma.JsonNull
+            : undefined,
         usageMethod: update.usage_method ?? undefined,
         contraindications: update.contraindications ?? undefined,
         storageConditions: update.storage_conditions ?? undefined,
@@ -1508,11 +1674,13 @@ export async function sqlGetProductsByCategorySlug(categorySlug: string) {
 
 // Create a new category
 export async function sqlPostCategory(
-  name: string, 
+  name: string,
   priority: number = 0,
   mediaType?: string | null,
   mediaUrl?: string | null,
-  description?: string | null
+  description?: string | null,
+  nameRu?: string | null,
+  descriptionRu?: string | null
 ) {
   const baseSlug = textToSlug(name);
   const slug = await ensureUniqueSlug(baseSlug, (s) =>
@@ -1526,8 +1694,10 @@ export async function sqlPostCategory(
     mediaType?: string | null;
     mediaUrl?: string | null;
     description?: string | null;
-  } = { 
-    name, 
+    nameRu?: string | null;
+    descriptionRu?: string | null;
+  } = {
+    name,
     slug,
     priority,
   };
@@ -1541,12 +1711,19 @@ export async function sqlPostCategory(
   if (description !== undefined) {
     createData.description = description;
   }
+  if (nameRu != null && String(nameRu).trim()) {
+    createData.nameRu = String(nameRu).trim();
+  }
+  if (descriptionRu != null && String(descriptionRu).trim()) {
+    createData.descriptionRu = String(descriptionRu).trim();
+  }
 
   const created = await prisma.category.create({
     data: createData,
   });
 
-  scheduleCategoryRuSync(created.id, true);
+  // Fill any missing RU fields in background (do not overwrite provided ones)
+  scheduleCategoryRuSync(created.id, false);
 
   return {
     id: created.id,
@@ -1568,7 +1745,9 @@ export async function sqlPutCategory(
   priority: number = 0,
   mediaType?: string | null,
   mediaUrl?: string | null,
-  description?: string | null
+  description?: string | null,
+  nameRu?: string | null,
+  descriptionRu?: string | null
 ) {
   const updateData: {
     name: string;
@@ -1577,16 +1756,23 @@ export async function sqlPutCategory(
     mediaType?: string | null;
     mediaUrl?: string | null;
     description?: string | null;
+    nameRu?: string | null;
+    descriptionRu?: string | null;
   } = { name, priority };
 
-  const current = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true } });
+  const current = await prisma.category.findUnique({
+    where: { id },
+    select: { name: true, slug: true },
+  });
   if (current && (!current.slug || current.name !== name)) {
     const baseSlug = textToSlug(name);
     updateData.slug = await ensureUniqueSlug(baseSlug, (s) =>
-      prisma.category.findFirst({ where: { slug: s, id: { not: id } } }).then(Boolean)
+      prisma.category
+        .findFirst({ where: { slug: s, id: { not: id } } })
+        .then(Boolean)
     );
   }
-  
+
   if (mediaType !== undefined) {
     updateData.mediaType = mediaType;
   }
@@ -1596,13 +1782,23 @@ export async function sqlPutCategory(
   if (description !== undefined) {
     updateData.description = description;
   }
+  if (nameRu !== undefined) {
+    updateData.nameRu =
+      nameRu != null && String(nameRu).trim() ? String(nameRu).trim() : null;
+  }
+  if (descriptionRu !== undefined) {
+    updateData.descriptionRu =
+      descriptionRu != null && String(descriptionRu).trim()
+        ? String(descriptionRu).trim()
+        : null;
+  }
 
   const updated = await prisma.category.update({
     where: { id },
     data: updateData,
   });
 
-  scheduleCategoryRuSync(updated.id, true);
+  scheduleCategoryRuSync(updated.id, false);
 
   return {
     id: updated.id,
@@ -1708,16 +1904,27 @@ export async function sqlGetSubcategoryBySlug(slug: string) {
 }
 
 // Create a new subcategory (generates slug from name)
-export async function sqlPostSubcategory(name: string, categoryId: number) {
+export async function sqlPostSubcategory(
+  name: string,
+  categoryId: number,
+  nameRu?: string | null
+) {
   const baseSlug = textToSlug(name);
   const slug = await ensureUniqueSlug(baseSlug, (s) =>
     prisma.subcategory.findFirst({ where: { slug: s } }).then(Boolean)
   );
   const created = await prisma.subcategory.create({
-    data: { name, slug, categoryId },
+    data: {
+      name,
+      slug,
+      categoryId,
+      ...(nameRu != null && String(nameRu).trim()
+        ? { nameRu: String(nameRu).trim() }
+        : {}),
+    },
   });
 
-  scheduleSubcategoryRuSync(created.id, true);
+  scheduleSubcategoryRuSync(created.id, false);
 
   return {
     id: created.id,
@@ -1732,26 +1939,38 @@ export async function sqlPostSubcategory(name: string, categoryId: number) {
 export async function sqlPutSubcategory(
   id: number,
   name: string,
-  categoryId: number
+  categoryId: number,
+  nameRu?: string | null
 ) {
   const current = await prisma.subcategory.findUnique({
     where: { id },
     select: { name: true, slug: true },
   });
-  type UpdateData = { name: string; categoryId: number; slug?: string };
+  type UpdateData = {
+    name: string;
+    categoryId: number;
+    slug?: string;
+    nameRu?: string | null;
+  };
   const updateData: UpdateData = { name, categoryId };
   if (current && (!current.slug || current.name !== name)) {
     const baseSlug = textToSlug(name);
     updateData.slug = await ensureUniqueSlug(baseSlug, (s) =>
-      prisma.subcategory.findFirst({ where: { slug: s, id: { not: id } } }).then(Boolean)
+      prisma.subcategory
+        .findFirst({ where: { slug: s, id: { not: id } } })
+        .then(Boolean)
     );
+  }
+  if (nameRu !== undefined) {
+    updateData.nameRu =
+      nameRu != null && String(nameRu).trim() ? String(nameRu).trim() : null;
   }
   const updated = await prisma.subcategory.update({
     where: { id },
     data: updateData,
   });
 
-  scheduleSubcategoryRuSync(updated.id, true);
+  scheduleSubcategoryRuSync(updated.id, false);
 
   return {
     id: updated.id,

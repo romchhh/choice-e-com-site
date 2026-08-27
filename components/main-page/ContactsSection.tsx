@@ -68,7 +68,7 @@ export default function ContactsSection() {
             </p>
             <LocaleLink
               href="/contacts"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#3D1A00] text-white font-['Montserrat'] hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3 bg-[#3D1A00] text-white font-['Montserrat'] hover:opacity-90 transition-opacity"
               style={{
                 fontFamily: "Montserrat, sans-serif",
                 fontWeight: 400,

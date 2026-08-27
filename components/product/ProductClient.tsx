@@ -9,7 +9,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Alert from "@/components/shared/Alert";
 import CartAlert from "@/components/shared/CartAlert";
 import { getFirstProductImage } from "@/lib/getFirstProductImage";
-import { getDiscountedPrice, getProductPriceDisplay } from "@/lib/pricing";
+import { getDiscountedPrice, getItemSubtotal, getProductPriceDisplay } from "@/lib/pricing";
 import {
   GA4_BRAND,
   GA4_CURRENCY,
@@ -18,24 +18,25 @@ import {
 } from "@/lib/ga4Ecommerce";
 import OneClickOrderModal from "@/components/product/OneClickOrderModal";
 import ProductDeliveryPaymentTab from "@/components/product/ProductDeliveryPaymentTab";
+import ProductDetailsAccordion from "@/components/product/ProductDetailsAccordion";
 import YouMightLike from "@/components/product/YouMightLike";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
+import ProductCourseCalculator from "@/components/product/ProductCourseCalculator";
+import FreeDeliveryProgress from "@/components/shared/FreeDeliveryProgress";
+import ImageLightbox from "@/components/shared/ImageLightbox";
+import StarRating from "@/components/shared/StarRating";
+import { normalizeCompositionItems } from "@/lib/productComposition";
+import { siteContact } from "@/lib/siteContact";
 
 const DEFAULT_SIZE = "—";
 
 type TabId =
   | "description"
-  | "action"
-  | "usage"
-  | "composition"
   | "contraindications"
   | "delivery_payment";
 
 const TAB_IDS: TabId[] = [
   "description",
-  "action",
-  "usage",
-  "composition",
   "contraindications",
   "delivery_payment",
 ];
@@ -52,6 +53,7 @@ interface ProductClientProps {
     subtitle?: string | null;
     release_form?: string | null;
     course?: string | null;
+    course_days?: number | null;
     package_weight?: string | null;
     main_info?: string | null;
     short_description?: string | null;
@@ -60,6 +62,7 @@ interface ProductClientProps {
     indications_for_use?: string | null;
     benefits?: string | null;
     full_composition?: string | null;
+    composition_items?: { name: string; description: string }[] | null;
     usage_method?: string | null;
     contraindications?: string | null;
     storage_conditions?: string | null;
@@ -100,9 +103,14 @@ export default function ProductClient({ product }: ProductClientProps) {
   const { dict } = useLocale();
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [ratingSummary, setRatingSummary] = useState<{
+    average: number;
+    count: number;
+  } | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("description");
-  const { addItem } = useBasket();
-  const { setIsBasketOpen } = useAppContext();
+  const { addItem, items } = useBasket();
+  const { isBasketOpen, setIsBasketOpen } = useAppContext();
   const [showCartAlert, setShowCartAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<
@@ -114,7 +122,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (qtyOverride?: number) => {
     if (isAddingToCartRef.current) return;
     if (!product) {
       setAlertMessage("Товар не завантажений");
@@ -128,6 +136,10 @@ export default function ProductClient({ product }: ProductClientProps) {
       setTimeout(() => setAlertMessage(null), 3000);
       return;
     }
+    const qty =
+      typeof qtyOverride === "number" && qtyOverride > 0
+        ? qtyOverride
+        : quantity;
     isAddingToCartRef.current = true;
     setIsAddingToCart(true);
     try {
@@ -137,12 +149,15 @@ export default function ProductClient({ product }: ProductClientProps) {
         name: product.name,
         price: product.price,
         size: DEFAULT_SIZE,
-        quantity,
+        quantity: qty,
         imageUrl: getFirstProductImage(media),
         discount_percentage: product.discount_percentage ?? undefined,
         subtitle: product.main_info || product.short_description || undefined,
         category_name: analyticsCategory,
       });
+      if (typeof qtyOverride === "number" && qtyOverride > 0) {
+        setQuantity(qtyOverride);
+      }
       setShowCartAlert(true);
       setTimeout(() => setShowCartAlert(false), 5000);
     } catch (error) {
@@ -174,6 +189,15 @@ export default function ProductClient({ product }: ProductClientProps) {
   };
 
   const media = product.media || [];
+  const photoUrls = media
+    .filter((item) => item.type !== "video" && item.url)
+    .map((item) => `/api/images/${item.url}`);
+  const lightboxStartIndex = (() => {
+    const current = media[activeImageIndex];
+    if (!current || current.type === "video" || !current.url) return 0;
+    const idx = photoUrls.indexOf(`/api/images/${current.url}`);
+    return idx >= 0 ? idx : 0;
+  })();
   const outOfStock =
     product.in_stock === false ||
     (typeof product.stock === "number" && product.stock <= 0);
@@ -183,6 +207,29 @@ export default function ProductClient({ product }: ProductClientProps) {
     discount_percentage: product.discount_percentage,
   });
 
+  const basketTotal = items.reduce(
+    (sum, item) =>
+      sum + getItemSubtotal(item.price, item.quantity, item.discount_percentage),
+    0
+  );
+  const existingBasketItem = items.find(
+    (item) => item.id === product.id && item.size === DEFAULT_SIZE
+  );
+  const existingBasketSubtotal = existingBasketItem
+    ? getItemSubtotal(
+        existingBasketItem.price,
+        existingBasketItem.quantity,
+        existingBasketItem.discount_percentage
+      )
+    : 0;
+  const previewSubtotal = getItemSubtotal(
+    product.price,
+    quantity,
+    product.discount_percentage
+  );
+  const deliveryPreviewTotal =
+    basketTotal - existingBasketSubtotal + previewSubtotal;
+
   const analyticsCategory = product.subcategory_name ?? product.category_name ?? null;
 
   const categorySlug = product.category_slug ?? (product.category_name ? encodeURIComponent(product.category_name) : null);
@@ -190,6 +237,25 @@ export default function ProductClient({ product }: ProductClientProps) {
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => setIsMounted(true), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/reviews?productId=${product.id}`);
+        const data = await res.json();
+        if (cancelled) return;
+        const average = Number(data?.summary?.average) || 0;
+        const count = Number(data?.summary?.count) || 0;
+        setRatingSummary(count > 0 ? { average, count } : null);
+      } catch {
+        if (!cancelled) setRatingSummary(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
 
   /** Один view_item на item_id; скидається при зміні товару (клієнтська навігація / схожі товари). */
   const lastViewItemIdRef = useRef<number | null>(null);
@@ -235,6 +301,10 @@ export default function ProductClient({ product }: ProductClientProps) {
     ? `${dict.brand.productCourse}: ${product.course}`
     : null;
   const purposeText = product.main_info || product.short_description || product.description;
+  const compositionItems = normalizeCompositionItems(product.composition_items);
+  const effectText = [product.main_action, product.benefits, product.indications_for_use]
+    .filter(Boolean)
+    .join("\n\n");
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -244,31 +314,9 @@ export default function ProductClient({ product }: ProductClientProps) {
             {product.description}
           </div>
         ) : (
-          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Опис відсутній.</p>
-        );
-      case "action":
-        return (product.main_action || product.benefits || product.indications_for_use) ? (
-          <div className="text-[#3D1A00]/90 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm md:text-base whitespace-pre-line">
-            {[product.main_action, product.benefits, product.indications_for_use].filter(Boolean).join("\n\n")}
-          </div>
-        ) : (
-          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Інформація відсутня.</p>
-        );
-      case "usage":
-        return product.usage_method ? (
-          <div className="text-[#3D1A00]/90 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm md:text-base whitespace-pre-line">
-            {product.usage_method}
-          </div>
-        ) : (
-          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Інформація відсутня.</p>
-        );
-      case "composition":
-        return (product.full_composition || product.fabric_composition) ? (
-          <div className="text-[#3D1A00]/90 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm md:text-base whitespace-pre-line">
-            {product.full_composition || product.fabric_composition}
-          </div>
-        ) : (
-          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Інформація відсутня.</p>
+          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
+            {dict.product.details.empty}
+          </p>
         );
       case "contraindications":
         return product.contraindications ? (
@@ -276,7 +324,9 @@ export default function ProductClient({ product }: ProductClientProps) {
             {product.contraindications}
           </div>
         ) : (
-          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">Інформація відсутня.</p>
+          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
+            {dict.product.details.empty}
+          </p>
         );
       case "delivery_payment":
         return <ProductDeliveryPaymentTab />;
@@ -286,7 +336,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   };
 
   return (
-    <section className="w-full bg-[#FFFFFF] min-h-screen">
+    <section className="w-full bg-[#FFFFFF] min-h-screen pb-36 lg:pb-0">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-8">
         {/* Breadcrumbs — тільки з md і вище */}
         <nav className="hidden md:block mb-4" aria-label="Breadcrumb">
@@ -351,6 +401,38 @@ export default function ProductClient({ product }: ProductClientProps) {
             )}
             <div
               className="relative order-1 min-h-[420px] flex-1 touch-pan-y overflow-hidden rounded-lg bg-[#fafafa] sm:min-h-[480px] md:min-h-[520px] lg:order-2 lg:min-h-[620px] xl:min-h-[700px]"
+              role={
+                media[activeImageIndex]?.type !== "video" &&
+                media[activeImageIndex]?.url
+                  ? "button"
+                  : undefined
+              }
+              tabIndex={
+                media[activeImageIndex]?.type !== "video" &&
+                media[activeImageIndex]?.url
+                  ? 0
+                  : undefined
+              }
+              onClick={() => {
+                if (
+                  media[activeImageIndex]?.type !== "video" &&
+                  media[activeImageIndex]?.url &&
+                  photoUrls.length > 0
+                ) {
+                  setLightboxOpen(true);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                if (
+                  media[activeImageIndex]?.type !== "video" &&
+                  media[activeImageIndex]?.url &&
+                  photoUrls.length > 0
+                ) {
+                  e.preventDefault();
+                  setLightboxOpen(true);
+                }
+              }}
               onTouchStart={(e) => {
                 if (!media.length || media.length < 2) return;
                 touchStartXRef.current = e.touches[0]?.clientX ?? null;
@@ -400,7 +482,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                   src={`/api/images/${media[activeImageIndex].url}`}
                   alt={product.name}
                   fill
-                  className="z-0 object-contain"
+                  className="z-0 cursor-zoom-in object-contain"
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   priority
                 />
@@ -413,19 +495,30 @@ export default function ProductClient({ product }: ProductClientProps) {
               {(product.is_promo === true ||
                 product.is_hit === true ||
                 product.dietitian_approved === true ||
+                product.free_delivery_badge === true ||
+                !!product.gift_product) && (
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-wrap gap-2 p-3 sm:p-4">
+                  {product.is_promo === true && (
+                    <span className="inline-flex items-center bg-[#C45C26] px-3 py-2 text-xs font-extrabold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/25 sm:text-sm">
+                      {dict.common.promo}
+                    </span>
+                  )}
+                  {product.is_hit === true && (
+                    <span className="inline-flex items-center bg-[#3D1A00] px-3 py-2 text-xs font-extrabold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/30 sm:text-sm">
+                      {dict.common.hit}
+                    </span>
+                  )}
+                  {product.gift_product && (
+                    <span className="inline-flex items-center bg-[#E8B923] px-3 py-2 text-xs font-extrabold font-['Montserrat'] uppercase tracking-wide text-[#3D1A00] shadow-md shadow-black/25 sm:text-sm">
+                      {dict.common.gift}
+                    </span>
+                  )}
+                </div>
+              )}
+              {(product.dietitian_approved === true ||
                 product.free_delivery_badge === true) && (
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/45 via-black/15 to-transparent px-3 pb-3 pt-12 sm:px-4 sm:pb-4 sm:pt-14">
                   <div className="flex flex-wrap gap-2.5">
-                    {product.is_promo === true && (
-                      <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-[#3D1A00]/12 bg-[#D7D799] px-3 py-2 text-xs font-bold font-['Montserrat'] uppercase tracking-wide text-[#3D1A00] shadow-md shadow-black/20 sm:text-sm">
-                        {dict.common.promo}
-                      </span>
-                    )}
-                    {product.is_hit === true && (
-                      <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg bg-[#3D1A00] px-3 py-2 text-xs font-bold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/30 sm:text-sm">
-                        {dict.common.hit}
-                      </span>
-                    )}
                     {product.dietitian_approved === true && (
                       <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border-2 border-[#3D1A00]/20 bg-white px-3 py-2 text-left text-[11px] font-bold font-['Montserrat'] leading-snug tracking-tight text-[#3D1A00] shadow-md shadow-black/15 sm:text-sm">
                         {dict.common.dietitian}
@@ -443,106 +536,253 @@ export default function ProductClient({ product }: ProductClientProps) {
           </div>
 
           {/* Right: Info */}
-          <div className="flex flex-col gap-4 w-full lg:max-w-[45%] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em]">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#3D1A00] capitalize leading-[1.29] tracking-[-0.02em]" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              {product.name}
-            </h1>
-
-            <p className="text-sm md:text-base font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-[#3D1A00]/80">
-              {outOfStock ? dict.common.outOfStock : dict.common.inStock}
-            </p>
-
-            {(attributesLine1 || packageLine || courseLine) && (
-              <div className="flex flex-col gap-0.5 text-sm font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-[#3D1A00]/80">
-                {attributesLine1 && <span>{attributesLine1}</span>}
-                {packageLine && <span>{packageLine}</span>}
-                {courseLine && <span>{courseLine}</span>}
+          <div className="flex flex-col gap-6 w-full lg:max-w-[45%] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em]">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <h1
+                  className="text-2xl font-semibold capitalize leading-[1.29] tracking-[-0.02em] text-[#3D1A00] md:text-3xl lg:text-4xl"
+                  style={{ fontFamily: "Montserrat, sans-serif" }}
+                >
+                  {product.name}
+                </h1>
+                {ratingSummary ? (
+                  <a
+                    href="#product-reviews-heading"
+                    className="inline-flex items-center gap-2 no-underline"
+                    aria-label={`${ratingSummary.average} з 5, ${ratingSummary.count} відгуків`}
+                  >
+                    <StarRating rating={ratingSummary.average} size="md" />
+                    <span className="font-['Montserrat'] text-sm text-[#3D1A00]/70">
+                      {ratingSummary.average.toFixed(1)}
+                      <span className="text-[#3D1A00]/45">
+                        {" "}
+                        ({ratingSummary.count})
+                      </span>
+                    </span>
+                  </a>
+                ) : null}
               </div>
-            )}
 
-            {purposeText && (
-              <p className="text-sm md:text-base font-['Montserrat'] font-normal leading-[1.59] tracking-[-0.02em] text-[#3D1A00]/90">
-                {purposeText}
+              <p className="text-sm text-[#3D1A00]/80 md:text-base">
+                {outOfStock ? dict.common.outOfStock : dict.common.inStock}
               </p>
-            )}
 
-            <div className="flex items-center justify-between gap-4 pt-2 flex-wrap">
-              <span className="text-2xl md:text-2xl font-['Montserrat'] font-normal leading-[1.59] tracking-[-0.02em] text-[#3D1A00]">
-                {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
-              </span>
-              <div className="flex items-center border border-[#3D1A00]/20 rounded overflow-hidden shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-10 flex items-center justify-center text-[#3D1A00] hover:bg-[#3D1A00]/5 transition-colors"
-                  aria-label="Зменшити"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!Number.isNaN(v) && v >= 1) setQuantity(v);
-                  }}
-                  className="w-14 h-10 py-0 px-2 text-center text-[#3D1A00] border-x border-[#3D1A00]/20 bg-transparent font-['Montserrat'] text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
- style={{ textAlign: "center" }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-10 h-10 flex items-center justify-center text-[#3D1A00] hover:bg-[#3D1A00]/5 transition-colors"
-                  aria-label="Збільшити"
-                >
-                  +
-                </button>
-              </div>
+              {(attributesLine1 || packageLine || courseLine) && (
+                <div className="flex flex-col gap-0.5 text-sm text-[#3D1A00]/80">
+                  {attributesLine1 && <span>{attributesLine1}</span>}
+                  {packageLine && <span>{packageLine}</span>}
+                  {courseLine && <span>{courseLine}</span>}
+                </div>
+              )}
+
+              {purposeText && (
+                <p className="text-sm leading-relaxed text-[#3D1A00]/90 md:text-base">
+                  {purposeText}
+                </p>
+              )}
             </div>
 
-            {/* Gift promo */}
-            {product.gift_product && (
-              <div className="rounded-lg border border-[#3D1A00]/15 bg-[#FFF9F0] p-4">
-                <p className="text-sm font-['Montserrat'] font-semibold text-[#3D1A00]">
-                  {dict.common.giftToProduct}
-                </p>
-                <div className="mt-2 flex items-center justify-between gap-4 flex-wrap">
-                  <LocaleLink
-                    href={`/product/${(product.gift_product.slug && String(product.gift_product.slug).trim()) ? product.gift_product.slug : product.gift_product.id}`}
-                    className="text-sm font-['Montserrat'] text-[#3D1A00] underline hover:opacity-80"
+            {/* Замовлення */}
+            <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#3D1A00]/55">
+                {dict.product.purchaseBlock}
+              </h2>
+
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <span className="text-2xl font-normal leading-none text-[#3D1A00] md:text-3xl">
+                    {displayPrice.toLocaleString("uk-UA")} {dict.common.uah}
+                  </span>
+                  <p className="mt-2 inline-flex w-fit items-center rounded-full bg-[#F4F6EC] px-2.5 py-1 text-xs font-medium text-[#5F6B2E] md:text-sm">
+                    {dict.common.freeDeliveryNearPrice}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center overflow-hidden rounded-lg border border-[#3D1A00]/20">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="flex h-10 w-10 items-center justify-center text-[#3D1A00] transition-colors hover:bg-[#3D1A00]/5"
+                    aria-label="Зменшити"
                   >
-                    {product.gift_product.name}
-                  </LocaleLink>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm line-through text-[#3D1A00]/60">
-                      {Math.round(product.gift_product.price).toLocaleString("uk-UA")} {dict.common.uah}
-                    </span>
-                    <span className="text-sm font-bold text-[#3D1A00]">
-                      {dict.common.free}
-                    </span>
-                  </div>
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantity}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(v) && v >= 1) setQuantity(v);
+                    }}
+                    className="h-10 w-14 border-x border-[#3D1A00]/20 bg-transparent px-2 text-center text-sm text-[#3D1A00] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={{ textAlign: "center" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="flex h-10 w-10 items-center justify-center text-[#3D1A00] transition-colors hover:bg-[#3D1A00]/5"
+                    aria-label="Збільшити"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
+
+              <div className="hidden flex-col gap-4 border-t border-neutral-100 pt-4 lg:flex">
+                <div className="flex flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={
+                      outOfStock || isAddingToCart
+                        ? undefined
+                        : () => {
+                            void handleAddToCart();
+                          }
+                    }
+                    disabled={outOfStock || isAddingToCart}
+                    className="flex-1 rounded-full bg-[#8B9A47] py-3.5 px-6 text-center text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#7a8940] disabled:cursor-not-allowed disabled:opacity-50 md:text-base"
+                  >
+                    {isAddingToCart ? dict.common.loading : dict.common.addToCart}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={
+                      outOfStock || isAddingToCart ? undefined : handleBuyInOneClick
+                    }
+                    disabled={outOfStock || isAddingToCart}
+                    className="flex-1 rounded-full border-2 border-[#3D1A00] bg-white py-3.5 px-6 text-center text-sm font-semibold uppercase tracking-wide text-[#3D1A00] transition-colors hover:bg-[#3D1A00]/5 disabled:cursor-not-allowed disabled:opacity-50 md:text-base"
+                  >
+                    {isAddingToCart ? dict.common.loading : dict.common.buyOneClick}
+                  </button>
+                </div>
+                <FreeDeliveryProgress
+                  cartTotal={basketTotal}
+                  previewTotal={deliveryPreviewTotal}
+                  compact
+                />
+              </div>
+            </section>
+
+            {/* Курс і подарунок */}
+            {(product.course || product.course_days || product.gift_product) && (
+              <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#3D1A00]/55">
+                  {dict.product.courseAndGift}
+                </h2>
+
+                <ProductCourseCalculator
+                  embedded
+                  courseText={product.course}
+                  courseDays={product.course_days}
+                  unitPrice={displayPrice}
+                  labels={{
+                    title: dict.product.courseCalc.title,
+                    months: dict.product.courseCalc.months,
+                    packOne: dict.product.courseCalc.packOne,
+                    packFew: dict.product.courseCalc.packFew,
+                    packMany: dict.product.courseCalc.packMany,
+                    addCourse: dict.product.courseCalc.addCourse,
+                    daysPerPack: dict.product.courseCalc.daysPerPack,
+                    uah: dict.common.uah,
+                  }}
+                  disabled={outOfStock || isAddingToCart}
+                  onAddCourse={(packs) => {
+                    void handleAddToCart(packs);
+                  }}
+                />
+
+                {product.gift_product && (
+                  <div
+                    className={`flex items-start gap-3 rounded-xl border border-[#E8C547]/40 bg-[#FFFBF5] px-4 py-3.5${
+                      product.course || product.course_days
+                        ? " mt-4 border-t border-neutral-100 pt-4"
+                        : ""
+                    }`}
+                  >
+                    <span className="mt-0.5 shrink-0 text-[#8A6B00]" aria-hidden>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0 flex-1 text-sm leading-relaxed text-[#3D1A00]/80">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#8A6B00]">
+                        {dict.common.gift}
+                      </p>
+                      <p className="mt-1">
+                        <LocaleLink
+                          href={`/product/${
+                            product.gift_product.slug &&
+                            String(product.gift_product.slug).trim()
+                              ? product.gift_product.slug
+                              : product.gift_product.id
+                          }`}
+                          className="font-medium text-[#3D1A00] underline decoration-[#E8B923]/60 underline-offset-2 transition-colors hover:text-[#3D1A00]/80"
+                        >
+                          {product.gift_product.name}
+                        </LocaleLink>
+                        <span className="ml-2 inline-flex items-center rounded-full bg-[#E8B923]/20 px-2 py-0.5 text-xs font-semibold text-[#6B5200]">
+                          {dict.common.free}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </section>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                onClick={outOfStock || isAddingToCart ? undefined : handleAddToCart}
-                disabled={outOfStock || isAddingToCart}
-                className="flex-1 py-3 px-6 text-center border-2 border-[#3D1A00] bg-white text-[#3D1A00] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] uppercase text-sm md:text-base transition-colors hover:bg-[#3D1A00]/5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAddingToCart ? dict.common.loading : dict.common.addToCart}
-              </button>
-              <button
-                type="button"
-                onClick={outOfStock || isAddingToCart ? undefined : handleBuyInOneClick}
-                disabled={outOfStock || isAddingToCart}
-                className="flex-1 py-3 px-6 text-center bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] uppercase text-sm md:text-base transition-colors border border-[#b8b87a] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAddingToCart ? dict.common.loading : dict.common.buyOneClick}
-              </button>
-            </div>
+            {/* Консультація */}
+            <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 shrink-0 text-[#3D1A00]" aria-hidden>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                  </svg>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold leading-snug text-[#3D1A00] sm:text-[15px]">
+                    {dict.product.consult.title}
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#3D1A00]/65">
+                    {dict.product.consult.body}
+                  </p>
+                  <a
+                    href={siteContact.telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#3D1A00] px-4 py-2 text-xs font-semibold text-[#FFF9F0] transition-colors hover:bg-[#3D1A00]/88 sm:text-sm"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden
+                    >
+                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z" />
+                    </svg>
+                    {dict.product.consult.cta}
+                  </a>
+                </div>
+              </div>
+            </section>
 
             <CartAlert
               isVisible={showCartAlert}
@@ -586,12 +826,14 @@ export default function ProductClient({ product }: ProductClientProps) {
           </div>
         </div>
 
-        {/* Купують разом */}
-        {product.bought_together_products && product.bought_together_products.length > 0 && (
-          <div className="mt-10">
-            <YouMightLike title={dict.common.boughtTogether} suggestedProducts={product.bought_together_products} />
-          </div>
-        )}
+        {/* Structured details: composition / usage / effect */}
+        <ProductDetailsAccordion
+          labels={dict.product.details}
+          compositionItems={compositionItems}
+          compositionText={product.full_composition || product.fabric_composition}
+          usageText={product.usage_method}
+          effectText={effectText || null}
+        />
 
         {/* Tabs */}
         <div className="mt-12 pt-8 border-t border-[#3D1A00]/10">
@@ -599,9 +841,6 @@ export default function ProductClient({ product }: ProductClientProps) {
             {TAB_IDS.map((tabId) => {
               const tabLabels: Record<TabId, string> = {
                 description: dict.product.tabs.description,
-                action: dict.product.tabs.action,
-                usage: dict.product.tabs.usage,
-                composition: dict.product.tabs.composition,
                 contraindications: dict.product.tabs.contraindications,
                 delivery_payment: dict.product.tabs.delivery,
               };
@@ -623,7 +862,59 @@ export default function ProductClient({ product }: ProductClientProps) {
           </div>
           <div className="min-h-[120px]">{renderTabContent()}</div>
         </div>
+
+        {/* Купують разом — після опису / складу */}
+        {product.bought_together_products && product.bought_together_products.length > 0 && (
+          <div className="mt-12">
+            <YouMightLike title={dict.common.boughtTogether} suggestedProducts={product.bought_together_products} />
+          </div>
+        )}
       </div>
+
+      {/* Mobile sticky CTA — ховаємо, коли відкритий кошик (щоб не дублювати прогрес доставки) */}
+      {!isBasketOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.08)] lg:hidden">
+          <div className="mx-auto flex max-w-[1920px] flex-col gap-2">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={
+                  outOfStock || isAddingToCart
+                    ? undefined
+                    : () => {
+                        void handleAddToCart();
+                      }
+                }
+                disabled={outOfStock || isAddingToCart}
+                className="flex-1 rounded-full border border-neutral-300 bg-white py-3 text-center font-['Montserrat'] text-xs font-semibold uppercase tracking-wide text-neutral-900 disabled:opacity-50"
+              >
+                {isAddingToCart ? dict.common.loading : dict.common.addToCart}
+              </button>
+              <button
+                type="button"
+                onClick={
+                  outOfStock || isAddingToCart ? undefined : handleBuyInOneClick
+                }
+                disabled={outOfStock || isAddingToCart}
+                className="flex-1 rounded-full bg-[#D7D799] py-3 text-center font-['Montserrat'] text-xs font-semibold uppercase tracking-wide text-neutral-900 disabled:opacity-50"
+              >
+                {isAddingToCart ? dict.common.loading : dict.common.buyOneClick}
+              </button>
+            </div>
+            <FreeDeliveryProgress
+              cartTotal={basketTotal}
+              previewTotal={deliveryPreviewTotal}
+              compact
+            />
+          </div>
+        </div>
+      )}
+      <ImageLightbox
+        images={lightboxOpen ? photoUrls : null}
+        startIndex={lightboxStartIndex}
+        alt={product.name}
+        onClose={() => setLightboxOpen(false)}
+      />
     </section>
   );
 }

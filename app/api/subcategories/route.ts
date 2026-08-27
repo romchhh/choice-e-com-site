@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, parent_category_id } = body;
+    const { name, parent_category_id, name_ru } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json(
@@ -74,7 +74,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newSubcategory = await sqlPostSubcategory(name, categoryId);
+    const newSubcategory = await sqlPostSubcategory(
+      name,
+      categoryId,
+      typeof name_ru === "string" ? name_ru : name_ru == null ? null : undefined
+    );
     return NextResponse.json(newSubcategory, { status: 201 });
   } catch (error) {
     console.error("Failed to create subcategory:", error);

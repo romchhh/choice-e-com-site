@@ -139,14 +139,14 @@ export default function CatalogFiltersInline({
         <button
           type="button"
           onClick={clearAll}
-          className="flex-1 py-2.5 px-4 text-sm font-medium font-['Montserrat'] text-gray-800 bg-white border border-[#C4B59A] hover:bg-gray-50 rounded transition-colors"
+          className="flex-1 py-2.5 px-4 text-sm font-medium font-['Montserrat'] text-gray-800 bg-white border border-[#C4B59A] hover:bg-gray-50 rounded-full transition-colors"
         >
           {dict.catalog.clearFilters}
         </button>
         <button
           type="button"
           onClick={handleApply}
-          className="flex-1 py-2.5 px-4 text-sm font-semibold font-['Montserrat'] text-gray-900 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded transition-colors shadow-sm"
+          className="flex-1 py-2.5 px-4 text-sm font-semibold font-['Montserrat'] text-gray-900 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded-full transition-colors shadow-sm"
         >
           {dict.common.apply}
         </button>

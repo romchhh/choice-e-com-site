@@ -15,6 +15,7 @@ export interface Product {
   subtitle?: string | null;
   release_form?: string | null;
   course?: string | null;
+  course_days?: number | null;
   package_weight?: string | null;
   main_info?: string | null;
   short_description?: string | null;
@@ -23,6 +24,7 @@ export interface Product {
   indications_for_use?: string | null;
   benefits?: string | null;
   full_composition?: string | null;
+  composition_items?: { name: string; description: string }[] | null;
   usage_method?: string | null;
   contraindications?: string | null;
   storage_conditions?: string | null;

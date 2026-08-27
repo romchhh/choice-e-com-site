@@ -12,6 +12,7 @@ import {
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
+import CheckoutSuggestedProducts from "@/components/final-card/CheckoutSuggestedProducts";
 
 /** Calculate order subtotal from basket items */
 function getSubtotal(items: { price: number | string; quantity: number; discount_percentage?: number | string }[]) {
@@ -868,7 +869,7 @@ export default function FinalCard() {
           </h2>
           <LocaleLink
             href="/catalog"
-            className="w-full sm:w-80 h-14 sm:h-16 px-6 py-3 rounded-xl bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-base sm:text-lg uppercase tracking-tight inline-flex items-center justify-center text-center transition-colors"
+            className="w-full sm:w-80 h-14 sm:h-16 px-6 py-3 rounded-full bg-[#8B9A47] hover:bg-[#7a8940] text-white font-['Montserrat'] font-semibold text-base sm:text-lg uppercase tracking-tight inline-flex items-center justify-center text-center transition-colors"
           >
             {dict.common.continueShopping}
           </LocaleLink>
@@ -1082,7 +1083,10 @@ export default function FinalCard() {
 
                     {/* Ліва частина: назва, опис; знизу — кількість + ціна */}
                     <div className="min-w-0 flex-1 flex flex-col pr-8 sm:pr-10">
-                      <p className="font-['Montserrat'] font-bold text-[#3D1A00] uppercase text-base sm:text-lg leading-tight">
+                      <p
+                        className="font-['Montserrat'] font-bold text-[#3D1A00] uppercase text-base sm:text-lg leading-tight line-clamp-2"
+                        title={item.name}
+                      >
                         {item.name}
                       </p>
                       {(item as { subtitle?: string }).subtitle && (
@@ -1205,7 +1209,7 @@ export default function FinalCard() {
                           setPromoValidating(false);
                         }
                       }}
-                      className="w-full sm:w-auto sm:shrink-0 px-4 py-3 font-['Montserrat'] text-sm font-medium rounded-lg bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20 disabled:opacity-50 transition-colors text-center"
+                      className="w-full sm:w-auto sm:shrink-0 px-4 py-3 font-['Montserrat'] text-sm font-medium rounded-full bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20 disabled:opacity-50 transition-colors text-center"
                     >
                       {promoValidating ? dict.common.loading : dict.common.apply}
                     </button>
@@ -1243,6 +1247,8 @@ export default function FinalCard() {
               </div>
             </div>
           </div>
+
+          <CheckoutSuggestedProducts excludeIds={items.map((item) => item.id)} />
 
           {/* Обов'язково: Політика конфіденційності (галочка) + Публічна оферта */}
           <div className="pt-6">
@@ -1282,7 +1288,7 @@ export default function FinalCard() {
             <button
               type="submit"
               disabled={loading || !agreedToPolicy}
-              className="w-full sm:w-auto min-w-[300px] max-w-md py-4 px-10 bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-['Montserrat'] font-semibold uppercase text-base tracking-tight rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto min-w-[300px] max-w-md py-4 px-10 bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-['Montserrat'] font-semibold uppercase text-base tracking-tight rounded-full shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? dict.common.loading : dict.checkout.placeOrder}
             </button>

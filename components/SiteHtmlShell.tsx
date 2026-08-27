@@ -128,7 +128,7 @@ export default function SiteHtmlShell({ locale, children }: SiteHtmlShellProps) 
                     fallback={
                       <main
                         id="main-content"
-                        className="bg-[var(--background-warm-yellow)] mt-[var(--site-header-offset)] min-h-screen"
+                        className="bg-[var(--background-warm-yellow)] min-h-screen"
                       />
                     }
                   >

@@ -37,6 +37,12 @@ export function localizeProductFields<T extends Record<string, any>>(
     indications_for_use: pick(product.indications_for_use ?? product.indicationsForUse, product.indications_for_use_ru ?? product.indicationsForUseRu, locale),
     benefits: pick(product.benefits, product.benefits_ru ?? product.benefitsRu, locale),
     full_composition: pick(product.full_composition ?? product.fullComposition, product.full_composition_ru ?? product.fullCompositionRu, locale),
+    composition_items:
+      locale === "ru" &&
+      Array.isArray(product.composition_items_ru ?? product.compositionItemsRu) &&
+      (product.composition_items_ru ?? product.compositionItemsRu).length > 0
+        ? product.composition_items_ru ?? product.compositionItemsRu
+        : product.composition_items ?? product.compositionItems ?? null,
     usage_method: pick(product.usage_method ?? product.usageMethod, product.usage_method_ru ?? product.usageMethodRu, locale),
     contraindications: pick(product.contraindications, product.contraindications_ru ?? product.contraindicationsRu, locale),
     storage_conditions: pick(product.storage_conditions ?? product.storageConditions, product.storage_conditions_ru ?? product.storageConditionsRu, locale),

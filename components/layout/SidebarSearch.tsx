@@ -4,10 +4,14 @@ import LocaleLink from "@/components/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import { useProducts } from "@/lib/useProducts";
 import { catalogProductWord } from "@/lib/i18n/plural";
 import { localizeList } from "@/lib/i18n/localizeCatalog";
+import { localePath } from "@/lib/i18n/paths";
+import { filterProductsByQuery } from "@/lib/searchProducts";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface SearchSidebarProps {
   isOpen: boolean;
@@ -88,6 +92,7 @@ export default function SearchSidebar({
   setIsOpen,
 }: SearchSidebarProps) {
   const { dict, locale } = useLocale();
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -106,6 +111,8 @@ export default function SearchSidebar({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useBodyScrollLock(isOpen);
 
   // Focus input when sidebar opens
   useEffect(() => {
@@ -132,7 +139,7 @@ export default function SearchSidebar({
           const response = await fetch("/api/products/top-sale");
           if (response.ok) {
             const data = await response.json();
-            // Limit to 6-8 products
+            // Limit to 8 products for compact grid
             setPopularProductsRaw(data.slice(0, 8));
           }
         } catch (error) {
@@ -215,24 +222,13 @@ export default function SearchSidebar({
     return Array.from(suggestions).slice(0, MAX_AUTOCOMPLETE_SUGGESTIONS);
   }, [debouncedQuery, allProducts, searchHistory]);
 
-  // Sort products by relevance (exact matches first, then partial)
+  // Compact preview in sidebar; full list lives on /search
   const filteredProducts = useMemo(() => {
-    if (!query.trim()) return [];
-    
-    const lowerQuery = query.toLowerCase();
-    const exactMatches: Product[] = [];
-    const partialMatches: Product[] = [];
-    
-    allProducts.forEach((product) => {
-      const name = product.name.toLowerCase();
-      if (name.startsWith(lowerQuery)) {
-        exactMatches.push(product);
-      } else if (name.includes(lowerQuery)) {
-        partialMatches.push(product);
-      }
-    });
-    
-    return [...exactMatches, ...partialMatches];
+    return filterProductsByQuery(allProducts, query).slice(0, 6);
+  }, [allProducts, query]);
+
+  const totalMatches = useMemo(() => {
+    return filterProductsByQuery(allProducts, query).length;
   }, [allProducts, query]);
 
   // Handle search query change
@@ -241,20 +237,22 @@ export default function SearchSidebar({
     setShowSuggestions(value.length >= 2);
   };
 
-  // Handle search submission
-  const handleSearch = (searchQuery: string) => {
-    if (searchQuery.trim()) {
-      saveToSearchHistory(searchQuery);
-      setSearchHistory(getSearchHistory());
-      setQuery(searchQuery);
-      setShowSuggestions(false);
-    }
+  const goToSearchPage = (searchQuery: string) => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    saveToSearchHistory(q);
+    setSearchHistory(getSearchHistory());
+    setShowSuggestions(false);
+    setIsOpen(false);
+    router.push(localePath(`/search?q=${encodeURIComponent(q)}`, locale));
   };
 
-  // Handle suggestion click
+  const handleSearch = (searchQuery: string) => {
+    goToSearchPage(searchQuery);
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
-    handleSearch(suggestion);
-    inputRef.current?.focus();
+    goToSearchPage(suggestion);
   };
 
   // Handle keyboard navigation
@@ -263,8 +261,7 @@ export default function SearchSidebar({
       if (selectedSuggestionIndex >= 0 && autocompleteSuggestions[selectedSuggestionIndex]) {
         handleSuggestionClick(autocompleteSuggestions[selectedSuggestionIndex]);
       } else if (query.trim()) {
-        handleSearch(query);
-        setShowSuggestions(false);
+        goToSearchPage(query);
       }
     } else if (e.key === "Escape") {
       setShowSuggestions(false);
@@ -435,18 +432,28 @@ export default function SearchSidebar({
 
             {!loading && query && filteredProducts.length > 0 && (
               <>
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-3 flex items-center justify-between gap-2">
                   <span className="text-sm text-[#3D1A00]/70 font-medium font-['Montserrat']">
-                    {dict.catalog.found}: {filteredProducts.length}{" "}
-                    {catalogProductWord(filteredProducts.length, dict)}
+                    {dict.catalog.found}: {totalMatches}{" "}
+                    {catalogProductWord(totalMatches, dict)}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => goToSearchPage(query)}
+                    className="text-xs font-['Montserrat'] font-semibold text-[#8B9A47] hover:opacity-80"
+                  >
+                    {dict.searchPage.viewAll} →
+                  </button>
                 </div>
                 <ul className="flex flex-col gap-3">
                   {filteredProducts.map((product) => (
                     <li key={product.id}>
                       <LocaleLink
                         href={`/product/${product.slug ?? product.id}`}
-                        onClick={() => { handleSearch(query); setIsOpen(false); }}
+                        onClick={() => {
+                          saveToSearchHistory(query);
+                          setIsOpen(false);
+                        }}
                         className="flex items-center gap-4 p-3 rounded-xl border border-[#3D1A00]/10 hover:border-[#3D1A00]/20 hover:bg-[#3D1A00]/5 transition-all duration-200 group"
                       >
                         <div className="relative flex-shrink-0">
@@ -459,11 +466,14 @@ export default function SearchSidebar({
                           />
                         </div>
                         <div className="flex flex-col flex-1 min-w-0">
-                          <span className="font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors">
+                          <span
+                            className="truncate font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors"
+                            title={product.name}
+                          >
                             {highlightText(product.name, query)}
                           </span>
                           <span className="text-sm font-semibold text-[#8B9A47] mt-0.5 font-['Montserrat']">
-                            {product.price.toLocaleString()} ₴
+                            {product.price.toLocaleString("uk-UA")} ₴
                           </span>
                         </div>
                         <svg className="w-5 h-5 text-[#3D1A00]/40 group-hover:text-[#8B9A47] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,6 +483,15 @@ export default function SearchSidebar({
                     </li>
                   ))}
                 </ul>
+                {totalMatches > filteredProducts.length && (
+                  <button
+                    type="button"
+                    onClick={() => goToSearchPage(query)}
+                    className="mt-3 flex h-11 w-full items-center justify-center rounded-full bg-[#D7D799] font-['Montserrat'] text-sm font-semibold text-[#3D1A00]"
+                  >
+                    {dict.searchPage.viewAll} ({totalMatches})
+                  </button>
+                )}
               </>
             )}
 
@@ -483,7 +502,7 @@ export default function SearchSidebar({
                   <div>
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-base sm:text-lg font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight">
-                        Недавні пошуки
+                        {dict.searchPage.recent}
                       </h3>
                       <button
                         type="button"
@@ -512,7 +531,7 @@ export default function SearchSidebar({
                   <div>
                     <div className="mb-3">
                       <h3 className="text-base sm:text-lg font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight">
-                        Популярні запити
+                        {dict.searchPage.popularQueries}
                       </h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -531,11 +550,9 @@ export default function SearchSidebar({
                 )}
 
                 <div>
-                  <div className="mb-3">
-                    <h3 className="text-base sm:text-lg font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight">
-                      Люди часто цікавляться
-                    </h3>
-                  </div>
+                  <h3 className="mb-3 text-base sm:text-lg font-semibold font-['Montserrat'] text-[#3D1A00] uppercase tracking-tight">
+                    {dict.searchPage.recommended}
+                  </h3>
                   {loadingPopular ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
@@ -567,11 +584,14 @@ export default function SearchSidebar({
                               />
                             </div>
                             <div className="flex flex-col flex-1 min-w-0">
-                              <span className="font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors">
+                              <span
+                                className="truncate font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors"
+                                title={product.name}
+                              >
                                 {product.name}
                               </span>
                               <span className="text-sm font-semibold text-[#8B9A47] mt-0.5 font-['Montserrat']">
-                                {product.price.toLocaleString()} ₴
+                                {product.price.toLocaleString("uk-UA")} ₴
                               </span>
                             </div>
                             <svg className="w-5 h-5 text-[#3D1A00]/40 group-hover:text-[#8B9A47] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -7,11 +7,10 @@ import Image from "next/image";
 import { useCategories } from "@/lib/CategoriesProvider";
 import { localizedLabel } from "@/lib/i18n/localizeCatalog";
 
-// Same loading markup as Suspense fallback in page.tsx to avoid hydration mismatch
 function CategoriesLoadingPlaceholder() {
   const { dict } = useLocale();
   return (
-    <section className="w-full bg-[#FFFFFF] py-16 lg:py-20">
+    <section className="w-full bg-[#FFFFFF] py-12 lg:py-16">
       <div className="max-w-[1920px] mx-auto px-6">
         <p className="text-[#3D1A00] font-['Montserrat']">{dict.common.loading}</p>
       </div>
@@ -30,16 +29,13 @@ export default function CategoriesShowcase() {
   }, []);
 
   const scrollLeft = () => {
-    const container = scrollContainerRef.current;
-    if (container) container.scrollBy({ left: -320, behavior: "smooth" });
+    scrollContainerRef.current?.scrollBy({ left: -280, behavior: "smooth" });
   };
 
   const scrollRight = () => {
-    const container = scrollContainerRef.current;
-    if (container) container.scrollBy({ left: 320, behavior: "smooth" });
+    scrollContainerRef.current?.scrollBy({ left: 280, behavior: "smooth" });
   };
 
-  // Before mount or while loading: render same placeholder on server and client to avoid hydration error
   if (!mounted || loading) {
     return <CategoriesLoadingPlaceholder />;
   }
@@ -49,86 +45,117 @@ export default function CategoriesShowcase() {
   }
 
   return (
-    <section className="w-full bg-[#FFFFFF]">
+    <section
+      className="w-full bg-[#FFFFFF]"
+      aria-labelledby="home-categories-heading"
+    >
       <div className="max-w-[1920px] mx-auto px-6 lg:px-10 py-12 lg:py-16">
-        {/* Заголовок КАТЕГОРІЇ та стрілки */}
-        <div className="flex items-center justify-between gap-4 mb-8 lg:mb-10">
-          <h2 className="text-2xl lg:text-3xl font-bold font-['Montserrat'] uppercase tracking-tight text-[#3D1A00]">
-            {dict.home.categories}
-          </h2>
-          <div className="flex items-center gap-2">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4 lg:mb-8">
+          <div className="min-w-0 max-w-2xl">
+            <h2
+              id="home-categories-heading"
+              className="text-2xl font-bold font-['Montserrat'] uppercase tracking-tight text-[#3D1A00] lg:text-3xl"
+            >
+              {dict.home.categories}
+            </h2>
+            <p className="mt-2 font-['Montserrat'] text-sm text-[#3D1A00]/70 md:text-base">
+              {dict.home.categoriesLead}
+            </p>
+          </div>
+          <div className="hidden items-center gap-1 sm:flex">
             <button
+              type="button"
               onClick={scrollLeft}
-              className="p-2 text-[#3D1A00] hover:opacity-70 transition-opacity"
+              className="p-2 text-[#3D1A00] transition-opacity hover:opacity-70"
               aria-label="Прокрутити вліво"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
             <button
+              type="button"
               onClick={scrollRight}
-              className="p-2 text-[#3D1A00] hover:opacity-70 transition-opacity"
+              className="p-2 text-[#3D1A00] transition-opacity hover:opacity-70"
               aria-label="Прокрутити вправо"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Горизонтальний список: на мобільному 2 категорії, на десктопі 4 */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+          className="grid grid-cols-2 gap-x-4 gap-y-5 sm:flex sm:gap-5 sm:overflow-x-auto sm:scroll-smooth sm:pb-2 sm:scrollbar-hide"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {categories.map((category) => (
-            <LocaleLink
-              key={category.id}
-              href={`/catalog?categoryId=${category.id}`}
-              className="flex-shrink-0 w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4.5rem)/4)] group"
-              aria-label={`${dict.catalog.category} ${localizedLabel(category, locale)}`}
-            >
-              <div className="aspect-[3/4] w-full rounded-lg overflow-hidden bg-gray-200 mb-3 relative">
-                {category.mediaUrl && category.mediaType ? (
-                  category.mediaType === "video" ? (
-                    <video
-                      src={`/api/images/${category.mediaUrl}`}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                      loop
-                      muted
-                      playsInline
-                      preload="metadata"
-                    />
+          {categories.map((category) => {
+            const label = localizedLabel(category, locale);
+            return (
+              <LocaleLink
+                key={category.id}
+                href={`/catalog?categoryId=${category.id}`}
+                className="group w-full min-w-0 sm:w-[30%] sm:flex-shrink-0 md:w-[22%] lg:w-[calc((100%-3.75rem)/5)]"
+                aria-label={`${dict.catalog.category}: ${label}`}
+              >
+                <div className="relative mb-2.5 aspect-[3/4] w-full overflow-hidden rounded-lg bg-gray-200">
+                  {category.mediaUrl && category.mediaType ? (
+                    category.mediaType === "video" ? (
+                      <video
+                        src={`/api/images/${category.mediaUrl}`}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loop
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <Image
+                        src={`/api/images/${category.mediaUrl}`}
+                        alt={label}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 42vw, (max-width: 1024px) 22vw, 18vw"
+                      />
+                    )
                   ) : (
-                    <Image
-                      src={`/api/images/${category.mediaUrl}`}
-                      alt={localizedLabel(category, locale)}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="260px"
-                    />
-                  )
-                ) : (
-                  <div className="absolute inset-0 bg-gray-200" aria-hidden />
-                )}
-              </div>
-              <p className="text-[#3D1A00] font-['Montserrat'] font-semibold text-sm lg:text-base text-left">
-                {localizedLabel(category, locale)}
-              </p>
-            </LocaleLink>
-          ))}
+                    <div className="absolute inset-0 bg-gray-200" aria-hidden />
+                  )}
+                </div>
+                <p className="line-clamp-2 text-left font-['Montserrat'] text-sm font-semibold leading-snug text-[#3D1A00] lg:text-base">
+                  {label}
+                </p>
+              </LocaleLink>
+            );
+          })}
         </div>
 
-        {/* Весь каталог — справа внизу */}
-        <div className="flex justify-end mt-8 lg:mt-10">
+        <div className="mt-8 flex justify-end lg:mt-10">
           <LocaleLink
             href="/catalog"
-            className="inline-flex items-center gap-1 text-[#8B9A47] font-['Montserrat'] font-semibold hover:opacity-80 transition-opacity"
+            className="inline-flex items-center gap-1 font-['Montserrat'] font-semibold text-[#8B9A47] transition-opacity hover:opacity-80"
           >
-            Весь каталог
+            {dict.home.allCatalog}
             <span aria-hidden>→</span>
           </LocaleLink>
         </div>

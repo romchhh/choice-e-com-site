@@ -1,5 +1,7 @@
 import ProductServer from "@/components/product/ProductServer";
 import YouMightLike from "@/components/product/YouMightLike";
+import ProductReviewsTab from "@/components/product/ProductReviewsTab";
+import { toCatalogStyleProduct } from "@/lib/catalogStyleProduct";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import type { Locale } from "@/lib/i18n/config";
@@ -131,40 +133,23 @@ export async function ProductPageContent({
     ...shuffle(rest),
   ].slice(0, 8);
 
-  const suggestedProducts = ordered.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug ?? null,
-    price: p.price,
-    first_media: p.first_media ?? null,
-  }));
+  const mapRailProduct = (p: (typeof allProducts)[number]) =>
+    toCatalogStyleProduct(p);
+
+  const suggestedProducts = ordered.map(mapRailProduct);
 
   const boughtTogetherProducts = boughtTogetherIds.length
     ? allProducts
         .filter((p) => boughtTogetherIds.includes(p.id))
         .slice(0, 12)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          slug: p.slug ?? null,
-          price: p.price,
-          first_media: p.first_media ?? null,
-          description: (p as any).description ?? null,
-        }))
+        .map(mapRailProduct)
     : [];
 
   const pairProducts = pairTogetherIds.length
     ? allProducts
         .filter((p) => pairTogetherIds.includes(p.id))
         .slice(0, 12)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          slug: p.slug ?? null,
-          price: p.price,
-          first_media: p.first_media ?? null,
-          description: (p as any).description ?? null,
-        }))
+        .map(mapRailProduct)
     : [];
 
   (product as any).bought_together_products = boughtTogetherProducts;
@@ -178,6 +163,9 @@ export async function ProductPageContent({
       {pairProducts.length > 0 && (
         <YouMightLike title={dict.common.chooseInPair} suggestedProducts={pairProducts} />
       )}
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 pb-12 lg:pb-16">
+        <ProductReviewsTab productId={product.id} />
+      </div>
     </main>
   );
 }

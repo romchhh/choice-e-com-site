@@ -11,6 +11,10 @@ import ToggleSwitch from "@/components/admin/form/ToggleSwitch";
 import Image from "next/image";
 import { parseProductPageText } from "@/lib/parseProductFile";
 import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
+import CompositionItemsEditor from "@/components/admin/CompositionItemsEditor";
+import {
+  type CompositionItem,
+} from "@/lib/productComposition";
 
 interface Category {
   id: number;
@@ -22,6 +26,7 @@ export default function FormElements() {
   const [subtitle, setSubtitle] = useState("");
   const [releaseForm, setReleaseForm] = useState("");
   const [course, setCourse] = useState("");
+  const [courseDays, setCourseDays] = useState("");
   const [packageWeight, setPackageWeight] = useState("");
   const [mainInfo, setMainInfo] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -30,10 +35,12 @@ export default function FormElements() {
   const [indicationsForUse, setIndicationsForUse] = useState("");
   const [benefits, setBenefits] = useState("");
   const [fullComposition, setFullComposition] = useState("");
+  const [compositionItems, setCompositionItems] = useState<CompositionItem[]>([]);
   const [usageMethod, setUsageMethod] = useState("");
   const [contraindications, setContraindications] = useState("");
   const [storageConditions, setStorageConditions] = useState("");
   const [bestseller, setBestseller] = useState(false);
+  const [isNewArrival, setIsNewArrival] = useState(false);
   const [inStock, setInStock] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
@@ -207,6 +214,7 @@ export default function FormElements() {
           subtitle: subtitle || null,
           release_form: releaseForm || null,
           course: course || null,
+          course_days: courseDays ? Number(courseDays) || null : null,
           package_weight: packageWeight || null,
           main_info: mainInfo || null,
           short_description: shortDescription || null,
@@ -215,6 +223,7 @@ export default function FormElements() {
           indications_for_use: indicationsForUse || null,
           benefits: benefits || null,
           full_composition: fullComposition || null,
+          composition_items: compositionItems,
           usage_method: usageMethod || null,
           contraindications: contraindications || null,
           storage_conditions: storageConditions || null,
@@ -225,7 +234,7 @@ export default function FormElements() {
           stock: Number(stock) || 0,
           top_sale: bestseller,
           in_stock: inStock,
-          limited_edition: false,
+          limited_edition: isNewArrival,
           category_id: primaryCategoryId,
           subcategory_id: primarySubcategoryId,
           media: uploadedMedia,
@@ -262,6 +271,7 @@ export default function FormElements() {
       setStock("0");
       setMediaFiles([]);
       setBestseller(false);
+      setIsNewArrival(false);
       setInStock(true);
       setSelectedCategoryIds([]);
       setSelectedSubcategoryIds([]);
@@ -330,7 +340,7 @@ export default function FormElements() {
                     />
                   </div>
                   <div>
-                    <Label>Курс</Label>
+                    <Label>Курс (текст)</Label>
                     <Input
                       type="text"
                       value={course}
@@ -338,6 +348,20 @@ export default function FormElements() {
                       placeholder="Напр. 30 днів"
                     />
                   </div>
+                </div>
+                <div>
+                  <Label>Тривалість 1 упаковки (днів)</Label>
+                  <p className="mb-1 text-xs text-gray-500">
+                    Для калькулятора курсу на картці. Якщо порожньо — береться з
+                    тексту «Курс» (напр. «30 днів» → 30).
+                  </p>
+                  <Input
+                    type="number"
+                    value={courseDays}
+                    onChange={(e) => setCourseDays(e.target.value)}
+                    placeholder="30"
+                    min="1"
+                  />
                 </div>
 
                 <div>
@@ -586,18 +610,18 @@ export default function FormElements() {
               </div>
             </ComponentCard>
 
-            <ComponentCard title="Деталі товару" className="mt-4 sm:mt-6">
-              <div className="space-y-3 sm:space-y-4">
+            <ComponentCard title="Склад, застосування та ефект" className="mt-4 sm:mt-6">
+              <div className="space-y-5 sm:space-y-6">
+                <CompositionItemsEditor
+                  items={compositionItems}
+                  onChange={setCompositionItems}
+                />
                 <div>
-                  <Label>ДІЯ АКТИВНИХ КОМПОНЕНТІВ</Label>
-                  <TextArea
-                    value={mainAction}
-                    onChange={setMainAction}
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <Label>СКЛАД</Label>
+                  <Label>СКЛАД (текстом, опційно)</Label>
+                  <p className="mb-1 text-xs text-gray-500">
+                    Якщо не додаєте окремі компоненти вище — можна вписати склад
+                    суцільним текстом.
+                  </p>
                   <TextArea
                     value={fullComposition}
                     onChange={setFullComposition}
@@ -606,10 +630,28 @@ export default function FormElements() {
                   />
                 </div>
                 <div>
-                  <Label>СПОСІБ ВИКОРИСТАННЯ</Label>
+                  <Label>СПОСІБ ЗАСТОСУВАННЯ / ДОЗУВАННЯ</Label>
                   <TextArea
                     value={usageMethod}
                     onChange={setUsageMethod}
+                    rows={4}
+                    placeholder="Як приймати, дозування, курс"
+                  />
+                </div>
+                <div>
+                  <Label>ОЧІКУВАНИЙ ЕФЕКТ</Label>
+                  <TextArea
+                    value={mainAction}
+                    onChange={setMainAction}
+                    rows={4}
+                    placeholder="Що дає продукт, результат курсу"
+                  />
+                </div>
+                <div>
+                  <Label>ДОДАТКОВІ ПЕРЕВАГИ (опційно)</Label>
+                  <TextArea
+                    value={benefits}
+                    onChange={setBenefits}
                     rows={3}
                   />
                 </div>
@@ -629,6 +671,10 @@ export default function FormElements() {
                 <div className="flex items-center justify-between">
                   <Label className="mb-0">Бестселлер</Label>
                   <ToggleSwitch enabled={bestseller} setEnabled={setBestseller} label="Бестселлер" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="mb-0">Новинка Choice</Label>
+                  <ToggleSwitch enabled={isNewArrival} setEnabled={setIsNewArrival} label="Новинка" />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label className="mb-0">В наявності</Label>

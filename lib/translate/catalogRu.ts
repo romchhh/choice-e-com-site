@@ -1,6 +1,11 @@
 import { prisma } from "../prisma";
 import { translateFieldsUkToRu } from "./freeTranslate";
 import { invalidateCategoriesCache, invalidateProductsCache } from "../revalidate";
+import {
+  compositionItemsToPlainText,
+  normalizeCompositionItems,
+  type CompositionItem,
+} from "../productComposition";
 
 const PRODUCT_TEXT_KEYS = [
   "name",
@@ -60,13 +65,40 @@ export async function syncProductRuTranslation(
     if (ua != null && String(ua).trim()) toTranslate[key] = ua;
   }
 
-  if (Object.keys(toTranslate).length === 0) return;
+  const uaItems = normalizeCompositionItems(product.compositionItems);
+  const existingRuItems = normalizeCompositionItems(product.compositionItemsRu);
+  const needsCompositionItems =
+    uaItems.length > 0 && (options?.force || existingRuItems.length === 0);
 
-  const translated = await translateFieldsUkToRu(toTranslate);
-  const data: Record<string, string | null> = {};
+  if (Object.keys(toTranslate).length === 0 && !needsCompositionItems) return;
+
+  let translated: Record<string, string | null> = {};
+  if (Object.keys(toTranslate).length > 0) {
+    translated = await translateFieldsUkToRu(toTranslate);
+  }
+
+  const data: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(translated)) {
     const ruField = PRODUCT_RU_MAP[key as ProductTextKey];
     if (ruField && value != null) data[ruField] = value;
+  }
+
+  if (needsCompositionItems) {
+    const ruItems: CompositionItem[] = [];
+    for (const item of uaItems) {
+      const fields = await translateFieldsUkToRu({
+        name: item.name,
+        description: item.description || null,
+      });
+      ruItems.push({
+        name: fields.name || item.name,
+        description: fields.description || item.description,
+      });
+    }
+    data.compositionItemsRu = ruItems;
+    if (!data.fullCompositionRu) {
+      data.fullCompositionRu = compositionItemsToPlainText(ruItems);
+    }
   }
 
   if (Object.keys(data).length === 0) return;
@@ -82,10 +114,15 @@ export async function syncCategoryRuTranslation(
   if (!category) return;
 
   const fields: Record<string, string | null | undefined> = {};
-  if (options?.force || !category.nameRu) fields.name = category.name;
-  if (options?.force || !category.descriptionRu) {
+  if (options?.force || !category.nameRu?.trim()) fields.name = category.name;
+  if (options?.force || !category.descriptionRu?.trim()) {
     fields.description = category.description;
   }
+
+  const hasWork = Object.values(fields).some(
+    (v) => v != null && String(v).trim() !== ""
+  );
+  if (!hasWork) return;
 
   const translated = await translateFieldsUkToRu(fields);
   const data: { nameRu?: string | null; descriptionRu?: string | null } = {};

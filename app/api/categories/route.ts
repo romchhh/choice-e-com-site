@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, priority, mediaType, mediaUrl, description } = body;
+    const { name, priority, mediaType, mediaUrl, description, name_ru, description_ru } =
+      body;
 
     if (!name) {
       return NextResponse.json(
@@ -49,11 +50,21 @@ export async function POST(req: NextRequest) {
     }
 
     const newCategory = await sqlPostCategory(
-      name, 
+      name,
       priority ?? 0,
       mediaType || null,
       mediaUrl || null,
-      typeof description === "string" ? description : description == null ? null : String(description)
+      typeof description === "string"
+        ? description
+        : description == null
+          ? null
+          : String(description),
+      typeof name_ru === "string" ? name_ru : name_ru == null ? null : String(name_ru),
+      typeof description_ru === "string"
+        ? description_ru
+        : description_ru == null
+          ? null
+          : String(description_ru)
     );
     
     // Revalidate cache after creating new category

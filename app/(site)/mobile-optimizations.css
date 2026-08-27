@@ -2,9 +2,13 @@
 
 /* Reduce animations on mobile for better performance */
 @media (max-width: 768px) {
-  * {
+  *:not(.hero-benefits-marquee) {
     animation-duration: 0.2s !important;
     transition-duration: 0.2s !important;
+  }
+
+  .hero-benefits-marquee {
+    animation: hero-benefits-marquee 100s linear infinite !important;
   }
   
   /* Disable hover effects on touch devices */

@@ -59,9 +59,6 @@ export default function Footer() {
             <p className="text-sm lg:text-base text-gray-600 leading-relaxed w-full text-left tracking-normal">
               {dict.brand.footerLead}
             </p>
-            <p className="text-xs text-gray-500 text-left tracking-normal">
-              {dict.brand.footerLegal}
-            </p>
           </div>
 
           <div className="flex flex-col gap-5 items-center md:items-start max-w-md mx-auto md:mx-0">
@@ -81,7 +78,7 @@ export default function Footer() {
               </LocaleLink>
               <LocaleLink
                 href="/partnership"
-                className="text-sm lg:text-base text-gray-600 hover:text-black transition-colors duration-300 whitespace-nowrap tracking-normal"
+                className="text-sm lg:text-base font-medium text-[#3D1A00] underline underline-offset-4 hover:opacity-80 transition-opacity duration-300 whitespace-nowrap tracking-normal"
               >
                 {dict.nav.partnership}
               </LocaleLink>
@@ -228,44 +225,64 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-10 border-t border-[#3D1A00]/10">
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 mb-4 text-center md:text-left font-['Montserrat']">
-            {dict.footer.paymentMethods}
-          </p>
-          <ul
-            className="flex flex-wrap items-center justify-center md:justify-start gap-6 md:gap-8 list-none p-0 m-0"
-            aria-label={dict.footer.paymentSystemsAria}
-          >
-            {PAYMENT_LOGOS.map(({ src, alt, width, height, imageClassName }) => (
-              <li key={src} className="flex items-center">
-                <Image
-                  src={src}
-                  alt={alt}
-                  width={width}
-                  height={height}
-                  className={imageClassName}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start md:gap-12 lg:gap-16">
+            <div>
+              <p className="mb-4 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 md:text-left font-['Montserrat']">
+                {dict.footer.paymentMethods}
+              </p>
+              <ul
+                className="m-0 flex list-none flex-wrap items-center justify-center gap-6 p-0 md:justify-start md:gap-8"
+                aria-label={dict.footer.paymentSystemsAria}
+              >
+                {PAYMENT_LOGOS.map(({ src, alt, width, height, imageClassName }) => (
+                  <li key={src} className="flex items-center">
+                    <Image
+                      src={src}
+                      alt={alt}
+                      width={width}
+                      height={height}
+                      className={imageClassName}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="max-w-xl text-center md:ml-auto md:text-right">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500 font-['Montserrat']">
+                {dict.footer.legalTitle}
+              </p>
+              <p className="mt-3 text-xs text-gray-700 sm:text-sm font-['Montserrat']">
+                {dict.footer.legalFop}
+              </p>
+              <p className="mt-1 text-xs text-gray-600 font-['Montserrat']">
+                {dict.footer.legalTaxId}
+              </p>
+              <p className="mt-1 break-all text-xs text-gray-600 font-['Montserrat']">
+                {dict.footer.legalIban}
+              </p>
+              <p className="mt-1 text-xs text-gray-600 font-['Montserrat']">
+                {dict.footer.legalBank}
+              </p>
+              <p className="mt-3 text-xs text-gray-500 font-['Montserrat'] tracking-normal">
+                {dict.brand.footerLegal}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="border-t border-[#3D1A00]/10">
         <div className="max-w-[1920px] mx-auto px-6 py-5">
-          <div className="flex flex-col items-center justify-center gap-2 text-center">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs lg:text-sm text-gray-500">
-              <span className="tracking-normal">{dict.brand.footerLegal}</span>
-            </div>
-            <div>
-              <a
-                href="https://new.telebots.site/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm sm:text-base font-semibold font-['Montserrat'] text-black hover:text-gray-700 transition-colors tracking-wide"
-              >
-                {dict.footer.developedBy}
-              </a>
-            </div>
+          <div className="text-center md:text-left">
+            <a
+              href="https://new.telebots.site/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold tracking-wide text-black transition-colors hover:text-gray-700 sm:text-base font-['Montserrat']"
+            >
+              {dict.footer.developedBy}
+            </a>
           </div>
         </div>
       </div>

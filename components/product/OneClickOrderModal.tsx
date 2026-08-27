@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDiscountedPrice } from "@/lib/pricing";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const DEFAULT_SIZE = "—";
 
@@ -38,6 +39,8 @@ export default function OneClickOrderModal({
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
@@ -227,7 +230,7 @@ export default function OneClickOrderModal({
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-6 rounded-lg bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-semibold uppercase text-sm tracking-tight border border-[#b8b87a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 px-6 rounded-full bg-[#D7D799] hover:bg-[#c5c58a] text-[#3D1A00] font-semibold uppercase text-sm tracking-tight border border-[#b8b87a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Оформлення..." : "Оформити замовлення"}
           </button>

@@ -32,10 +32,11 @@ interface UseProductsOptions {
   subcategory?: string | null;
   topSale?: boolean;
   limitedEdition?: boolean;
+  promo?: boolean;
 }
 
 export function useProducts(options: UseProductsOptions = {}) {
-  const { category, subcategory, topSale, limitedEdition } = options;
+  const { category, subcategory, topSale, limitedEdition, promo } = options;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +50,10 @@ export function useProducts(options: UseProductsOptions = {}) {
         let url = "/api/products";
         let cacheKey = CACHE_KEYS.PRODUCTS;
 
-        if (topSale) {
+        if (promo) {
+          url = "/api/products/promo";
+          cacheKey = "products_promo";
+        } else if (topSale) {
           url = "/api/products/top-sale";
           cacheKey = "products_top_sale";
         } else if (limitedEdition) {
@@ -85,7 +89,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     }
 
     fetchProducts();
-  }, [category, subcategory, topSale, limitedEdition]);
+  }, [category, subcategory, topSale, limitedEdition, promo]);
 
   return { products, loading, error };
 }

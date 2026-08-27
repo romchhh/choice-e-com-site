@@ -3,24 +3,22 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import LocaleLink from "@/components/i18n/LocaleLink";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import Image from "next/image";
-import { useAppContext } from "@/lib/GeneralProvider";
 import { useBasket } from "@/lib/BasketProvider";
-import SidebarMenu from "../layout/SidebarMenu";
-import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import ProductSkeleton from "./ProductSkeleton";
 import { useSearchParams } from "next/navigation";
-import { getDiscountedPrice, getProductPriceDisplay } from "@/lib/pricing";
+import { getDiscountedPrice } from "@/lib/pricing";
 import {
   GA4_BRAND,
   GA4_CURRENCY,
   GA4_VERTICAL,
   pushGA4EcommerceEvent,
 } from "@/lib/ga4Ecommerce";
-import { SITE_STORE_NAME } from "@/lib/siteBrand";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
 import { catalogProductWord } from "@/lib/i18n/plural";
-import { localizeList } from "@/lib/i18n/localizeCatalog";
+import { localizeList, localizedLabel } from "@/lib/i18n/localizeCatalog";
+import CatalogStyleProductCard from "@/components/product/CatalogStyleProductCard";
+import OneClickOrderModal from "@/components/product/OneClickOrderModal";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface Product {
   id: number;
@@ -40,6 +38,13 @@ interface Product {
   is_promo?: boolean;
   free_delivery_badge?: boolean;
   gift_product_id?: number | null;
+  gift_product?: {
+    id: number;
+    name: string;
+    name_ru?: string | null;
+    slug?: string | null;
+    price?: number;
+  } | null;
   category_id?: number | null;
   category_ids?: number[] | null;
    subcategory_id?: number | null;
@@ -85,7 +90,6 @@ export default function CatalogClient({
   pageIntro,
   activeCategoryLabel,
 }: CatalogClientProps) {
-  const { isSidebarOpen, setIsSidebarOpen } = useAppContext();
   const { addItem } = useBasket();
   const { dict, locale } = useLocale();
   const numberLocale = locale === "ru" ? "ru-RU" : "uk-UA";
@@ -97,6 +101,7 @@ export default function CatalogClient({
   );
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  useBodyScrollLock(mobileFiltersOpen);
   const [sortOrder, setSortOrder] = useState<"recommended" | "newest" | "asc" | "desc" | "sale">("recommended");
   const [promoOnly, setPromoOnly] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<number[]>(
@@ -282,6 +287,7 @@ export default function CatalogClient({
   }, [filteredProducts, sortOrder]);
 
   const [visibleCount, setVisibleCount] = useState(9);
+  const [oneClickProduct, setOneClickProduct] = useState<Product | null>(null);
   const visibleProducts = useMemo(
     () => sortedProducts.slice(0, visibleCount),
     [sortedProducts, visibleCount]
@@ -344,6 +350,12 @@ export default function CatalogClient({
       setBasketError(message);
       setTimeout(() => setBasketError(null), 5000);
     }
+  };
+
+  const handleOneClick = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOneClickProduct(product);
   };
 
   const handleApplyFilters = () => {
@@ -633,13 +645,13 @@ export default function CatalogClient({
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={handleClearFilters}
-                    className="flex-1 py-2.5 px-4 border border-gray-300 rounded text-sm font-semibold font-['Montserrat'] text-gray-700 hover:border-gray-500 hover:text-[#3D1A00] transition-colors"
+                    className="flex-1 py-2.5 px-4 border border-gray-300 rounded-full text-sm font-semibold font-['Montserrat'] text-gray-700 hover:border-gray-500 hover:text-[#3D1A00] transition-colors"
                   >
                     {dict.common.reset}
                   </button>
                   <button
                     onClick={handleApplyFilters}
-                    className="flex-1 py-2.5 px-4 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded text-sm font-semibold font-['Montserrat'] transition-colors"
+                    className="flex-1 py-2.5 px-4 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded-full text-sm font-semibold font-['Montserrat'] transition-colors"
                   >
                     {dict.common.apply}
                   </button>
@@ -652,7 +664,11 @@ export default function CatalogClient({
         {/* Основний контент */}
         <div className="flex gap-8 lg:gap-10 items-start">
           {/* Sidebar фільтри — тільки десктоп */}
-          <aside className="hidden lg:flex flex-col gap-6 w-[260px] flex-shrink-0">
+          <aside className="hidden lg:block w-[280px] xl:w-[300px] flex-shrink-0 self-start sticky top-[calc(var(--site-header-offset)+1rem)] z-20">
+            <div className="flex max-h-[calc(100dvh-var(--site-header-offset)-2rem)] flex-col gap-6 overflow-y-auto overscroll-contain rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_4px_24px_rgba(61,26,0,0.06)]">
+              <h2 className="border-b border-[#3D1A00]/10 pb-3 text-sm font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00]">
+                {dict.common.filters}
+              </h2>
             {/* Ціна */}
             <div>
               <h2 className="text-base font-extrabold font-['Montserrat'] uppercase tracking-widest text-[#3D1A00] mb-3">
@@ -822,19 +838,20 @@ export default function CatalogClient({
             </div>
 
             {/* Кнопки фільтрів */}
-            <div className="flex gap-3">
+            <div className="sticky bottom-0 -mx-1 flex gap-3 border-t border-neutral-200 bg-white pt-4">
               <button
                 onClick={handleClearFilters}
-                className="flex-1 py-2.5 px-4 border border-gray-300 rounded text-sm font-semibold font-['Montserrat'] text-gray-700 hover:border-gray-500 hover:text-[#3D1A00] transition-colors"
+                className="flex-1 rounded-full border border-[#C4B59A] bg-white py-2.5 px-4 text-sm font-semibold text-gray-700 transition-colors font-['Montserrat'] hover:border-gray-500 hover:text-[#3D1A00]"
               >
                 {dict.common.reset}
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="flex-1 py-2.5 px-4 bg-[#8B9A47] hover:bg-[#7a8940] text-white rounded text-sm font-semibold font-['Montserrat'] transition-colors"
+                className="flex-1 rounded-full bg-[#8B9A47] py-2.5 px-4 text-sm font-semibold text-white transition-colors font-['Montserrat'] hover:bg-[#7a8940]"
               >
                 {dict.common.apply}
               </button>
+            </div>
             </div>
           </aside>
 
@@ -912,157 +929,37 @@ export default function CatalogClient({
                 </div>
               ) : (
                 visibleProducts.map((product, index) => {
-                  const outOfStock =
-                    product.in_stock === false ||
-                    (typeof product.stock === "number" && product.stock <= 0);
-                  const { displayPrice, strikePrice, discountBadgePct } =
-                    getProductPriceDisplay(product);
-                  const rawDesc = product.description
-                    ? product.description.replace(/<[^>]*>/g, "").trim()
-                    : "";
-                  const shortDesc =
-                    rawDesc.length > 60 ? rawDesc.slice(0, 60).trim() + "…" : rawDesc || null;
+                  const giftLocalized = product.gift_product
+                    ? {
+                        ...product.gift_product,
+                        name: localizedLabel(product.gift_product, locale),
+                      }
+                    : null;
 
                   return (
-                    <LocaleLink
-                      href={`/product/${(product.slug && String(product.slug).trim()) ? product.slug : product.id}`}
+                    <CatalogStyleProductCard
                       key={product.id}
-                      scroll={false}
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-                        }
+                      product={{ ...product, gift_product: giftLocalized }}
+                      index={index}
+                      numberLocale={numberLocale}
+                      onAddToCart={handleAddToCart}
+                      onOneClick={handleOneClick}
+                      labels={{
+                        addToCart: dict.common.addToCart,
+                        buyOneClick: dict.common.buyOneClick,
+                        outOfStock: dict.common.outOfStock,
+                        loading: dict.common.loading,
+                        uah: dict.common.uah,
+                        productPackage: dict.brand.productPackage,
+                        productCourse: dict.brand.productCourse,
+                        gift: dict.common.gift,
+                        promo: dict.common.promo,
+                        hit: dict.common.hit,
+                        giftToProduct: dict.common.giftToProduct,
+                        free: dict.common.free,
+                        dietitian: dict.common.dietitian,
                       }}
-                      className="group flex flex-col bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                    >
-                      {/* Зображення 3:4 */}
-                      <div className="relative w-full aspect-[3/4] bg-gray-50 overflow-hidden">
-                        {product.first_media?.type === "video" ? (
-                          <video
-                            src={`/api/images/${product.first_media.url}`}
-                            className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                            loop
-                            muted
-                            playsInline
-                            autoPlay
-                            preload="none"
-                          />
-                        ) : (
-                          <Image
-                            src={getProductImageSrc(product.first_media)}
-                            alt={`${product.name} — ${SITE_STORE_NAME}`}
-                            className="z-0 object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                            fill
-                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
-                            loading={index < 9 ? "eager" : "lazy"}
-                            priority={index < 3}
-                            quality={index < 9 ? 85 : 75}
-                            placeholder="blur"
-                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-                          />
-                        )}
-                        {/* Бейдж знижки (% або через стару ціну) */}
-                        {discountBadgePct != null && (
-                          <span className="absolute left-2 top-2 z-20 text-[10px] font-semibold font-['Montserrat'] text-amber-800/95 bg-amber-100/90 px-1.5 py-0.5 rounded">
-                            −{discountBadgePct}%
-                          </span>
-                        )}
-
-                        {/* Подарунок — зверху справа, щоб не перетинав плашки знизу */}
-                        {product.gift_product_id != null && product.gift_product_id > 0 && (
-                          <span className="absolute right-2 top-2 z-20 text-[10px] font-semibold font-['Montserrat'] text-[#3D1A00] bg-white/90 border border-[#3D1A00]/15 px-1.5 py-0.5 rounded shadow-sm">
-                            {dict.common.gift}
-                          </span>
-                        )}
-
-                        {/* Плашки на фото, знизу — ширина за текстом */}
-                        {(product.is_promo === true ||
-                          product.is_hit === true ||
-                          product.dietitian_approved === true ||
-                          product.free_delivery_badge === true) && (
-                          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/45 via-black/15 to-transparent px-2 pb-2 pt-8 sm:px-2.5 sm:pb-2.5 sm:pt-10">
-                            <div className="flex flex-wrap gap-2">
-                              {product.is_promo === true && (
-                                <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-[#3D1A00]/12 bg-[#D7D799] px-2.5 py-1.5 text-[11px] font-bold font-['Montserrat'] uppercase tracking-wide text-[#3D1A00] shadow-md shadow-black/20">
-                                  {dict.common.promo}
-                                </span>
-                              )}
-                              {product.is_hit === true && (
-                                <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg bg-[#3D1A00] px-2.5 py-1.5 text-[11px] font-bold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/25">
-                                  {dict.common.hit}
-                                </span>
-                              )}
-                              {product.dietitian_approved === true && (
-                                <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border-2 border-[#3D1A00]/20 bg-white px-2.5 py-1.5 text-left text-[10px] font-bold font-['Montserrat'] leading-snug tracking-tight text-[#3D1A00] shadow-md shadow-black/15 sm:text-[11px]">
-                                  {dict.common.dietitian}
-                                </span>
-                              )}
-                              {product.free_delivery_badge === true && (
-                                <span className="inline-flex w-fit max-w-full shrink-0 items-center rounded-lg border border-emerald-800/25 bg-emerald-50/95 px-2.5 py-1.5 text-left text-[9px] font-bold font-['Montserrat'] leading-snug tracking-tight text-emerald-900 shadow-md shadow-black/10 sm:text-[10px]">
-                                  {dict.brand.freeDelivery}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Інфо */}
-                      <div className="p-4 flex flex-col gap-1 flex-1">
-                        <h3 className="font-['Montserrat'] font-light text-lg sm:text-xl md:text-2xl leading-tight tracking-[-0.02em] text-[#3D1A00] break-words line-clamp-2">
-                          {product.name}
-                        </h3>
-                        {shortDesc && (
-                          <p className="font-['Montserrat'] font-light text-[11px] leading-[194%] tracking-[-0.02em] text-[#3D1A00] align-middle line-clamp-2">
-                            {shortDesc}
-                          </p>
-                        )}
-                        {(product.package_weight || product.course) && (
-                          <div className="font-['Montserrat'] text-[10px] sm:text-[11px] leading-snug text-[#3D1A00]/75 space-y-0.5">
-                            {product.package_weight ? (
-                              <p>
-                                <span className="font-semibold text-[#3D1A00]/90">
-                                  {dict.brand.productPackage}:
-                                </span>{" "}
-                                {product.package_weight}
-                              </p>
-                            ) : null}
-                            {product.course ? (
-                              <p>
-                                <span className="font-semibold text-[#3D1A00]/90">
-                                  {dict.brand.productCourse}:
-                                </span>{" "}
-                                {product.course}
-                              </p>
-                            ) : null}
-                          </div>
-                        )}
-                        <div className="mt-auto pt-3 flex items-center justify-between gap-2">
-                          <div className="flex flex-col leading-none space-y-0.5">
-                            {strikePrice != null && (
-                              <span className="font-['Montserrat'] font-normal text-sm sm:text-base lg:text-xl leading-none tracking-[-0.02em] text-[#3D1A00]/70 line-through">
-                                {strikePrice.toLocaleString(numberLocale)} {dict.common.uah}
-                              </span>
-                            )}
-                            <span className="font-['Montserrat'] font-normal text-lg sm:text-xl lg:text-3xl leading-none tracking-[-0.02em] text-[#3D1A00] align-middle">
-                              {displayPrice.toLocaleString(numberLocale)} {dict.common.uah}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            disabled={outOfStock}
-                            onClick={outOfStock ? undefined : (e) => handleAddToCart(e, product)}
-                            className={`py-2 px-4 text-xs sm:text-sm font-semibold font-['Montserrat'] rounded-full transition-colors whitespace-nowrap ${
-                              outOfStock
-                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                : "bg-[#8B9A47] hover:bg-[#7a8940] text-white"
-                            }`}
-                          >
-                            {outOfStock ? dict.common.outOfStock : dict.common.addToCart}
-                          </button>
-                        </div>
-                      </div>
-                    </LocaleLink>
+                    />
                   );
                 })
               )}
@@ -1085,7 +982,7 @@ export default function CatalogClient({
               <div className="mt-10 flex justify-center">
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 9)}
-                  className="px-8 py-3 bg-[#3D1A00] text-white font-semibold font-['Montserrat'] uppercase tracking-wider hover:bg-[#3D1A00]/90 transition-colors rounded-lg min-h-[44px]"
+                  className="px-8 py-3 bg-[#3D1A00] text-white font-semibold font-['Montserrat'] uppercase tracking-wider hover:bg-[#3D1A00]/90 transition-colors rounded-full min-h-[44px]"
                 >
                   {dict.common.more}
                 </button>
@@ -1095,7 +992,22 @@ export default function CatalogClient({
         </div>
       </section>
 
-      <SidebarMenu isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      {oneClickProduct && (
+        <OneClickOrderModal
+          open={!!oneClickProduct}
+          onClose={() => setOneClickProduct(null)}
+          product={{
+            id: oneClickProduct.id,
+            name: oneClickProduct.name,
+            price: oneClickProduct.price,
+            discount_percentage: oneClickProduct.discount_percentage,
+            in_stock: oneClickProduct.in_stock,
+            stock: oneClickProduct.stock,
+          }}
+          quantity={1}
+        />
+      )}
+
     </>
   );
 }

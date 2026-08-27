@@ -12,9 +12,19 @@ import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import SidebarBasket from "./SidebarBasket";
 import SidebarSearch from "./SidebarSearch";
 import SidebarMenu from "./SidebarMenu";
+import CallbackRequestModal from "./CallbackRequestModal";
 import { SITE_WORDMARK } from "@/lib/siteBrand";
-import { stripLocalePrefix } from "@/lib/i18n/paths";
+import { siteContact } from "@/lib/siteContact";
 import { localizedLabel } from "@/lib/i18n/localizeCatalog";
+import { stripLocalePrefix } from "@/lib/i18n/paths";
+
+const ICON_FILTER_DARK =
+  "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)";
+
+const ICON_FILTER_LIGHT = "brightness(0) invert(1)";
+
+const NAV_LINK_CLASS =
+  "relative z-10 inline-block cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] px-3 py-1.5 rounded-full text-[#3D1A00] transition-colors duration-200 hover:bg-[#3D1A00] hover:text-white";
 
 interface Subcategory {
   id: number;
@@ -75,22 +85,59 @@ export default function Header() {
   const [categoryLeftPositions, setCategoryLeftPositions] = useState<Map<number, number>>(new Map());
   const [infoLeftPosition, setInfoLeftPosition] = useState<number>(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [onHero, setOnHero] = useState(false);
+  const [callbackOpen, setCallbackOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
 
-  const isHome = stripLocalePrefix(pathname || "/") === "/";
-  const isHeroMode = isHome && !isScrolled;
-  // Коли бургер відкритий — хедер завжди білий (навіть якщо був прозорий)
-  const headerTransparent = isHeroMode && !isSidebarOpen;
+  const isHomePage = stripLocalePrefix(pathname || "/") === "/";
+  const overlayOpen =
+    isSidebarOpen || isBasketOpen || isSearchOpen || callbackOpen;
+  const mobileHeroTransparent = isHomePage && onHero && !overlayOpen;
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // init
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const el = headerRef.current;
+    if (!el) return;
+
+    const syncHeaderOffset = () => {
+      document.documentElement.style.setProperty(
+        "--site-header-offset",
+        `${el.offsetHeight}px`
+      );
+    };
+
+    syncHeaderOffset();
+    const observer = new ResizeObserver(syncHeaderOffset);
+    observer.observe(el);
+    window.addEventListener("resize", syncHeaderOffset);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", syncHeaderOffset);
+    };
+  }, [pathname, locale]);
+
+  useEffect(() => {
+    const updateScrollState = () => {
+      const y = window.scrollY;
+      setIsScrolled(y > 12);
+      setOnHero(isHomePage && y < 6);
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      window.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [isHomePage, pathname]);
 
   // Скидаємо стан хедера при зміні мови/шляху — інакше «нашарування» після UA↔RU
   useEffect(() => {
-    setIsScrolled(window.scrollY > 20);
+    setIsScrolled(window.scrollY > 12);
+    setOnHero(
+      stripLocalePrefix(pathname || "/") === "/" && window.scrollY < 6
+    );
     setHoveredCategoryId(null);
     setInfoMenuOpen(false);
     setPinnedCatalog(false);
@@ -196,10 +243,35 @@ export default function Header() {
 
   return (
     <>
-      <header
-        className={`max-w-[1920px] mx-auto fixed top-0 left-1/2 transform -translate-x-1/2 w-full z-50 transition-all duration-300 ${
-          headerTransparent ? "bg-transparent text-white shadow-none" : "bg-white text-[#3D1A00] shadow-md"
+      {/*
+        While an overlay locks body scroll, sticky stops working and the header
+        scrolls away with the page — so keep it fixed for the overlay lifetime.
+      */}
+      {overlayOpen ? (
+        <div
+          className="pointer-events-none w-full shrink-0"
+          style={{ height: "var(--site-header-offset)" }}
+          aria-hidden
+        />
+      ) : null}
+      <div
+        className={`${
+          overlayOpen ? "fixed inset-x-0 top-0" : "sticky top-0"
+        } z-50 w-full transition-all duration-300 ${
+          mobileHeroTransparent
+            ? "max-lg:border-b max-lg:border-transparent max-lg:bg-transparent max-lg:shadow-none lg:border-b lg:border-[#3D1A00]/20 lg:bg-[#FFF9F0]"
+            : "border-b border-[#3D1A00]/20 bg-[#FFF9F0]"
+        } ${
+          mobileHeroTransparent
+            ? "lg:shadow-[0_2px_10px_rgba(61,26,0,0.06)]"
+            : isScrolled
+              ? "shadow-[0_8px_24px_rgba(61,26,0,0.12)]"
+              : "shadow-[0_2px_10px_rgba(61,26,0,0.06)]"
         }`}
+      >
+      <header
+        ref={headerRef}
+        className="mx-auto w-full max-w-[1920px] text-[#3D1A00]"
         onMouseEnter={() => {
           cancelCatalogMenuClose();
         }}
@@ -208,51 +280,123 @@ export default function Header() {
         }}
       >
         {/* === WRAPPER: everything inside shares same bg and styles === */}
-        <div className={`w-full transition-all duration-300 ${headerTransparent ? "shadow-none" : "shadow-md"}`}>
-          {/* Промо-смуга — однакова на мобільній та десктопній версії */}
-          <div className="flex justify-center bg-white text-[#3D1A00] border-b border-[#3D1A00]/10">
-            <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-10 flex items-center justify-center min-h-8 py-1.5">
-              <p className="text-[10px] sm:text-xs font-['Montserrat'] font-semibold tracking-wide text-center uppercase leading-tight">
-                {dict.brand.freeDelivery}
-              </p>
-            </div>
-          </div>
-          {/* Top info bar — роздільна лінія тільки в межах контенту (не на весь екран) */}
-          <div className={`hidden lg:flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
-            <div className="w-full max-w-[1920px] mx-auto px-10 flex justify-between items-center h-11 text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span>{dict.brand.officialRep}</span>
-              <div className="flex items-center gap-4">
+        <div className="w-full">
+          {/* Top info bar — desktop */}
+          <div className="hidden lg:flex justify-center bg-[#D7D799]">
+            <div className="w-full max-w-[1920px] mx-auto px-10 flex justify-between items-center h-12 text-xs font-['Montserrat'] font-medium text-[#3D1A00] border-b border-[#3D1A00]/15">
+              <div className="flex min-w-0 items-center gap-3 xl:gap-4">
+                <span
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-300/80 bg-white/70 px-3 py-1 font-medium tracking-wide text-neutral-700"
+                  title={dict.brand.freeDelivery}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="opacity-80"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+                    />
+                  </svg>
+                  <span className="whitespace-nowrap">{dict.brand.freeDelivery}</span>
+                </span>
+                <span className="hidden xl:inline shrink-0 text-[#3D1A00]/75">
+                  {siteContact.scheduleLines[0]}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 xl:gap-4 shrink-0">
+                <a
+                  href={`tel:${siteContact.phoneTel}`}
+                  className="font-semibold text-[#3D1A00] hover:opacity-80 transition-opacity whitespace-nowrap"
+                >
+                  {siteContact.phoneDisplay}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setCallbackOpen(true)}
+                  className="h-8 rounded-full bg-[#3D1A00] px-4 font-['Montserrat'] text-xs font-semibold text-[#FFF9F0] whitespace-nowrap transition-colors hover:bg-[#3D1A00]/85"
+                >
+                  {dict.callback.widgetLabel}
+                </button>
                 <Suspense fallback={null}>
                   <LanguageSwitcher />
                 </Suspense>
                 <LocaleLink href="/contacts" className="hover:opacity-80 transition-colors">{dict.nav.contacts}</LocaleLink>
-                <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Instagram</a>
-                <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
+                <a href={siteContact.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Instagram</a>
+                <a href={siteContact.telegramUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors">Telegram</a>
               </div>
             </div>
           </div>
-          {/* Top info bar — mobile */}
-          <div className={`lg:hidden flex justify-center transition-colors ${headerTransparent ? "bg-[#FFF9F0]" : "bg-[#D7D799]"}`}>
-            <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center min-h-10 py-2.5 px-3 sm:px-4 text-[10px] sm:text-xs font-['Montserrat'] text-[#3D1A00] border-b border-[#3D1A00]/20">
-              <span className="truncate mr-2 max-w-[45%] sm:max-w-none">{dict.brand.officialRep}</span>
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <Suspense fallback={null}>
-                  <LanguageSwitcher />
-                </Suspense>
-                <LocaleLink href="/contacts" className="hover:opacity-80 transition-colors whitespace-nowrap">{dict.nav.contacts}</LocaleLink>
-                <a href="https://www.instagram.com/my_choice_mari" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Instagram</a>
-                <a href="https://t.me/m_maksyakova" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-colors whitespace-nowrap">Telegram</a>
-              </div>
+          {/* Top info bar — mobile (один рядок) */}
+          <div
+            className={`lg:hidden border-b ${
+              mobileHeroTransparent
+                ? "max-lg:border-transparent max-lg:bg-transparent"
+                : "border-[#3D1A00]/15 bg-[#D7D799]"
+            }`}
+          >
+            <div
+              className={`mx-auto flex h-9 max-w-[1920px] items-center justify-between gap-2 px-3 text-[10px] font-['Montserrat'] font-medium sm:px-4 sm:text-xs ${
+                mobileHeroTransparent ? "max-lg:text-white/95" : "text-[#3D1A00]"
+              }`}
+            >
+              <span
+                className="flex min-w-0 items-center gap-1.5 truncate"
+                title={dict.brand.freeDelivery}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="shrink-0 opacity-80"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"
+                  />
+                </svg>
+                <span className="truncate">{dict.brand.freeDeliveryShort}</span>
+              </span>
+              <a
+                href={`tel:${siteContact.phoneTel}`}
+                className="shrink-0 font-semibold whitespace-nowrap hover:opacity-80"
+              >
+                {siteContact.phoneDisplay}
+              </a>
+              <button
+                type="button"
+                onClick={() => setCallbackOpen(true)}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold whitespace-nowrap transition-colors sm:px-3 sm:text-xs ${
+                  mobileHeroTransparent
+                    ? "bg-white/90 text-[#3D1A00] hover:bg-white"
+                    : "bg-[#3D1A00] text-[#FFF9F0] hover:bg-[#3D1A00]/85"
+                }`}
+              >
+                {dict.callback.headerCta}
+              </button>
+              <Suspense fallback={null}>
+                <LanguageSwitcher className="shrink-0 text-[10px] sm:text-xs" />
+              </Suspense>
             </div>
           </div>
-          {/* Top nav — трохи вищий */}
-          <div className="hidden lg:flex justify-center">
+          {/* Top nav */}
+          <div className="hidden lg:flex justify-center bg-[#FFF9F0] border-b border-[#3D1A00]/10">
             <div className="w-full max-w-[1920px] mx-auto flex justify-between items-stretch h-20 px-10">
             <LocaleLink href="/" className="flex items-center self-center pt-1 group shrink-0">
               <span
-                className={`font-['Montserrat'] font-light text-[1.75rem] lg:text-[2.35rem] leading-none tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
-                  headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
-                }`}
+                className="font-['Montserrat'] font-semibold text-[1.75rem] lg:text-[2.2rem] leading-none tracking-[0.14em] text-[#3D1A00] transition-opacity duration-300 group-hover:opacity-80"
               >
                 {SITE_WORDMARK}
               </span>
@@ -281,9 +425,7 @@ export default function Header() {
                     onMouseLeave={() => {
                       scheduleCatalogMenuClose();
                     }}
-                    className={`relative z-10 inline-block cursor-pointer whitespace-nowrap text-xs font-bold font-['Montserrat'] px-3 py-1.5 rounded-full transition-colors duration-200 ${
-                      headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
-                    }`}
+                    className={NAV_LINK_CLASS}
                   >
                     {localizedLabel(category, locale)}
                   </LocaleLink>
@@ -291,7 +433,7 @@ export default function Header() {
                   {/* Subcategories dropdown */}
                   {hoveredCategoryId === category.id && (
                       <div
-                        className="fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto"
+                        className="fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-4 z-50 transition-opacity duration-200 opacity-100 pointer-events-auto border-b border-[#3D1A00]/10"
                         onMouseEnter={() => {
                           cancelCatalogMenuClose();
                         }}
@@ -344,15 +486,15 @@ export default function Header() {
                       setInfoMenuOpen(false);
                     }, NAV_MENU_LEAVE_DELAY_MS);
                   }}
-                  className={`relative z-10 inline-block cursor-default whitespace-nowrap text-xs font-bold font-['Montserrat'] px-3 py-1.5 rounded-full transition-colors duration-200 ${
-                    headerTransparent ? "text-white hover:bg-white hover:text-[#3D1A00]" : "text-[#3D1A00] hover:bg-[#3D1A00] hover:text-white"
-                  } ${infoMenuOpen ? (headerTransparent ? "bg-white text-[#3D1A00]" : "bg-[#3D1A00] text-white") : ""}`}
+                  className={`${NAV_LINK_CLASS} cursor-default ${
+                    infoMenuOpen ? "bg-[#3D1A00] text-white" : ""
+                  }`}
                 >
                   {dict.nav.info}
                 </span>
 
                 <div
-                  className={`fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-2 z-50 transition-opacity duration-200 ${
+                  className={`fixed top-[var(--site-header-offset)] left-0 w-full bg-white shadow-md px-4 py-2 z-50 border-b border-[#3D1A00]/10 transition-opacity duration-200 ${
                     infoMenuOpen
                       ? "opacity-100 pointer-events-auto"
                       : "opacity-0 pointer-events-none"
@@ -428,11 +570,7 @@ export default function Header() {
                   width="28"
                   alt=""
                   src="/images/dark-theme/search.svg"
-                  style={{
-                    filter: headerTransparent
-                      ? "brightness(0) invert(1)"
-                      : "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)",
-                  }}
+                  style={{ filter: ICON_FILTER_DARK }}
                 />
               </button>
 
@@ -446,10 +584,10 @@ export default function Header() {
                   width="28"
                   alt="shopping basket"
                   src="/images/light-theme/cart.svg"
-                  style={{ filter: headerTransparent ? "brightness(0) invert(1)" : "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)" }}
+                  style={{ filter: ICON_FILTER_DARK }}
                 />
                 {totalItems > 0 && (
-                  <span className="absolute top-0 right-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-white text-sm font-['Montserrat'] font-bold bg-[#8C7461] rounded-full leading-none">
+                  <span className="absolute top-0 right-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-white text-sm font-['Montserrat'] font-bold bg-[#3D1A00] rounded-full leading-none">
                     {totalItems > 99 ? "99+" : totalItems}
                   </span>
                 )}
@@ -460,100 +598,106 @@ export default function Header() {
         </div>
 
         {/* Mobile Header */}
-        <div className={`lg:hidden w-full h-16 relative overflow-hidden px-4 flex items-center justify-between transition-all duration-300 ${
-          headerTransparent ? "bg-transparent text-white shadow-none" : "bg-white text-[#3D1A00] shadow-md"
-        }`}>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`relative w-7 h-7 flex items-center justify-center ${headerTransparent ? "text-white" : "text-[#3D1A00]"}`}
+        <div
+          className={`relative flex h-14 items-center justify-between gap-2 px-3 lg:hidden sm:px-4 ${
+            mobileHeroTransparent
+              ? "max-lg:border-t max-lg:border-transparent max-lg:bg-transparent"
+              : "border-t border-[#3D1A00]/10 bg-[#FFF9F0]"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setIsBasketOpen(false);
+              setIsSearchOpen(false);
+              setIsSidebarOpen(!isSidebarOpen);
+            }}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors ${
+              mobileHeroTransparent
+                ? "max-lg:text-white max-lg:hover:bg-white/15"
+                : "text-[#3D1A00] hover:bg-[#3D1A00]/5"
+            }`}
+            aria-label={isSidebarOpen ? dict.common.close : dict.nav.menu}
+            aria-expanded={isSidebarOpen}
+          >
+            {isSidebarOpen ? (
+              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            )}
+          </button>
+
+          <LocaleLink
+            href="/"
+            className="absolute left-1/2 -translate-x-1/2"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <span
+              className={`font-['Montserrat'] text-[1.25rem] font-semibold leading-none tracking-[0.12em] sm:text-[1.4rem] ${
+                mobileHeroTransparent
+                  ? "max-lg:text-white max-lg:drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+                  : "text-[#3D1A00]"
+              }`}
             >
-              {isSidebarOpen ? (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                  />
-                </svg>
-              )}
-            </button>
-            <LocaleLink
-              href="/"
-              className="flex items-center pt-0.5 group"
-              onClick={(e) => {
-                if (isSidebarOpen) {
-                  e.preventDefault();
-                  setIsSidebarOpen(false);
-                  setTimeout(() => {
-                    const heroElement = document.getElementById("hero");
-                    if (heroElement) {
-                      heroElement.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }, 300);
-                }
+              {SITE_WORDMARK}
+            </span>
+          </LocaleLink>
+
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSidebarOpen(false);
+                setIsSearchOpen(true);
               }}
-            >
-              <span
-                className={`font-['Montserrat'] font-light text-[1.35rem] sm:text-[1.55rem] leading-none tracking-[0.14em] sm:tracking-[0.16em] transition-opacity duration-300 group-hover:opacity-85 ${
-                  headerTransparent ? "text-white drop-shadow-sm" : "text-[#3D1A00]"
-                }`}
-              >
-                {SITE_WORDMARK}
-              </span>
-            </LocaleLink>
-          </div>
-
-          <div className="flex items-center gap-3 ml-auto">
-            <button 
-              onClick={() => setIsSearchOpen(true)} 
-              className="flex items-center rounded-full px-3 py-1.5 transition-colors bg-[#D7D799] hover:opacity-90"
+              aria-label={dict.nav.search}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                mobileHeroTransparent
+                  ? "max-lg:hover:bg-white/15"
+                  : "hover:bg-[#3D1A00]/5"
+              }`}
             >
               <Image
-                height="18"
-                width="18"
-                alt="search icon"
+                height="20"
+                width="20"
+                alt=""
                 src="/images/dark-theme/search.svg"
-                className="h-[18px] w-[18px] mr-1.5 brightness-0"
-                style={{ filter: "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)" }}
+                className="h-5 w-5"
+                style={{
+                  filter: mobileHeroTransparent ? ICON_FILTER_LIGHT : ICON_FILTER_DARK,
+                }}
               />
-              <span className="text-xs font-['Montserrat'] text-[#3D1A00]">{dict.nav.search}</span>
             </button>
 
             <button
-              onClick={() => setIsBasketOpen(!isBasketOpen)}
-              className="relative flex items-center justify-center p-2 min-w-[2.75rem] min-h-[2.75rem]"
+              type="button"
+              onClick={() => {
+                setIsSidebarOpen(false);
+                setIsBasketOpen(!isBasketOpen);
+              }}
+              aria-label={dict.basket.title}
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                mobileHeroTransparent
+                  ? "max-lg:hover:bg-white/15"
+                  : "hover:bg-[#3D1A00]/5"
+              }`}
             >
               <Image
-                height="24"
-                width="24"
-                alt="shopping basket"
+                height="22"
+                width="22"
+                alt=""
                 src="/images/light-theme/cart.svg"
-                className="h-6 w-6"
-                style={{ filter: headerTransparent ? "brightness(0) invert(1)" : "brightness(0) saturate(100%) invert(14%) sepia(99%) saturate(2044%) hue-rotate(11deg) brightness(95%) contrast(101%)" }}
+                className="h-[22px] w-[22px]"
+                style={{
+                  filter: mobileHeroTransparent ? ICON_FILTER_LIGHT : ICON_FILTER_DARK,
+                }}
               />
               {totalItems > 0 && (
-                <span className="absolute top-0 right-0 min-w-[1.125rem] h-4 px-0.5 flex items-center justify-center text-white text-xs font-['Montserrat'] font-bold bg-[#8C7461] rounded-full leading-none">
+                <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[#3D1A00] px-0.5 text-[10px] font-bold leading-none text-white font-['Montserrat']">
                   {totalItems > 99 ? "99+" : totalItems}
                 </span>
               )}
@@ -561,10 +705,12 @@ export default function Header() {
           </div>
         </div>
       </header>
+      </div>
 
       <SidebarMenu
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
+        onRequestCallback={() => setCallbackOpen(true)}
       />
 
       <SidebarBasket
@@ -575,6 +721,38 @@ export default function Header() {
         isOpen={isSearchOpen}
         setIsOpen={setIsSearchOpen}
       />
+
+      <CallbackRequestModal
+        open={callbackOpen}
+        onClose={() => setCallbackOpen(false)}
+      />
+
+      {/* Floating callback widget */}
+      <button
+        type="button"
+        onClick={() => setCallbackOpen(true)}
+        className="fixed bottom-5 right-5 z-[70] flex h-12 items-center gap-2 rounded-full border border-[#3D1A00]/10 bg-[#D7D799] px-4 text-[#3D1A00] shadow-[0_8px_24px_rgba(61,26,0,0.18)] transition-all hover:bg-[#cfd48a] sm:bottom-8 sm:right-8 sm:h-14 sm:px-5"
+        aria-label={dict.callback.widgetLabel}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.528-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
+          />
+        </svg>
+        <span className="hidden font-['Montserrat'] text-sm font-semibold sm:inline">
+          {dict.callback.fabLabel}
+        </span>
+      </button>
     </>
   );
 }

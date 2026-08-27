@@ -60,7 +60,15 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { name, priority, mediaType, mediaUrl, description } = body;
+    const {
+      name,
+      priority,
+      mediaType,
+      mediaUrl,
+      description,
+      name_ru,
+      description_ru,
+    } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -84,7 +92,27 @@ export async function PUT(
       priority ?? 0,
       mediaType,
       mediaUrl,
-      typeof description === "string" ? description : description == null ? null : String(description)
+      description !== undefined
+        ? typeof description === "string"
+          ? description
+          : description == null
+            ? null
+            : String(description)
+        : undefined,
+      name_ru !== undefined
+        ? typeof name_ru === "string"
+          ? name_ru
+          : name_ru == null
+            ? null
+            : String(name_ru)
+        : undefined,
+      description_ru !== undefined
+        ? typeof description_ru === "string"
+          ? description_ru
+          : description_ru == null
+            ? null
+            : String(description_ru)
+        : undefined
     );
     return NextResponse.json(updated);
   } catch (error) {

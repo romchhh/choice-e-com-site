@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface Product {
   id: number;
@@ -53,6 +54,8 @@ export default function SidebarFilter({
     category: true,
     price: true,
   });
+
+  useBodyScrollLock(isOpen);
 
   // Calculate min and max price from products
   const priceRange = useMemo(() => {
@@ -371,7 +374,7 @@ export default function SidebarFilter({
           </div>
           <button
             onClick={handleApplyFilters}
-            className="w-full bg-black text-white py-4 text-lg font-bold font-['Montserrat'] uppercase tracking-wider hover:bg-gray-900 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+            className="w-full rounded-full bg-black text-white py-4 text-lg font-bold font-['Montserrat'] uppercase tracking-wider hover:bg-gray-900 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
           >
             {dict.catalog.filterAction} ({filteredCount})
           </button>

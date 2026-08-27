@@ -4,6 +4,7 @@ import { getReturnsCopy } from "@/lib/i18n/content/returns";
 import { buildPageMetadata } from "@/lib/i18n/content/pageMeta";
 import { LOCALE_UK } from "@/lib/i18n/localePage";
 import type { Locale } from "@/lib/i18n/config";
+import { siteContact } from "@/lib/siteContact";
 
 export function buildReturnsMetadata(locale: Locale): Metadata {
   const t = getReturnsCopy(locale);
@@ -90,10 +91,10 @@ export function ReturnsAndExchangePageContent({ locale }: { locale: Locale }) {
             <p className="opacity-80">
               {t.writeUs}
               <a
-                href="mailto:mari.choice26@gmail.com"
+                href={`mailto:${siteContact.email}`}
                 className="font-semibold underline underline-offset-2 hover:opacity-100"
               >
-                mari.choice26@gmail.com
+                {siteContact.email}
               </a>
             </p>
             <p className="opacity-80">{t.addPhoto}</p>

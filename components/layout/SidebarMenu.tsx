@@ -1,40 +1,49 @@
 "use client";
 
+import { Suspense } from "react";
 import LocaleLink from "@/components/i18n/LocaleLink";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { useCategories } from "@/lib/CategoriesProvider";
 import { localizedLabel } from "@/lib/i18n/localizeCatalog";
+import { siteContact } from "@/lib/siteContact";
 
 interface SidebarMenuProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onRequestCallback?: () => void;
 }
 
 export default function SidebarMenu({
   isOpen,
   setIsOpen,
+  onRequestCallback,
 }: SidebarMenuProps) {
   const { dict, locale } = useLocale();
-  // Use categories from context instead of fetching
-  const { categories, subcategories: subcategoriesMap, loading, error, fetchSubcategoriesForCategory } = useCategories();
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const {
+    categories,
+    subcategories: subcategoriesMap,
+    loading,
+    error,
+    fetchSubcategoriesForCategory,
+  } = useCategories();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
-  // Avoid hydration mismatch: server and initial client render show placeholder; real content after mount
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Convert Map to array for selected category
-  const selectedSubcategories = selectedCategoryId 
-    ? subcategoriesMap.get(selectedCategoryId) || [] 
+  const selectedSubcategories = selectedCategoryId
+    ? subcategoriesMap.get(selectedCategoryId) || []
     : [];
 
-  // Load subcategories when category is selected
   const handleCategorySelect = async (categoryId: number) => {
     setSelectedCategoryId(categoryId);
-    
-    // If subcategories not loaded yet, fetch them
+
     if (!subcategoriesMap.has(categoryId)) {
       setLoadingSubcategories(true);
       await fetchSubcategoriesForCategory(categoryId);
@@ -42,64 +51,63 @@ export default function SidebarMenu({
     }
   };
 
-  // Select first category by default when categories load
   useEffect(() => {
     if (categories.length > 0 && selectedCategoryId === null) {
-      handleCategorySelect(categories[0].id);
+      void handleCategorySelect(categories[0].id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when categories/selectedCategoryId change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories, selectedCategoryId]);
 
-  // Block scroll when menu is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+  useBodyScrollLock(isOpen);
 
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  const selectedCategory = categories.find(
+    (cat) => cat.id === selectedCategoryId
+  );
 
-  const selectedCategory = categories.find((cat) => cat.id === selectedCategoryId);
+  const close = () => setIsOpen(false);
 
   return (
-    <div className="relative z-50">
-      {/* Overlay - only below header */}
+    <>
       {isOpen && (
         <div
-          className="fixed top-[var(--site-header-offset)] left-0 right-0 bottom-0 bg-black/40 z-30"
-          onClick={() => {
-            setIsOpen(false);
-          }}
+          className="fixed inset-0 z-[45] bg-black/45 backdrop-blur-[1px] lg:hidden"
+          style={{ top: "var(--site-header-offset)" }}
+          onClick={close}
+          aria-hidden
         />
       )}
 
-      {/* Sidebar — одразу під фіксованим хедером (висота = --site-header-offset) */}
       <div
-        className={`fixed top-[var(--site-header-offset)] left-0 h-[calc(100vh-var(--site-header-offset))] w-full sm:w-4/5 sm:max-w-md bg-white shadow-md z-40 transform transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } overflow-hidden flex flex-col`}
+        className={`fixed left-0 z-[46] flex w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+          isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
+        }`}
+        style={{
+          top: "var(--site-header-offset)",
+          height: "calc(100dvh - var(--site-header-offset))",
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!isOpen}
+        aria-label={dict.nav.menu}
       >
-        {/* Categories Scroll - Top */}
-        <div className="border-b border-[#3D1A00]/10 bg-white">
+        <div className="shrink-0 border-b border-[#3D1A00]/10 bg-white">
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex flex-row gap-3 px-4 py-4 min-w-max">
-              {!mounted ? (
-                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">{dict.common.loading}</div>
-              ) : loading ? (
-                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">{dict.common.loading}</div>
+            <div className="flex min-w-max flex-row gap-3 px-4 py-4">
+              {!mounted || loading ? (
+                <div className="px-4 py-2 text-sm text-[#3D1A00]/60 font-['Montserrat']">
+                  {dict.common.loading}
+                </div>
               ) : error ? (
-                <div className="px-4 py-2 text-sm text-red-500 font-['Montserrat']">{dict.common.error}: {error}</div>
+                <div className="px-4 py-2 text-sm text-red-500 font-['Montserrat']">
+                  {dict.common.error}
+                </div>
               ) : (
-                <>
-                  {categories.map((cat) => (
+                categories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => handleCategorySelect(cat.id)}
-                    className={`px-5 py-3 rounded-full text-base font-semibold whitespace-nowrap transition-all duration-200 font-['Montserrat'] ${
+                    type="button"
+                    onClick={() => void handleCategorySelect(cat.id)}
+                    className={`whitespace-nowrap rounded-full px-5 py-3 text-base font-semibold transition-all duration-200 font-['Montserrat'] ${
                       selectedCategoryId === cat.id
                         ? "bg-[#3D1A00] text-white"
                         : "bg-[#3D1A00]/10 text-[#3D1A00] hover:bg-[#3D1A00]/20"
@@ -107,169 +115,139 @@ export default function SidebarMenu({
                   >
                     {localizedLabel(cat, locale)}
                   </button>
-                  ))}
-                </>
+                ))
               )}
             </div>
           </div>
         </div>
 
-        {/* Main Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          {/* Subcategories */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+
           {selectedCategory && (
-            <div className="px-6 pt-6 pb-2">
+            <div className="px-4 pt-4 pb-2">
               {loadingSubcategories ? (
-                <div className="py-4 text-center text-sm text-[#3D1A00]/60 font-['Montserrat']">
+                <div className="py-3 text-center text-sm text-[#3D1A00]/60 font-['Montserrat']">
                   {dict.common.loading}
                 </div>
               ) : selectedSubcategories.length > 0 ? (
                 <>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {selectedSubcategories.map((sub) => (
                       <LocaleLink
                         key={sub.id}
                         href={`/catalog?subcategory=${encodeURIComponent(sub.name)}`}
-                        className="block py-3 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors border-b border-[#3D1A00]/5 font-['Montserrat']"
-                        onClick={() => setIsOpen(false)}
+                        className="block border-b border-[#3D1A00]/5 py-3 text-[15px] text-[#3D1A00] transition-colors hover:text-[#3D1A00]/70 font-['Montserrat']"
+                        onClick={close}
                       >
                         {localizedLabel(sub, locale)}
                       </LocaleLink>
                     ))}
                   </div>
-                  <div className="pt-4 pb-0 mt-2 border-t border-[#3D1A00]/10">
+                  <div className="mt-3 border-t border-[#3D1A00]/10 pt-3">
                     <LocaleLink
-                      href="/catalog"
-                      className="text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-medium font-['Montserrat']"
-                      onClick={() => setIsOpen(false)}
+                      href={`/catalog?categoryId=${selectedCategory.id}`}
+                      className="text-[15px] font-medium text-[#8B9A47] transition-colors hover:opacity-80 font-['Montserrat']"
+                      onClick={close}
                     >
                       {dict.nav.allProducts}
                     </LocaleLink>
                   </div>
                 </>
               ) : (
-                <div className="pt-2 pb-2">
-                  <LocaleLink
-                    href="/catalog"
-                    className="text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-medium font-['Montserrat']"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {dict.nav.allProducts}
-                  </LocaleLink>
-                </div>
+                <LocaleLink
+                  href={`/catalog?categoryId=${selectedCategory.id}`}
+                  className="block py-2 text-[15px] font-medium text-[#8B9A47] font-['Montserrat']"
+                  onClick={close}
+                >
+                  {dict.nav.allProducts}
+                </LocaleLink>
               )}
             </div>
           )}
 
-          {/* Divider */}
-          {selectedCategory && (
-            <div className="px-6 py-4">
-              <div className="border-t border-[#3D1A00]/10"></div>
-            </div>
-          )}
-
-          {/* Information Section */}
-          <div className="px-6 py-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#3D1A00]/60 mb-4 font-['Montserrat']">
+          <div className="px-4 py-4">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#3D1A00]/55 font-['Montserrat']">
               {dict.nav.info}
             </h3>
-            <nav className="space-y-1">
-              <LocaleLink
-                href="/info#about"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.aboutBrand}
-              </LocaleLink>
-              <LocaleLink
-                href="/partnership"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.partnership}
-              </LocaleLink>
-              <LocaleLink
-                href="/delivery-and-payment"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.deliveryPayment}
-              </LocaleLink>
-              <LocaleLink
-                href="/returns-and-exchange"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.returnsExchange}
-              </LocaleLink>
-              <LocaleLink
-                href="/info#faq"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.faq}
-              </LocaleLink>
-              <LocaleLink
-                href="/contacts"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.contacts}
-              </LocaleLink>
-              <LocaleLink
-                href="/catalog?promo=1"
-                className="block py-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
-                onClick={() => setIsOpen(false)}
-              >
-                {dict.nav.promo}
-              </LocaleLink>
+            <nav className="space-y-0.5">
+              {[
+                { href: "/info#about", label: dict.nav.aboutBrand },
+                { href: "/partnership", label: dict.nav.partnership },
+                { href: "/delivery-and-payment", label: dict.nav.deliveryPayment },
+                { href: "/returns-and-exchange", label: dict.nav.returnsExchange },
+                { href: "/info#faq", label: dict.nav.faq },
+                { href: "/contacts", label: dict.nav.contacts },
+                { href: "/catalog?promo=1", label: dict.nav.promo },
+              ].map((item) => (
+                <LocaleLink
+                  key={item.href}
+                  href={item.href}
+                  className="block py-2.5 text-[15px] text-[#3D1A00] transition-colors hover:text-[#3D1A00]/70 font-['Montserrat']"
+                  onClick={close}
+                >
+                  {item.label}
+                </LocaleLink>
+              ))}
             </nav>
           </div>
-
         </div>
 
-        {/* Social Media Section - Fixed at bottom */}
-        <div className="border-t border-[#3D1A00]/10 bg-white">
-          <div className="px-6 py-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#3D1A00]/60 mb-4 font-['Montserrat']">
-              {dict.contacts.title}
-            </h3>
-            <div className="flex flex-row gap-4 flex-wrap">
-              <LocaleLink
-                href="https://www.instagram.com/my_choice_mari"
+        <div className="shrink-0 border-t border-[#3D1A00]/10 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <a
+              href={`tel:${siteContact.phoneTel}`}
+              className="inline-flex h-10 items-center rounded-full bg-[#3D1A00] px-4 text-sm font-semibold text-white font-['Montserrat']"
+            >
+              {siteContact.phoneDisplay}
+            </a>
+            {onRequestCallback ? (
+              <button
+                type="button"
+                onClick={() => {
+                  close();
+                  onRequestCallback();
+                }}
+                className="inline-flex h-10 items-center rounded-full border border-[#3D1A00]/20 bg-white px-4 text-sm font-semibold text-[#3D1A00] font-['Montserrat']"
+              >
+                {dict.callback.widgetLabel}
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <Suspense fallback={null}>
+              <LanguageSwitcher />
+            </Suspense>
+            <div className="flex items-center gap-3">
+              <a
+                href={siteContact.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
+                className="text-[#3D1A00]/80 transition-opacity hover:opacity-70"
+                aria-label="Instagram"
               >
                 <Image
                   src="/images/instagram-icon.svg"
-                  alt="Instagram"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
+                  alt=""
+                  width={22}
+                  height={22}
                 />
-                <span>Instagram</span>
-              </LocaleLink>
-              <LocaleLink
-                href="https://t.me/m_maksyakova"
+              </a>
+              <a
+                href={siteContact.telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-base text-[#3D1A00] hover:text-[#3D1A00]/70 transition-colors font-['Montserrat']"
+                className="text-[#3D1A00]/80 transition-opacity hover:opacity-70"
+                aria-label="Telegram"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-label="Telegram"
-                >
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z"/>
+                <svg className="h-[22px] w-[22px]" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z" />
                 </svg>
-                <span>Telegram</span>
-              </LocaleLink>
+              </a>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

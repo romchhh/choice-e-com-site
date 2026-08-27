@@ -192,6 +192,73 @@ export async function sendContactFormNotification(data: {
   }
 }
 
+/**
+ * Notify Telegram about a new product review awaiting moderation
+ */
+export async function sendReviewNotification(data: {
+  id: number;
+  authorName: string;
+  rating: number;
+  text: string;
+  productName?: string | null;
+  source?: string;
+}): Promise<boolean> {
+  try {
+    const botToken = process.env.BOT_TOKEN;
+    const chatId = process.env.CHAT_ID;
+
+    if (!botToken || !chatId) {
+      console.warn(
+        "[Telegram] Missing BOT_TOKEN or CHAT_ID, skipping review notification"
+      );
+      return false;
+    }
+
+    const baseUrl =
+      process.env.PUBLIC_URL ||
+      process.env.NEXT_PUBLIC_PUBLIC_URL ||
+      "https://forbody.space";
+    const adminLink = `${baseUrl}/admin/reviews`;
+    const stars = "★".repeat(Math.min(5, Math.max(1, data.rating))) +
+      "☆".repeat(Math.max(0, 5 - Math.min(5, Math.max(1, data.rating))));
+    const preview =
+      data.text.length > 280 ? `${data.text.slice(0, 280)}…` : data.text;
+
+    const text =
+      `⭐ <b>НОВИЙ ВІДГУК</b>\n\n` +
+      `👤 <b>Автор:</b> ${escapeHtml(data.authorName)}\n` +
+      `🛍 <b>Товар:</b> ${escapeHtml(data.productName || "—")}\n` +
+      `📊 <b>Оцінка:</b> ${stars} (${data.rating}/5)\n` +
+      `📎 <b>Джерело:</b> ${escapeHtml(data.source || "customer")}\n\n` +
+      `💬 <b>Текст:</b>\n${escapeHtml(preview)}\n\n` +
+      `🔗 <a href="${adminLink}">Модерація в адмінці</a> · #${data.id}\n` +
+      `🕐 ${new Date().toLocaleString("uk-UA")}`;
+
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[Telegram] Failed to send review notification:", errorData);
+      return false;
+    }
+    console.log(`[Telegram] Review notification sent #${data.id}`);
+    return true;
+  } catch (error) {
+    console.error("[Telegram] Error sending review notification:", error);
+    return false;
+  }
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

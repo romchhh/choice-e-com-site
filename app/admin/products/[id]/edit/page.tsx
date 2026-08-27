@@ -11,6 +11,12 @@ import TextArea from "@/components/admin/form/input/TextArea";
 import DropzoneComponent from "@/components/admin/form/form-elements/DropZone";
 import ToggleSwitch from "@/components/admin/form/ToggleSwitch";
 import { normalizeProductPricing, parseOptionalNumber } from "@/lib/pricing";
+import CompositionItemsEditor from "@/components/admin/CompositionItemsEditor";
+import ProductReviewsEditor from "@/components/admin/ProductReviewsEditor";
+import {
+  normalizeCompositionItems,
+  type CompositionItem,
+} from "@/lib/productComposition";
 
 type MediaFile = {
   id?: number; // for existing ones
@@ -30,6 +36,7 @@ export default function EditProductPage() {
     subtitle: "",
     releaseForm: "",
     course: "",
+    courseDays: "",
     packageWeight: "",
     mainInfo: "",
     shortDescription: "",
@@ -38,6 +45,7 @@ export default function EditProductPage() {
     indicationsForUse: "",
     benefits: "",
     fullComposition: "",
+    compositionItems: [] as CompositionItem[],
     usageMethod: "",
     contraindications: "",
     storageConditions: "",
@@ -48,6 +56,7 @@ export default function EditProductPage() {
     stock: "0",
     media: [] as { type: string; url: string }[],
     topSale: false,
+    limitedEdition: false,
     inStock: true,
     isHit: false,
     dietitianApproved: false,
@@ -144,6 +153,10 @@ export default function EditProductPage() {
           subtitle: productData.subtitle || "",
           releaseForm: productData.release_form || "",
           course: productData.course || "",
+          courseDays:
+            productData.course_days != null
+              ? String(productData.course_days)
+              : "",
           packageWeight: productData.package_weight || "",
           mainInfo: productData.main_info || "",
           shortDescription: productData.short_description || "",
@@ -152,6 +165,9 @@ export default function EditProductPage() {
           indicationsForUse: productData.indications_for_use || "",
           benefits: productData.benefits || "",
           fullComposition: productData.full_composition || "",
+          compositionItems: normalizeCompositionItems(
+            productData.composition_items
+          ),
           usageMethod: productData.usage_method || "",
           contraindications: productData.contraindications || "",
           storageConditions: productData.storage_conditions || "",
@@ -175,6 +191,7 @@ export default function EditProductPage() {
           stock: String(productData.stock ?? 0),
           media: mediaArray,
           topSale: productData.top_sale || false,
+          limitedEdition: productData.limited_edition === true,
           inStock: productData.in_stock !== false,
           isHit: productData.is_hit === true,
           dietitianApproved: productData.dietitian_approved === true,
@@ -466,6 +483,9 @@ export default function EditProductPage() {
           subtitle: formData.subtitle || null,
           release_form: formData.releaseForm || null,
           course: formData.course || null,
+          course_days: formData.courseDays
+            ? Number(formData.courseDays) || null
+            : null,
           package_weight: formData.packageWeight || null,
           main_info: formData.mainInfo || null,
           short_description: formData.shortDescription || null,
@@ -474,6 +494,7 @@ export default function EditProductPage() {
           indications_for_use: formData.indicationsForUse || null,
           benefits: formData.benefits || null,
           full_composition: formData.fullComposition || null,
+          composition_items: formData.compositionItems,
           usage_method: formData.usageMethod || null,
           contraindications: formData.contraindications || null,
           storage_conditions: formData.storageConditions || null,
@@ -484,6 +505,7 @@ export default function EditProductPage() {
           stock: Number(formData.stock) || 0,
           media: updatedMedia,
           top_sale: formData.topSale,
+          limited_edition: formData.limitedEdition,
           in_stock: formData.inStock,
           is_hit: formData.isHit,
           dietitian_approved: formData.dietitianApproved,
@@ -516,6 +538,7 @@ export default function EditProductPage() {
       {loadingData ? (
         <div className="p-4 text-center text-base sm:text-lg">Завантаження даних...</div>
       ) : (
+        <>
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <PageBreadcrumb pageTitle="Редагувати Товар" />
           <div className="flex flex-col md:flex-row w-full gap-4 md:gap-6">
@@ -544,7 +567,7 @@ export default function EditProductPage() {
                       />
                     </div>
                     <div>
-                      <Label>Курс</Label>
+                      <Label>Курс (текст)</Label>
                       <Input
                         type="text"
                         value={formData.course}
@@ -554,6 +577,22 @@ export default function EditProductPage() {
                         placeholder="Напр. 30 днів"
                       />
                     </div>
+                  </div>
+                  <div>
+                    <Label>Тривалість 1 упаковки (днів)</Label>
+                    <p className="mb-1 text-xs text-gray-500">
+                      Для калькулятора курсу на картці. Якщо порожньо — береться
+                      з тексту «Курс».
+                    </p>
+                    <Input
+                      type="number"
+                      value={formData.courseDays}
+                      onChange={(e) =>
+                        handleChange("courseDays", e.target.value)
+                      }
+                      placeholder="30"
+                      min="1"
+                    />
                   </div>
 
                   <div>
@@ -811,18 +850,20 @@ export default function EditProductPage() {
                 </div>
               </ComponentCard>
 
-              <ComponentCard title="Деталі товару" className="mt-4 sm:mt-6">
-                <div className="space-y-3 sm:space-y-4">
+              <ComponentCard title="Склад, застосування та ефект" className="mt-4 sm:mt-6">
+                <div className="space-y-5 sm:space-y-6">
+                  <CompositionItemsEditor
+                    items={formData.compositionItems}
+                    onChange={(items) =>
+                      handleChange("compositionItems", items)
+                    }
+                  />
                   <div>
-                    <Label>ДІЯ АКТИВНИХ КОМПОНЕНТІВ</Label>
-                    <TextArea
-                      value={formData.mainAction}
-                      onChange={(v) => handleChange("mainAction", v)}
-                      rows={4}
-                    />
-                  </div>
-                  <div>
-                    <Label>СКЛАД</Label>
+                    <Label>СКЛАД (текстом, опційно)</Label>
+                    <p className="mb-1 text-xs text-gray-500">
+                      Якщо не додаєте окремі компоненти вище — можна вписати
+                      склад суцільним текстом.
+                    </p>
                     <TextArea
                       value={formData.fullComposition}
                       onChange={(v) => handleChange("fullComposition", v)}
@@ -830,10 +871,28 @@ export default function EditProductPage() {
                     />
                   </div>
                   <div>
-                    <Label>СПОСІБ ВИКОРИСТАННЯ</Label>
+                    <Label>СПОСІБ ЗАСТОСУВАННЯ / ДОЗУВАННЯ</Label>
                     <TextArea
                       value={formData.usageMethod}
                       onChange={(v) => handleChange("usageMethod", v)}
+                      rows={4}
+                      placeholder="Як приймати, дозування, курс"
+                    />
+                  </div>
+                  <div>
+                    <Label>ОЧІКУВАНИЙ ЕФЕКТ</Label>
+                    <TextArea
+                      value={formData.mainAction}
+                      onChange={(v) => handleChange("mainAction", v)}
+                      rows={4}
+                      placeholder="Що дає продукт, результат курсу"
+                    />
+                  </div>
+                  <div>
+                    <Label>ДОДАТКОВІ ПЕРЕВАГИ (опційно)</Label>
+                    <TextArea
+                      value={formData.benefits}
+                      onChange={(v) => handleChange("benefits", v)}
                       rows={3}
                     />
                   </div>
@@ -854,6 +913,14 @@ export default function EditProductPage() {
                 <div className="flex items-center justify-between">
                   <Label className="mb-0">Бестселлер</Label>
                   <ToggleSwitch enabled={formData.topSale} setEnabled={(v) => handleChange("topSale", v)} label="Бестселлер" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="mb-0">Новинка Choice</Label>
+                  <ToggleSwitch
+                    enabled={formData.limitedEdition}
+                    setEnabled={(v) => handleChange("limitedEdition", v)}
+                    label="Новинка"
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label className="mb-0">В наявності</Label>
@@ -1240,6 +1307,14 @@ export default function EditProductPage() {
             )}
           </div>
         </form>
+
+        {productId && !Number.isNaN(Number(productId)) ? (
+          <ProductReviewsEditor
+            productId={Number(productId)}
+            productName={formData.name || undefined}
+          />
+        ) : null}
+        </>
       )}
 
       {bundleModal && (
