@@ -103,8 +103,8 @@ export default function WhyForBodySection() {
                   : "lg:border-l lg:border-[#3D1A00]/12 lg:px-8 last:lg:pr-0"
               }
             >
-              <div className="flex items-center gap-4">
-                <span className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#D7D799]/65 text-[#3D1A00] md:h-[4.5rem] md:w-[4.5rem]">
+              <div className="flex items-center gap-3 md:gap-4">
+                <span className="inline-flex shrink-0 text-[#3D1A00]">
                   <PillarIcon index={index} />
                 </span>
                 <span className="font-['Montserrat'] text-sm font-semibold uppercase tracking-[0.16em] text-[#8B9A47] md:text-base">
