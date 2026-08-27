@@ -28,6 +28,7 @@ interface Product {
   discount_percentage?: number | null;
   is_promo?: boolean;
   free_delivery_badge?: boolean;
+  doctor_choice_badge?: boolean;
   category_id?: number | null;
   category_ids?: number[] | null;
   subcategory_id?: number | null;

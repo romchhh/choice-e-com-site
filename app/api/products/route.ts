@@ -121,6 +121,7 @@ export async function POST(req: Request) {
         dietitian_approved = false,
         is_promo = false,
         free_delivery_badge = false,
+        doctor_choice_badge = false,
         gift_product_id = null,
         bought_together_ids = [],
         pair_together_ids = [],
@@ -176,6 +177,7 @@ export async function POST(req: Request) {
         dietitian_approved: dietitian_approved === true,
         is_promo: is_promo === true,
         free_delivery_badge: free_delivery_badge === true,
+        doctor_choice_badge: doctor_choice_badge === true,
         gift_product_id:
           gift_product_id === "" || gift_product_id == null ? null : Number(gift_product_id),
         bought_together_ids: Array.isArray(bought_together_ids)

@@ -62,6 +62,7 @@ export default function EditProductPage() {
     dietitianApproved: false,
     isPromo: false,
     freeDeliveryBadge: false,
+    doctorChoiceBadge: false,
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -197,6 +198,7 @@ export default function EditProductPage() {
           dietitianApproved: productData.dietitian_approved === true,
           isPromo: productData.is_promo === true,
           freeDeliveryBadge: productData.free_delivery_badge === true,
+          doctorChoiceBadge: productData.doctor_choice_badge === true,
         });
 
         setCategoryOptions(categoryData);
@@ -511,6 +513,7 @@ export default function EditProductPage() {
           dietitian_approved: formData.dietitianApproved,
           is_promo: formData.isPromo,
           free_delivery_badge: formData.freeDeliveryBadge,
+          doctor_choice_badge: formData.doctorChoiceBadge,
           gift_product_id: giftProductId,
           bought_together_ids: boughtTogetherIds,
           pair_together_ids: pairTogetherIds,
@@ -566,31 +569,56 @@ export default function EditProductPage() {
                         placeholder="Напр. 30 саше по 2 г"
                       />
                     </div>
-                    <div>
-                      <Label>Курс (текст)</Label>
-                      <Input
-                        type="text"
-                        value={formData.course}
-                        onChange={(e) =>
-                          handleChange("course", e.target.value)
-                        }
-                        placeholder="Напр. 30 днів"
-                      />
-                    </div>
-                  </div>
                   <div>
-                    <Label>Тривалість 1 упаковки (днів)</Label>
-                    <p className="mb-1 text-xs text-gray-500">
-                      Для калькулятора курсу на картці. Якщо порожньо — береться
-                      з тексту «Курс».
+                    <Label>Курс (текст для картки)</Label>
+                    <Input
+                      type="text"
+                      value={formData.course}
+                      onChange={(e) =>
+                        handleChange("course", e.target.value)
+                      }
+                      placeholder="Напр. рекомендований курс 30 днів"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Це опис курсу для покупця, не для калькулятора.
                     </p>
+                  </div>
+                </div>
+                  <div>
+                    <Label>Скільки днів вистачає 1 упаковки</Label>
+                    <p className="mb-2 text-xs text-gray-500">
+                      Саме це поле керує калькулятором. Фіто (30 капсул) ={" "}
+                      <strong>15</strong>, Pro Healthy (60 капсул) ={" "}
+                      <strong>30</strong>. Приклад: 15 днів → 1 міс. = 2 уп.,
+                      2 міс. = 4 уп.
+                    </p>
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {[
+                        { days: "15", label: "15 дн. · Фіто" },
+                        { days: "30", label: "30 дн. · Pro Healthy" },
+                        { days: "60", label: "60 дн." },
+                      ].map((preset) => (
+                        <button
+                          key={preset.days}
+                          type="button"
+                          onClick={() => handleChange("courseDays", preset.days)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            formData.courseDays === preset.days
+                              ? "border-[#3D1A00] bg-[#3D1A00] text-white"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-[#8B9A47]"
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
                     <Input
                       type="number"
                       value={formData.courseDays}
                       onChange={(e) =>
                         handleChange("courseDays", e.target.value)
                       }
-                      placeholder="30"
+                      placeholder="Напр. 15"
                       min="1"
                     />
                   </div>
@@ -950,6 +978,16 @@ export default function EditProductPage() {
                     enabled={formData.freeDeliveryBadge}
                     setEnabled={(v) => handleChange("freeDeliveryBadge", v)}
                     label="Доставка"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="mb-0 max-w-[min(100%,14rem)] text-xs leading-snug sm:max-w-none sm:text-sm">
+                    Безкоштовно DOCTOR CHOICE (плашка)
+                  </Label>
+                  <ToggleSwitch
+                    enabled={formData.doctorChoiceBadge}
+                    setEnabled={(v) => handleChange("doctorChoiceBadge", v)}
+                    label="Doctor Choice"
                   />
                 </div>
                 <Label>Пріоритет показу</Label>

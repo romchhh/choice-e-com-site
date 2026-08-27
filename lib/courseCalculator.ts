@@ -43,10 +43,11 @@ export function parseCourseDays(course: string | null | undefined): number | nul
   return null;
 }
 
-/** Prefer explicit course_days, else parse from course text. */
+/** Prefer explicit course_days (days one pack lasts). Do not treat «Курс» text
+ * as pack duration — that field is usually the recommended program length. */
 export function resolvePackDays(
   courseDays: number | null | undefined,
-  courseText: string | null | undefined
+  _courseText?: string | null | undefined
 ): number | null {
   if (
     typeof courseDays === "number" &&
@@ -55,7 +56,7 @@ export function resolvePackDays(
   ) {
     return Math.round(courseDays);
   }
-  return parseCourseDays(courseText);
+  return null;
 }
 
 export function packsForProgramMonths(
@@ -69,3 +70,10 @@ export function packsForProgramMonths(
 export const COURSE_MONTH_OPTIONS = [1, 2, 3, 4] as const;
 
 export const DEFAULT_COURSE_MONTHS = 2;
+
+/** Common pack durations for admin presets. */
+export const PACK_DAY_PRESETS = [
+  { days: 15, label: "15 дн. (Фіто, 30 капс.)" },
+  { days: 30, label: "30 дн. (Pro Healthy, 60 капс.)" },
+  { days: 60, label: "60 дн." },
+] as const;

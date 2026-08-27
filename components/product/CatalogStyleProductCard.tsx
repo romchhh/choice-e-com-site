@@ -4,6 +4,7 @@ import type { MouseEvent, ReactNode } from "react";
 import Image from "next/image";
 import LocaleLink from "@/components/i18n/LocaleLink";
 import ProductCardBadges from "@/components/product/ProductCardBadges";
+import ExpandableProductName from "@/components/shared/ExpandableProductName";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
 import { getProductPriceDisplay } from "@/lib/pricing";
 import { SITE_STORE_NAME } from "@/lib/siteBrand";
@@ -23,6 +24,7 @@ export type CatalogStyleProduct = {
   is_promo?: boolean;
   dietitian_approved?: boolean;
   free_delivery_badge?: boolean;
+  doctor_choice_badge?: boolean;
   package_weight?: string | null;
   course?: string | null;
   gift_product_id?: number | null;
@@ -49,6 +51,7 @@ type Labels = {
   giftToProduct: string;
   free: string;
   dietitian: string;
+  doctorChoice: string;
 };
 
 type Props = {
@@ -135,6 +138,7 @@ export default function CatalogStyleProductCard({
           <ProductCardBadges
             isPromo={product.is_promo === true}
             isHit={product.is_hit === true}
+            doctorChoice={product.doctor_choice_badge === true}
             hasGift={hasGift}
             giftProduct={product.gift_product ?? null}
             discountPct={discountBadgePct}
@@ -143,6 +147,7 @@ export default function CatalogStyleProductCard({
             hitLabel={labels.hit}
             giftToLabel={labels.giftToProduct}
             freeLabel={labels.free}
+            doctorChoiceLabel={labels.doctorChoice}
           />
 
           {!product.gift_product && product.dietitian_approved === true && (
@@ -155,9 +160,11 @@ export default function CatalogStyleProductCard({
         </div>
 
         <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-          <h3 className="line-clamp-2 break-words font-['Montserrat'] text-base font-light leading-tight tracking-[-0.02em] text-[#3D1A00] sm:text-lg md:text-xl lg:text-2xl">
-            {product.name}
-          </h3>
+          <ExpandableProductName
+            as="h3"
+            name={product.name}
+            className="min-h-[2.5em] font-['Montserrat'] text-sm font-light leading-snug tracking-[-0.02em] text-[#3D1A00] sm:text-base md:text-lg"
+          />
           {shortDesc && (
             <p className="line-clamp-2 align-middle font-['Montserrat'] text-[11px] font-light leading-[194%] tracking-[-0.02em] text-[#3D1A00]">
               {shortDesc}

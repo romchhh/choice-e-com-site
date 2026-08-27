@@ -93,6 +93,7 @@ export default function CheckoutSuggestedProducts({ excludeIds }: Props) {
     giftToProduct: dict.common.giftToProduct,
     free: dict.common.free,
     dietitian: dict.common.dietitian,
+    doctorChoice: dict.common.doctorChoice,
   };
 
   if (loading) {

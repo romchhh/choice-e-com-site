@@ -407,7 +407,7 @@ function PromoSlideContent({ slide }: { slide: LocalizedHeroSlide }) {
           <p
             className={`text-left font-['Montserrat'] text-white/95 drop-shadow-[0_1px_8px_rgba(0,0,0,0.3)] ${
               isMainSlide
-                ? "max-w-2xl text-lg leading-[1.55] sm:text-xl md:text-2xl md:leading-[1.5]"
+                ? "max-w-2xl text-xl leading-[1.5] sm:text-2xl md:text-[1.75rem] md:leading-[1.45]"
                 : "max-w-xl text-base leading-[1.55] sm:text-lg md:text-xl"
             }`}
           >

@@ -110,6 +110,7 @@ export default function YouMightLike({
     giftToProduct: dict.common.giftToProduct,
     free: dict.common.free,
     dietitian: dict.common.dietitian,
+    doctorChoice: dict.common.doctorChoice,
   };
 
   const isLoading = !suggestedProducts && loading;

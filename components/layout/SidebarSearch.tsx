@@ -467,7 +467,7 @@ export default function SearchSidebar({
                         </div>
                         <div className="flex flex-col flex-1 min-w-0">
                           <span
-                            className="truncate font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors"
+                            className="line-clamp-2 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:line-clamp-none group-hover:text-[#8B9A47]"
                             title={product.name}
                           >
                             {highlightText(product.name, query)}
@@ -585,7 +585,7 @@ export default function SearchSidebar({
                             </div>
                             <div className="flex flex-col flex-1 min-w-0">
                               <span
-                                className="truncate font-['Montserrat'] font-medium text-[#3D1A00] group-hover:text-[#8B9A47] transition-colors"
+                                className="line-clamp-2 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:line-clamp-none group-hover:text-[#8B9A47]"
                                 title={product.name}
                               >
                                 {product.name}

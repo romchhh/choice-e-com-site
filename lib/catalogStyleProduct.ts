@@ -19,6 +19,7 @@ export function toCatalogStyleProduct(product: object): CatalogStyleProduct {
     is_promo: p.is_promo as boolean | undefined,
     dietitian_approved: p.dietitian_approved as boolean | undefined,
     free_delivery_badge: p.free_delivery_badge as boolean | undefined,
+    doctor_choice_badge: p.doctor_choice_badge as boolean | undefined,
     package_weight: (p.package_weight as string | null | undefined) ?? null,
     course: (p.course as string | null | undefined) ?? null,
     gift_product_id:

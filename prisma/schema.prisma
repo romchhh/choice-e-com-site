@@ -166,6 +166,8 @@ model Product {
   isPromo              Boolean        @default(false) @map("is_promo")
   /// Плашка на картці/сторінці: безкоштовна доставка від 2000 грн (для обраних програм/товарів)
   freeDeliveryBadge    Boolean        @default(false) @map("free_delivery_badge")
+  /// Плашка: Безкоштовно DOCTOR CHOICE
+  doctorChoiceBadge    Boolean        @default(false) @map("doctor_choice_badge")
   giftProductId        Int?           @map("gift_product_id")
   boughtTogetherIds    Int[]          @default([]) @map("bought_together_ids")
   pairTogetherIds      Int[]          @default([]) @map("pair_together_ids")

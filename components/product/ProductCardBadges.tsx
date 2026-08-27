@@ -13,6 +13,7 @@ type Props = {
   isPromo?: boolean;
   isHit?: boolean;
   hasGift?: boolean;
+  doctorChoice?: boolean;
   giftProduct?: GiftProduct | null;
   discountPct?: number | null;
   giftLabel: string;
@@ -20,6 +21,7 @@ type Props = {
   hitLabel: string;
   giftToLabel: string;
   freeLabel: string;
+  doctorChoiceLabel?: string;
   /** Compact overlays for catalog/home cards */
   compact?: boolean;
 };
@@ -51,6 +53,7 @@ export default function ProductCardBadges({
   isPromo,
   isHit,
   hasGift,
+  doctorChoice,
   giftProduct,
   discountPct,
   giftLabel,
@@ -58,6 +61,7 @@ export default function ProductCardBadges({
   hitLabel,
   giftToLabel,
   freeLabel,
+  doctorChoiceLabel,
   compact = true,
 }: Props) {
   const giftHref = giftProduct
@@ -72,6 +76,7 @@ export default function ProductCardBadges({
     isPromo === true ||
     isHit === true ||
     hasGift === true ||
+    doctorChoice === true ||
     (discountPct != null && discountPct > 0);
 
   const giftCardInner = (
@@ -106,6 +111,13 @@ export default function ProductCardBadges({
             {isHit === true && (
               <span className={`${chipBase} bg-[#3D1A00] text-white`}>
                 {hitLabel}
+              </span>
+            )}
+            {doctorChoice === true && doctorChoiceLabel && (
+              <span
+                className={`${chipBase} max-w-[9.5rem] bg-[#1B4D3E] normal-case tracking-tight text-white sm:max-w-[11rem]`}
+              >
+                <span className="truncate">{doctorChoiceLabel}</span>
               </span>
             )}
             {discountPct != null && discountPct > 0 && (

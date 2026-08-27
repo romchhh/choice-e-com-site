@@ -10,7 +10,6 @@ import {
   compositionItemsToPlainText,
   normalizeCompositionItems,
 } from "./productComposition";
-import { parseCourseDays } from "./courseCalculator";
 
 function formatProductPricing(
   price: unknown,
@@ -133,6 +132,7 @@ async function _sqlGetAllProducts() {
     dietitian_approved: p.dietitianApproved ?? false,
     is_promo: p.isPromo ?? false,
     free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
+    doctor_choice_badge: (p as any).doctorChoiceBadge ?? false,
     ...mapListGiftProduct(p),
     category_id: p.categoryId,
     category_ids: Array.from(
@@ -236,6 +236,7 @@ export async function sqlGetProduct(id: number) {
         dietitian_approved: (product as any).dietitianApproved ?? false,
         is_promo: (product as any).isPromo ?? false,
         free_delivery_badge: (product as any).freeDeliveryBadge ?? false,
+        doctor_choice_badge: (product as any).doctorChoiceBadge ?? false,
         stock: product.stock,
         category_id: product.categoryId,
         category_ids: Array.from(
@@ -347,6 +348,7 @@ export async function sqlGetProductBySlug(slug: string) {
     dietitian_approved: product.dietitianApproved ?? false,
     is_promo: product.isPromo ?? false,
     free_delivery_badge: (product as any).freeDeliveryBadge ?? false,
+    doctor_choice_badge: (product as any).doctorChoiceBadge ?? false,
     stock: product.stock,
     category_id: product.categoryId,
     category_ids: Array.from(
@@ -460,6 +462,7 @@ export async function sqlGetProductsByCategory(categoryName: string) {
         dietitian_approved: p.dietitianApproved ?? false,
         is_promo: p.isPromo ?? false,
         free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
+        doctor_choice_badge: (p as any).doctorChoiceBadge ?? false,
         ...mapListGiftProduct(p),
         category_id: p.categoryId,
         subcategory_id: p.subcategoryId,
@@ -564,6 +567,7 @@ export async function sqlGetProductsBySubcategoryName(name: string) {
         dietitian_approved: p.dietitianApproved ?? false,
         is_promo: p.isPromo ?? false,
         free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
+        doctor_choice_badge: (p as any).doctorChoiceBadge ?? false,
         ...mapListGiftProduct(p),
         category_id: p.categoryId,
         subcategory_id: p.subcategoryId,
@@ -634,6 +638,8 @@ function mapHomeRailProduct(p: {
     limited_edition: p.limitedEdition,
     is_hit: p.isHit ?? false,
     is_promo: p.isPromo ?? false,
+    free_delivery_badge: (p as any).freeDeliveryBadge ?? false,
+    doctor_choice_badge: (p as any).doctorChoiceBadge ?? false,
     stock: p.stock,
     in_stock: p.inStock,
     gift_product_id: p.giftProductId ?? null,
@@ -789,6 +795,7 @@ export async function sqlPostProduct(product: {
   dietitian_approved?: boolean;
   is_promo?: boolean;
   free_delivery_badge?: boolean;
+  doctor_choice_badge?: boolean;
   gift_product_id?: number | null;
   bought_together_ids?: number[];
   pair_together_ids?: number[];
@@ -822,7 +829,7 @@ export async function sqlPostProduct(product: {
   const resolvedCourseDays =
     typeof product.course_days === "number" && product.course_days > 0
       ? Math.round(product.course_days)
-      : parseCourseDays(product.course);
+      : null;
 
   const created = await prisma.product.create({
     data: {
@@ -855,6 +862,7 @@ export async function sqlPostProduct(product: {
       dietitianApproved: product.dietitian_approved ?? false,
       isPromo: product.is_promo ?? false,
       freeDeliveryBadge: product.free_delivery_badge ?? false,
+      doctorChoiceBadge: product.doctor_choice_badge ?? false,
       giftProductId: product.gift_product_id ?? null,
       boughtTogetherIds: product.bought_together_ids ?? [],
       pairTogetherIds: product.pair_together_ids ?? [],
@@ -942,6 +950,7 @@ export async function sqlPutProduct(
     dietitian_approved?: boolean;
     is_promo?: boolean;
     free_delivery_badge?: boolean;
+    doctor_choice_badge?: boolean;
     gift_product_id?: number | null;
     bought_together_ids?: number[];
     pair_together_ids?: number[];
@@ -979,16 +988,14 @@ export async function sqlPutProduct(
         : update.full_composition ?? null
       : undefined;
 
+  // Only persist explicit pack duration — never derive from «Курс» text
+  // (that field is recommended program length, not days per pack).
   const resolvedCourseDays =
     update.course_days !== undefined
       ? typeof update.course_days === "number" && update.course_days > 0
         ? Math.round(update.course_days)
-        : update.course_days === null
-          ? null
-          : parseCourseDays(update.course)
-      : update.course !== undefined
-        ? parseCourseDays(update.course)
-        : undefined;
+        : null
+      : undefined;
 
   const oldMedia = await prisma.productMedia.findMany({
     where: { productId: id },
@@ -1052,6 +1059,7 @@ export async function sqlPutProduct(
         dietitianApproved: update.dietitian_approved ?? undefined,
         isPromo: update.is_promo ?? undefined,
         freeDeliveryBadge: update.free_delivery_badge ?? undefined,
+        doctorChoiceBadge: update.doctor_choice_badge ?? undefined,
         giftProductId: update.gift_product_id === undefined ? undefined : update.gift_product_id,
         boughtTogetherIds: update.bought_together_ids ?? undefined,
         pairTogetherIds: update.pair_together_ids ?? undefined,

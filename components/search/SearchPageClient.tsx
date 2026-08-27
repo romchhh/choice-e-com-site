@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import LocaleLink from "@/components/i18n/LocaleLink";
+import ExpandableProductName from "@/components/shared/ExpandableProductName";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { useProducts } from "@/lib/useProducts";
 import { getProductImageSrc } from "@/lib/getFirstProductImage";
@@ -209,9 +210,11 @@ export default function SearchPageClient() {
                         <div className="absolute inset-0 bg-gray-200" />
                       )}
                     </div>
-                    <p className="mt-2 line-clamp-2 font-['Montserrat'] text-sm font-semibold text-[#3D1A00]">
-                      {product.name}
-                    </p>
+                    <ExpandableProductName
+                      name={product.name}
+                      variant="search"
+                      className="mt-2 min-h-[2.5em] font-['Montserrat'] text-xs font-semibold leading-snug text-[#3D1A00] sm:text-sm"
+                    />
                     <div className="mt-1 flex items-baseline gap-2">
                       <span className="font-['Montserrat'] text-sm font-semibold text-[#3D1A00]">
                         {displayPrice.toLocaleString("uk-UA")} ₴

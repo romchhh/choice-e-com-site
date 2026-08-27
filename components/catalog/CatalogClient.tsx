@@ -37,6 +37,7 @@ interface Product {
   dietitian_approved?: boolean;
   is_promo?: boolean;
   free_delivery_badge?: boolean;
+  doctor_choice_badge?: boolean;
   gift_product_id?: number | null;
   gift_product?: {
     id: number;
@@ -958,6 +959,7 @@ export default function CatalogClient({
                         giftToProduct: dict.common.giftToProduct,
                         free: dict.common.free,
                         dietitian: dict.common.dietitian,
+                        doctorChoice: dict.common.doctorChoice,
                       }}
                     />
                   );

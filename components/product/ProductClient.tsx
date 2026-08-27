@@ -23,6 +23,7 @@ import YouMightLike from "@/components/product/YouMightLike";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
 import ProductCourseCalculator from "@/components/product/ProductCourseCalculator";
 import FreeDeliveryProgress from "@/components/shared/FreeDeliveryProgress";
+import ExpandableProductName from "@/components/shared/ExpandableProductName";
 import ImageLightbox from "@/components/shared/ImageLightbox";
 import StarRating from "@/components/shared/StarRating";
 import { normalizeCompositionItems } from "@/lib/productComposition";
@@ -78,6 +79,7 @@ interface ProductClientProps {
     dietitian_approved?: boolean;
     is_promo?: boolean;
     free_delivery_badge?: boolean;
+    doctor_choice_badge?: boolean;
     gift_product?: {
       id: number;
       name: string;
@@ -496,6 +498,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 product.is_hit === true ||
                 product.dietitian_approved === true ||
                 product.free_delivery_badge === true ||
+                product.doctor_choice_badge === true ||
                 !!product.gift_product) && (
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-wrap gap-2 p-3 sm:p-4">
                   {product.is_promo === true && (
@@ -506,6 +509,11 @@ export default function ProductClient({ product }: ProductClientProps) {
                   {product.is_hit === true && (
                     <span className="inline-flex items-center bg-[#3D1A00] px-3 py-2 text-xs font-extrabold font-['Montserrat'] uppercase tracking-wide text-white shadow-md shadow-black/30 sm:text-sm">
                       {dict.common.hit}
+                    </span>
+                  )}
+                  {product.doctor_choice_badge === true && (
+                    <span className="inline-flex max-w-[min(100%,14rem)] items-center bg-[#1B4D3E] px-3 py-2 text-left text-[10px] font-extrabold font-['Montserrat'] uppercase leading-snug tracking-wide text-white shadow-md shadow-black/25 sm:max-w-none sm:text-xs">
+                      {dict.common.doctorChoice}
                     </span>
                   )}
                   {product.gift_product && (
@@ -539,12 +547,12 @@ export default function ProductClient({ product }: ProductClientProps) {
           <div className="flex flex-col gap-6 w-full lg:max-w-[45%] font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em]">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <h1
-                  className="text-2xl font-semibold capitalize leading-[1.29] tracking-[-0.02em] text-[#3D1A00] md:text-3xl lg:text-4xl"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  {product.name}
-                </h1>
+                <ExpandableProductName
+                  as="h1"
+                  name={product.name}
+                  variant="page"
+                  className="min-w-0 flex-1"
+                />
                 {ratingSummary ? (
                   <a
                     href="#product-reviews-heading"
@@ -664,7 +672,7 @@ export default function ProductClient({ product }: ProductClientProps) {
             </section>
 
             {/* Курс і подарунок */}
-            {(product.course || product.course_days || product.gift_product) && (
+            {(product.course_days || product.gift_product) && (
               <section className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
                 <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#3D1A00]/55">
                   {dict.product.courseAndGift}
@@ -694,7 +702,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 {product.gift_product && (
                   <div
                     className={`flex items-start gap-3 rounded-xl border border-[#E8C547]/40 bg-[#FFFBF5] px-4 py-3.5${
-                      product.course || product.course_days
+                      product.course_days
                         ? " mt-4 border-t border-neutral-100 pt-4"
                         : ""
                     }`}
