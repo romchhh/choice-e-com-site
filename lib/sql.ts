@@ -745,10 +745,12 @@ export const sqlGetLimitedEditionProducts = unstable_cache(
   }
 );
 
-// Get promo / акція products for homepage
+// Get special-offer products for homepage: promo badge or gift attached
 async function _sqlGetPromoProducts() {
   const products = await prisma.product.findMany({
-    where: { isPromo: true },
+    where: {
+      OR: [{ isPromo: true }, { giftProductId: { not: null } }],
+    },
     orderBy: [{ priority: "desc" }, { id: "desc" }],
     include: homeRailInclude,
   });

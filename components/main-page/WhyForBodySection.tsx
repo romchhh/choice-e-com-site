@@ -102,6 +102,75 @@ function BenefitIcon({ index }: { index: number }) {
   }
 }
 
+function WhyOrderIcon({ index }: { index: number }) {
+  const common = {
+    className: "h-6 w-6 md:h-7 md:w-7",
+    viewBox: "0 0 24 24",
+    fill: "none" as const,
+    stroke: "currentColor",
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+
+  switch (index) {
+    case 0:
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.25" />
+          <path d="M5.5 19.5c.85-3 3.35-4.75 6.5-4.75s5.65 1.75 6.5 4.75" />
+          <path d="M16.75 8.5c1.4.35 2.45 1.55 2.45 3.05 0 1.15-.6 2.15-1.5 2.65" />
+        </svg>
+      );
+    case 1:
+      return (
+        <svg {...common}>
+          <path d="M8 4h8" />
+          <path d="M9 4v2.5" />
+          <path d="M15 4v2.5" />
+          <rect x="5" y="6.5" width="14" height="13" rx="2" />
+          <path d="M8.5 11h7M8.5 14.5h4.5" />
+        </svg>
+      );
+    case 2:
+      return (
+        <svg {...common}>
+          <path d="M9 12.5 11 14.5 15 10.5" />
+          <path d="M12 3.25 19.25 6v6c0 4.2-3.05 7.25-7.25 9.35-4.2-2.1-7.25-5.15-7.25-9.35V6L12 3.25z" />
+        </svg>
+      );
+    case 3:
+      return (
+        <svg {...common}>
+          <path d="M12 3.25 19.25 6v6c0 4.2-3.05 7.25-7.25 9.35-4.2-2.1-7.25-5.15-7.25-9.35V6L12 3.25z" />
+          <path d="M9.25 12.1 11.15 14l3.7-3.9" />
+        </svg>
+      );
+    case 4:
+      return (
+        <svg {...common}>
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" />
+          <path d="M8 10h8M8 13.5h5" />
+        </svg>
+      );
+    case 5:
+      return (
+        <svg {...common}>
+          <path d="M3.5 8.5h15.25A1.75 1.75 0 0 1 20.5 10.25v8A1.75 1.75 0 0 1 18.75 20H5.25A1.75 1.75 0 0 1 3.5 18.25v-8.5A1.25 1.25 0 0 1 4.75 7.5h12" />
+          <path d="M3.5 8.5V6.75A1.75 1.75 0 0 1 5.25 5h11.5" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M20.59 13.41a2 2 0 0 0 0-2.82L13.41 3.59a2 2 0 0 0-2.82 0L3.59 10.59a2 2 0 0 0 0 2.82l7.18 7.18a2 2 0 0 0 2.82 0z" />
+          <path d="M7.5 7.5h.01M9.75 12.25 7.5 14.5" />
+        </svg>
+      );
+  }
+}
+
 function SectionIcon({ variant }: { variant: "docs" | "building" | "people" }) {
   const common = {
     className: "h-7 w-7 md:h-8 md:w-8",
@@ -307,6 +376,35 @@ export default function WhyForBodySection() {
             {t.lead}
           </p>
         </div>
+
+        {/* Why order from ForBody */}
+        {t.whyOrder ? (
+          <div className="mt-12 border-t border-[#3D1A00]/10 pt-12 lg:mt-14 lg:pt-14">
+            <h3 className="font-['Montserrat'] text-xl font-bold uppercase tracking-tight text-[#3D1A00] sm:text-2xl lg:text-[1.65rem]">
+              {t.whyOrder.title}
+            </h3>
+            <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-5">
+              {t.whyOrder.items.map((item, i) => (
+                <li
+                  key={item.title}
+                  className="flex gap-4 rounded-2xl bg-white/80 p-5 sm:p-6"
+                >
+                  <span className="mt-0.5 shrink-0 text-[#8B9A47]">
+                    <WhyOrderIcon index={i} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-['Montserrat'] text-base font-semibold leading-snug text-[#3D1A00] sm:text-lg">
+                      {item.title}
+                    </p>
+                    <p className="mt-2 font-['Montserrat'] text-sm leading-relaxed text-[#3D1A00]/72 sm:text-[15px] sm:leading-[1.6]">
+                      {item.text}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {/* 01 Documents */}
         <div className="mt-14 grid grid-cols-1 items-center gap-10 border-t border-[#3D1A00]/10 pt-12 lg:mt-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:pt-16">

@@ -396,7 +396,9 @@ export default function SearchSidebar({
                       <svg className="w-4 h-4 text-[#3D1A00]/50 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                      <span>{highlightText(suggestion, query)}</span>
+                      <span className="line-clamp-3 break-words text-left leading-snug">
+                        {highlightText(suggestion, query)}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -467,7 +469,7 @@ export default function SearchSidebar({
                         </div>
                         <div className="flex flex-col flex-1 min-w-0">
                           <span
-                            className="line-clamp-2 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:line-clamp-none group-hover:text-[#8B9A47]"
+                            className="line-clamp-3 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:text-[#8B9A47]"
                             title={product.name}
                           >
                             {highlightText(product.name, query)}
@@ -585,7 +587,7 @@ export default function SearchSidebar({
                             </div>
                             <div className="flex flex-col flex-1 min-w-0">
                               <span
-                                className="line-clamp-2 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:line-clamp-none group-hover:text-[#8B9A47]"
+                                className="line-clamp-3 break-words font-['Montserrat'] text-sm font-medium leading-snug text-[#3D1A00] transition-colors group-hover:text-[#8B9A47]"
                                 title={product.name}
                               >
                                 {product.name}

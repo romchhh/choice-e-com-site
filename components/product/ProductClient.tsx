@@ -18,7 +18,10 @@ import {
 } from "@/lib/ga4Ecommerce";
 import OneClickOrderModal from "@/components/product/OneClickOrderModal";
 import ProductDeliveryPaymentTab from "@/components/product/ProductDeliveryPaymentTab";
-import ProductDetailsAccordion from "@/components/product/ProductDetailsAccordion";
+import {
+  ProductCompositionContent,
+  ProductTextTabContent,
+} from "@/components/product/ProductDetailsAccordion";
 import YouMightLike from "@/components/product/YouMightLike";
 import CategoryDescriptionMarkdown from "@/components/shared/CategoryDescriptionMarkdown";
 import ProductCourseCalculator from "@/components/product/ProductCourseCalculator";
@@ -33,11 +36,17 @@ const DEFAULT_SIZE = "—";
 
 type TabId =
   | "description"
+  | "composition"
+  | "usage"
+  | "effect"
   | "contraindications"
   | "delivery_payment";
 
-const TAB_IDS: TabId[] = [
+const ALL_TAB_IDS: TabId[] = [
   "description",
+  "composition",
+  "usage",
+  "effect",
   "contraindications",
   "delivery_payment",
 ];
@@ -304,17 +313,67 @@ export default function ProductClient({ product }: ProductClientProps) {
     : null;
   const purposeText = product.main_info || product.short_description || product.description;
   const compositionItems = normalizeCompositionItems(product.composition_items);
+  const compositionText = product.full_composition || product.fabric_composition;
   const effectText = [product.main_action, product.benefits, product.indications_for_use]
     .filter(Boolean)
     .join("\n\n");
+
+  const hasComposition =
+    compositionItems.length > 0 || Boolean(compositionText?.trim());
+  const hasUsage = Boolean(product.usage_method?.trim());
+  const hasEffect = Boolean(effectText.trim());
+
+  const visibleTabs = ALL_TAB_IDS.filter((tabId) => {
+    switch (tabId) {
+      case "composition":
+        return hasComposition;
+      case "usage":
+        return hasUsage;
+      case "effect":
+        return hasEffect;
+      default:
+        return true;
+    }
+  });
+
+  const tabLabels: Record<TabId, string> = {
+    description: dict.product.tabs.description,
+    composition: dict.product.details.composition,
+    usage: dict.product.details.usage,
+    effect: dict.product.details.effect,
+    contraindications: dict.product.tabs.contraindications,
+    delivery_payment: dict.product.tabs.delivery,
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "description":
         return product.description ? (
-          <div className="text-[#3D1A00]/90 font-['Montserrat'] font-normal leading-[1.59] tracking-[-0.02em] text-sm md:text-base whitespace-pre-line">
-            {product.description}
-          </div>
+          <ProductTextTabContent text={product.description} />
+        ) : (
+          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
+            {dict.product.details.empty}
+          </p>
+        );
+      case "composition":
+        return (
+          <ProductCompositionContent
+            compositionItems={compositionItems}
+            compositionText={compositionText}
+            emptyLabel={dict.product.details.empty}
+          />
+        );
+      case "usage":
+        return product.usage_method ? (
+          <ProductTextTabContent text={product.usage_method} />
+        ) : (
+          <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
+            {dict.product.details.empty}
+          </p>
+        );
+      case "effect":
+        return effectText ? (
+          <ProductTextTabContent text={effectText} />
         ) : (
           <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
             {dict.product.details.empty}
@@ -322,9 +381,7 @@ export default function ProductClient({ product }: ProductClientProps) {
         );
       case "contraindications":
         return product.contraindications ? (
-          <div className="text-[#3D1A00]/90 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm md:text-base whitespace-pre-line">
-            {product.contraindications}
-          </div>
+          <ProductTextTabContent text={product.contraindications} />
         ) : (
           <p className="text-[#3D1A00]/70 font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm">
             {dict.product.details.empty}
@@ -747,51 +804,6 @@ export default function ProductClient({ product }: ProductClientProps) {
               </section>
             )}
 
-            {/* Консультація */}
-            <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 shrink-0 text-[#3D1A00]" aria-hidden>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                  </svg>
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold leading-snug text-[#3D1A00] sm:text-[15px]">
-                    {dict.product.consult.title}
-                  </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#3D1A00]/65">
-                    {dict.product.consult.body}
-                  </p>
-                  <a
-                    href={siteContact.telegramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#3D1A00] px-4 py-2 text-xs font-semibold text-[#FFF9F0] transition-colors hover:bg-[#3D1A00]/88 sm:text-sm"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden
-                    >
-                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z" />
-                    </svg>
-                    {dict.product.consult.cta}
-                  </a>
-                </div>
-              </div>
-            </section>
-
             <CartAlert
               isVisible={showCartAlert}
               onGoToCart={() => {
@@ -834,39 +846,68 @@ export default function ProductClient({ product }: ProductClientProps) {
           </div>
         </div>
 
-        {/* Structured details: composition / usage / effect */}
-        <ProductDetailsAccordion
-          labels={dict.product.details}
-          compositionItems={compositionItems}
-          compositionText={product.full_composition || product.fabric_composition}
-          usageText={product.usage_method}
-          effectText={effectText || null}
-        />
+        {/* Консультація — завжди на одному місці, на всю ширину */}
+        <section className="mt-10 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+            <span className="mt-0.5 shrink-0 text-[#3D1A00]" aria-hidden>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+              </svg>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-['Montserrat'] text-base font-semibold leading-snug text-[#3D1A00] sm:text-lg">
+                {dict.product.consult.title}
+              </p>
+              <p className="mt-2 font-['Montserrat'] text-sm leading-relaxed text-[#3D1A00]/65 sm:text-[15px]">
+                {dict.product.consult.body}
+              </p>
+              <a
+                href={siteContact.telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#3D1A00] px-5 py-2.5 font-['Montserrat'] text-sm font-semibold text-[#FFF9F0] transition-colors hover:bg-[#3D1A00]/88"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.559z" />
+                </svg>
+                {dict.product.consult.cta}
+              </a>
+            </div>
+          </div>
+        </section>
 
-        {/* Tabs */}
-        <div className="mt-12 pt-8 border-t border-[#3D1A00]/10">
-          <div className="flex flex-wrap gap-6 md:gap-8 border-b border-[#3D1A00]/15 pb-1 mb-6">
-            {TAB_IDS.map((tabId) => {
-              const tabLabels: Record<TabId, string> = {
-                description: dict.product.tabs.description,
-                contraindications: dict.product.tabs.contraindications,
-                delivery_payment: dict.product.tabs.delivery,
-              };
-              return (
+        {/* Product details tabs */}
+        <div className="mt-12 border-t border-[#3D1A00]/10 pt-8">
+          <div className="mb-6 flex flex-wrap gap-x-6 gap-y-2 border-b border-[#3D1A00]/15 pb-1 md:gap-8">
+            {visibleTabs.map((tabId) => (
               <button
                 key={tabId}
                 type="button"
                 onClick={() => setActiveTab(tabId)}
-                className={`font-['Montserrat'] font-normal leading-[1.86] tracking-[-0.02em] text-sm uppercase transition-colors ${
+                className={`font-['Montserrat'] text-xs font-normal uppercase leading-[1.86] tracking-[-0.02em] transition-colors sm:text-sm ${
                   activeTab === tabId
-                    ? "text-[#3D1A00] font-semibold border-b-2 border-[#3D1A00] pb-1 -mb-[3px]"
+                    ? "-mb-[3px] border-b-2 border-[#3D1A00] pb-1 font-semibold text-[#3D1A00]"
                     : "text-[#3D1A00]/70 hover:text-[#3D1A00]"
                 }`}
               >
                 {tabLabels[tabId]}
               </button>
-              );
-            })}
+            ))}
           </div>
           <div className="min-h-[120px]">{renderTabContent()}</div>
         </div>

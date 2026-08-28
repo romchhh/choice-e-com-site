@@ -3,21 +3,6 @@
 import { useState } from "react";
 import type { CompositionItem } from "@/lib/productComposition";
 
-type SectionId = "composition" | "usage" | "effect";
-
-type Props = {
-  labels: {
-    composition: string;
-    usage: string;
-    effect: string;
-    empty: string;
-  };
-  compositionItems: CompositionItem[];
-  compositionText?: string | null;
-  usageText?: string | null;
-  effectText?: string | null;
-};
-
 function Chevron({ open }: { open: boolean }) {
   return (
     <svg
@@ -35,131 +20,76 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-export default function ProductDetailsAccordion({
-  labels,
+type CompositionProps = {
+  compositionItems: CompositionItem[];
+  compositionText?: string | null;
+  emptyLabel: string;
+};
+
+export function ProductCompositionContent({
   compositionItems,
   compositionText,
-  usageText,
-  effectText,
-}: Props) {
-  const hasComposition =
-    compositionItems.length > 0 ||
-    Boolean(compositionText && compositionText.trim());
-  const hasUsage = Boolean(usageText && usageText.trim());
-  const hasEffect = Boolean(effectText && effectText.trim());
-
-  if (!hasComposition && !hasUsage && !hasEffect) return null;
-
-  const sections: Array<{
-    id: SectionId;
-    title: string;
-    available: boolean;
-  }> = (
-    [
-      { id: "composition" as const, title: labels.composition, available: hasComposition },
-      { id: "usage" as const, title: labels.usage, available: hasUsage },
-      { id: "effect" as const, title: labels.effect, available: hasEffect },
-    ] as const
-  ).filter((s) => s.available);
-
-  const [openSection, setOpenSection] = useState<SectionId | null>(
-    sections[0]?.id ?? null
-  );
+  emptyLabel,
+}: CompositionProps) {
   const [openIngredient, setOpenIngredient] = useState<number | null>(0);
 
-  const toggleSection = (id: SectionId) => {
-    setOpenSection((prev) => (prev === id ? null : id));
-  };
-
-  return (
-    <div className="mt-10 border-t border-[#3D1A00]/10 pt-8">
-      <div className="divide-y divide-[#3D1A00]/10 border-y border-[#3D1A00]/10">
-        {sections.map((section) => {
-          const open = openSection === section.id;
+  if (compositionItems.length > 0) {
+    return (
+      <div className="space-y-2">
+        {compositionItems.map((item, index) => {
+          const itemOpen = openIngredient === index;
           return (
-            <div key={section.id}>
+            <div
+              key={`${item.name}-${index}`}
+              className="rounded-xl border border-[#3D1A00]/10 bg-[#FFF9F0]/50"
+            >
               <button
                 type="button"
-                onClick={() => toggleSection(section.id)}
-                className="flex w-full items-center justify-between gap-4 py-4 text-left"
-                aria-expanded={open}
+                onClick={() => setOpenIngredient(itemOpen ? null : index)}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                aria-expanded={itemOpen}
               >
-                <span className="font-['Montserrat'] text-sm font-semibold uppercase tracking-[0.08em] text-[#3D1A00] md:text-base">
-                  {section.title}
+                <span className="font-['Montserrat'] text-sm font-medium text-[#3D1A00] md:text-base">
+                  {item.name}
                 </span>
-                <Chevron open={open} />
+                <Chevron open={itemOpen} />
               </button>
-
               <div
-                className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
-                  open ? "max-h-[2000px] opacity-100 pb-5" : "max-h-0 opacity-0"
+                className={`overflow-hidden transition-[max-height,opacity] duration-300 ${
+                  itemOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
-                {section.id === "composition" && (
-                  <div className="space-y-2">
-                    {compositionItems.length > 0 ? (
-                      compositionItems.map((item, index) => {
-                        const itemOpen = openIngredient === index;
-                        return (
-                          <div
-                            key={`${item.name}-${index}`}
-                            className="rounded-xl border border-[#3D1A00]/10 bg-[#FFF9F0]/50"
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setOpenIngredient(itemOpen ? null : index)
-                              }
-                              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                              aria-expanded={itemOpen}
-                            >
-                              <span className="font-['Montserrat'] text-sm font-medium text-[#3D1A00] md:text-base">
-                                {item.name}
-                              </span>
-                              <Chevron open={itemOpen} />
-                            </button>
-                            <div
-                              className={`overflow-hidden transition-[max-height,opacity] duration-300 ${
-                                itemOpen
-                                  ? "max-h-[800px] opacity-100"
-                                  : "max-h-0 opacity-0"
-                              }`}
-                            >
-                              {item.description ? (
-                                <p className="px-4 pb-4 font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/80 whitespace-pre-line">
-                                  {item.description}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : compositionText ? (
-                      <p className="font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/85 whitespace-pre-line md:text-base">
-                        {compositionText}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-[#3D1A00]/60">{labels.empty}</p>
-                    )}
-                  </div>
-                )}
-
-                {section.id === "usage" && (
-                  <p className="font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/85 whitespace-pre-line md:text-base">
-                    {usageText}
+                {item.description ? (
+                  <p className="px-4 pb-4 font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/80 whitespace-pre-line md:text-base">
+                    {item.description}
                   </p>
-                )}
-
-                {section.id === "effect" && (
-                  <p className="font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/85 whitespace-pre-line md:text-base">
-                    {effectText}
-                  </p>
-                )}
+                ) : null}
               </div>
             </div>
           );
         })}
       </div>
+    );
+  }
+
+  if (compositionText?.trim()) {
+    return (
+      <p className="font-['Montserrat'] text-sm leading-[1.7] text-[#3D1A00]/85 whitespace-pre-line md:text-base">
+        {compositionText}
+      </p>
+    );
+  }
+
+  return (
+    <p className="font-['Montserrat'] text-sm text-[#3D1A00]/70">{emptyLabel}</p>
+  );
+}
+
+export function ProductTextTabContent({ text }: { text?: string | null }) {
+  if (!text?.trim()) return null;
+  return (
+    <div className="font-['Montserrat'] text-sm font-normal leading-[1.7] tracking-[-0.02em] text-[#3D1A00]/90 whitespace-pre-line md:text-base">
+      {text}
     </div>
   );
 }

@@ -213,7 +213,8 @@ export default function SearchPageClient() {
                     <ExpandableProductName
                       name={product.name}
                       variant="search"
-                      className="mt-2 min-h-[2.5em] font-['Montserrat'] text-xs font-semibold leading-snug text-[#3D1A00] sm:text-sm"
+                      lines={3}
+                      className="mt-2 font-['Montserrat'] text-xs font-semibold leading-snug text-[#3D1A00] sm:text-sm"
                     />
                     <div className="mt-1 flex items-baseline gap-2">
                       <span className="font-['Montserrat'] text-sm font-semibold text-[#3D1A00]">

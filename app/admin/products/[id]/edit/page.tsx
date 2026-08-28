@@ -967,7 +967,12 @@ export default function EditProductPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label className="mb-0">Акція (плашка)</Label>
+                  <div className="max-w-[min(100%,14rem)] sm:max-w-none">
+                    <Label className="mb-0">Плашка «Акція»</Label>
+                    <p className="mt-1 text-[11px] leading-snug text-gray-500">
+                      Товар з&apos;явиться у блоці «Спеціальні пропозиції» на головній.
+                    </p>
+                  </div>
                   <ToggleSwitch enabled={formData.isPromo} setEnabled={(v) => handleChange("isPromo", v)} label="Акція" />
                 </div>
                 <div className="flex items-center justify-between">
@@ -1003,6 +1008,9 @@ export default function EditProductPage() {
                       <div>
                         <Label className="mb-1">Подарунок до товару</Label>
                         <p className="text-[11px] text-gray-500">
+                          Товар також потрапляє у «Спеціальні пропозиції» на головній.
+                        </p>
+                        <p className="mt-1 text-[11px] text-gray-500">
                           Обрано:{" "}
                           <span className="font-semibold text-gray-700">
                             {giftProductId ? "1" : "0"}

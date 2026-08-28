@@ -45,9 +45,13 @@ export default function ExpandableProductName({
   }
 
   const clamp =
-    lines === 3
-      ? "line-clamp-3 group-hover:line-clamp-none"
-      : "line-clamp-2 group-hover:line-clamp-none";
+    variant === "search"
+      ? lines === 3
+        ? "line-clamp-3"
+        : "line-clamp-2"
+      : lines === 3
+        ? "line-clamp-3 group-hover:line-clamp-none"
+        : "line-clamp-2 group-hover:line-clamp-none";
 
   return (
     <Tag

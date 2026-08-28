@@ -74,9 +74,10 @@ interface CatalogClientProps {
   activeCategoryLabel?: string | null;
 }
 
-/** Товар у блоці «Акції» / ?promo=1: плашка акції, % знижки або знижка через стару ціну. */
+/** Товар у блоці «Спецпропозиції» / ?promo=1: плашка акції, подарунок, % знижки або стара ціна. */
 function isCatalogPromoProduct(p: Product): boolean {
   if (p.is_promo === true) return true;
+  if (p.gift_product_id != null || p.gift_product) return true;
   if (p.discount_percentage != null && Number(p.discount_percentage) > 0) return true;
   if (p.old_price != null && Number(p.old_price) > Number(p.price)) return true;
   return false;
