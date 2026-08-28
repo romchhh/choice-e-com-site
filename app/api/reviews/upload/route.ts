@@ -30,22 +30,35 @@ export async function POST(req: NextRequest) {
       typeof formData.get("token") === "string"
         ? String(formData.get("token")).trim()
         : "";
+    const productIdRaw = formData.get("product_id");
+    const productId =
+      typeof productIdRaw === "string" && productIdRaw.trim()
+        ? Number(productIdRaw)
+        : NaN;
     const file = formData.get("photo") ?? formData.get("images");
 
-    if (!token) {
+    if (token) {
+      const request = await prisma.reviewRequest.findUnique({
+        where: { token },
+        select: { id: true },
+      });
+      if (!request) {
+        return NextResponse.json(
+          { error: "Недійсне посилання для відгуку" },
+          { status: 401 }
+        );
+      }
+    } else if (Number.isInteger(productId) && productId > 0) {
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { id: true },
+      });
+      if (!product) {
+        return NextResponse.json({ error: "Товар не знайдено" }, { status: 404 });
+      }
+    } else {
       return NextResponse.json(
-        { error: "Потрібен токен відгуку" },
-        { status: 401 }
-      );
-    }
-
-    const request = await prisma.reviewRequest.findUnique({
-      where: { token },
-      select: { id: true },
-    });
-    if (!request) {
-      return NextResponse.json(
-        { error: "Недійсне посилання для відгуку" },
+        { error: "Потрібен токен відгуку або product_id" },
         { status: 401 }
       );
     }

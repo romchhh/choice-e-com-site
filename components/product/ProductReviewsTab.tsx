@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import StarRating from "@/components/shared/StarRating";
 import ImageLightbox from "@/components/shared/ImageLightbox";
+import ProductReviewForm from "@/components/reviews/ProductReviewForm";
 import type { ReviewDTO } from "@/lib/reviews";
 import { resolveReviewPhotoSrc } from "@/lib/reviews";
 
@@ -119,6 +120,8 @@ export default function ProductReviewsTab({ productId }: Props) {
           })}
         </ul>
       )}
+
+      <ProductReviewForm productId={productId} />
 
       <ImageLightbox
         src={lightboxSrc}

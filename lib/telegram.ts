@@ -195,6 +195,11 @@ export async function sendContactFormNotification(data: {
 /**
  * Notify Telegram about a new product review awaiting moderation
  */
+const reviewSourceLabels: Record<string, string> = {
+  customer: "Клієнт (сайт)",
+  admin: "Адмінка",
+};
+
 export async function sendReviewNotification(data: {
   id: number;
   authorName: string;
@@ -202,6 +207,7 @@ export async function sendReviewNotification(data: {
   text: string;
   productName?: string | null;
   source?: string;
+  hasPhoto?: boolean;
 }): Promise<boolean> {
   try {
     const botToken = process.env.BOT_TOKEN;
@@ -223,13 +229,19 @@ export async function sendReviewNotification(data: {
       "☆".repeat(Math.max(0, 5 - Math.min(5, Math.max(1, data.rating))));
     const preview =
       data.text.length > 280 ? `${data.text.slice(0, 280)}…` : data.text;
+    const sourceLabel =
+      reviewSourceLabels[data.source || "customer"] ||
+      data.source ||
+      "Клієнт (сайт)";
 
     const text =
-      `⭐ <b>НОВИЙ ВІДГУК</b>\n\n` +
+      `⭐ <b>НОВИЙ ВІДГУК (на модерацію)</b>\n\n` +
       `👤 <b>Автор:</b> ${escapeHtml(data.authorName)}\n` +
       `🛍 <b>Товар:</b> ${escapeHtml(data.productName || "—")}\n` +
       `📊 <b>Оцінка:</b> ${stars} (${data.rating}/5)\n` +
-      `📎 <b>Джерело:</b> ${escapeHtml(data.source || "customer")}\n\n` +
+      `📎 <b>Джерело:</b> ${escapeHtml(sourceLabel)}\n` +
+      (data.hasPhoto ? `📷 <b>Фото:</b> так\n` : "") +
+      `\n` +
       `💬 <b>Текст:</b>\n${escapeHtml(preview)}\n\n` +
       `🔗 <a href="${adminLink}">Модерація в адмінці</a> · #${data.id}\n` +
       `🕐 ${new Date().toLocaleString("uk-UA")}`;

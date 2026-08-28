@@ -9,13 +9,77 @@ import ImageLightbox from "@/components/shared/ImageLightbox";
 import type { ReviewDTO } from "@/lib/reviews";
 import { resolveReviewPhotoSrc } from "@/lib/reviews";
 
-const INITIAL_VISIBLE = 4;
+const CARD_WIDTH = "minmax(280px, 320px)";
+const SKELETON_COUNT = 8;
+
+function ReviewCard({
+  review,
+  onPhotoClick,
+}: {
+  review: ReviewDTO;
+  onPhotoClick: (src: string) => void;
+}) {
+  const { dict } = useLocale();
+  const photo = resolveReviewPhotoSrc(review.photo_url);
+
+  return (
+    <li className="flex h-full min-h-[220px] flex-col rounded-2xl bg-white p-5 sm:min-h-[240px] sm:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <StarRating rating={review.rating} size="sm" />
+          <p className="mt-2 font-['Montserrat'] text-base font-semibold text-[#3D1A00]">
+            {review.author_name}
+          </p>
+        </div>
+        {photo ? (
+          <button
+            type="button"
+            onClick={() => onPhotoClick(photo)}
+            className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-opacity hover:opacity-90"
+            aria-label={dict.reviews.openPhoto}
+          >
+            <Image
+              src={photo}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="56px"
+            />
+          </button>
+        ) : null}
+      </div>
+
+      <p className="mt-3 flex-1 font-['Montserrat'] text-sm leading-relaxed text-[#3D1A00]/80 line-clamp-5 sm:text-[15px] sm:leading-[1.6]">
+        {review.text}
+      </p>
+
+      {review.product_name ? (
+        <div className="mt-4 border-t border-[#3D1A00]/08 pt-3">
+          <p className="font-['Montserrat'] text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3D1A00]/40">
+            {dict.reviews.productLabel}
+          </p>
+          {review.product_slug ? (
+            <LocaleLink
+              href={`/product/${review.product_slug}`}
+              className="mt-1 block font-['Montserrat'] text-sm font-medium leading-snug text-[#8B9A47] transition-opacity hover:opacity-80"
+            >
+              <span className="line-clamp-2">{review.product_name}</span>
+            </LocaleLink>
+          ) : (
+            <p className="mt-1 font-['Montserrat'] text-sm leading-snug text-[#3D1A00]/55 line-clamp-2">
+              {review.product_name}
+            </p>
+          )}
+        </div>
+      ) : null}
+    </li>
+  );
+}
 
 export default function HomeReviews() {
   const { dict } = useLocale();
   const [reviews, setReviews] = useState<ReviewDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,9 +103,6 @@ export default function HomeReviews() {
   if (!loading && reviews.length === 0) {
     return null;
   }
-
-  const visible = expanded ? reviews : reviews.slice(0, INITIAL_VISIBLE);
-  const canExpand = reviews.length > INITIAL_VISIBLE;
 
   return (
     <section
@@ -69,93 +130,34 @@ export default function HomeReviews() {
           ) : null}
         </div>
 
-        {loading ? (
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-44 animate-pulse rounded-2xl bg-[#F3EEE4]"
-              />
-            ))}
-          </div>
-        ) : (
-          <>
-            <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {visible.map((r) => {
-                const photo = resolveReviewPhotoSrc(r.photo_url);
-                return (
-                  <li
-                    key={r.id}
-                    className="flex flex-col rounded-2xl bg-white p-5 sm:p-6"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <StarRating rating={r.rating} size="sm" />
-                        <p className="mt-2 font-['Montserrat'] text-base font-semibold text-[#3D1A00]">
-                          {r.author_name}
-                        </p>
-                      </div>
-                      {photo ? (
-                        <button
-                          type="button"
-                          onClick={() => setLightboxSrc(photo)}
-                          className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-opacity hover:opacity-90"
-                          aria-label={dict.reviews.openPhoto}
-                        >
-                          <Image
-                            src={photo}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="56px"
-                          />
-                        </button>
-                      ) : null}
-                    </div>
-
-                    <p className="mt-3 flex-1 font-['Montserrat'] text-sm leading-relaxed text-[#3D1A00]/80 line-clamp-5 sm:text-[15px] sm:leading-[1.6]">
-                      {r.text}
-                    </p>
-
-                    {r.product_name ? (
-                      <div className="mt-4 border-t border-[#3D1A00]/08 pt-3">
-                        <p className="font-['Montserrat'] text-[10px] font-semibold uppercase tracking-[0.08em] text-[#3D1A00]/40">
-                          {dict.reviews.productLabel}
-                        </p>
-                        {r.product_slug ? (
-                          <LocaleLink
-                            href={`/product/${r.product_slug}`}
-                            className="mt-1 block font-['Montserrat'] text-sm font-medium leading-snug text-[#8B9A47] transition-opacity hover:opacity-80"
-                          >
-                            <span className="line-clamp-2">{r.product_name}</span>
-                          </LocaleLink>
-                        ) : (
-                          <p className="mt-1 font-['Montserrat'] text-sm leading-snug text-[#3D1A00]/55 line-clamp-2">
-                            {r.product_name}
-                          </p>
-                        )}
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
+        <div className="mt-8 -mx-5 overflow-x-auto px-5 pb-2 scrollbar-hide sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+          {loading ? (
+            <ul
+              className="grid w-max grid-flow-col grid-rows-2 gap-4"
+              style={{ gridAutoColumns: CARD_WIDTH }}
+            >
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <li
+                  key={i}
+                  className="h-[220px] animate-pulse rounded-2xl bg-[#F3EEE4] sm:h-[240px]"
+                />
+              ))}
             </ul>
-
-            {canExpand ? (
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setExpanded((v) => !v)}
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-[#3D1A00] px-7 font-['Montserrat'] text-sm font-semibold text-[#3D1A00] transition-colors hover:bg-[#3D1A00]/5"
-                >
-                  {expanded
-                    ? dict.home.reviews.showLess
-                    : dict.home.reviews.showAll}
-                </button>
-              </div>
-            ) : null}
-          </>
-        )}
+          ) : (
+            <ul
+              className="grid w-max grid-flow-col grid-rows-2 gap-4"
+              style={{ gridAutoColumns: CARD_WIDTH }}
+            >
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  onPhotoClick={setLightboxSrc}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />

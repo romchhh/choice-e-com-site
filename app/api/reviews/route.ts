@@ -146,6 +146,7 @@ export async function POST(req: NextRequest) {
       text: created.text,
       productName: product.name,
       source: "customer",
+      hasPhoto: Boolean(created.photoUrl),
     });
 
     return NextResponse.json(mapPrismaReview(created), { status: 201 });

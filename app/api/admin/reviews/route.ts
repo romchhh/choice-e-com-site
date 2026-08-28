@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
         text: created.text,
         productName: created.product?.name,
         source: "admin",
+        hasPhoto: Boolean(created.photoUrl),
       });
     }
 
