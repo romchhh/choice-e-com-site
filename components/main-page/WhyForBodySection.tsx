@@ -521,9 +521,6 @@ export default function WhyForBodySection() {
             >
               {siteContact.email}
             </a>
-            <p className="mt-3 font-['Montserrat'] text-sm text-[#3D1A00]/65 md:text-base">
-              {t.contactHint}
-            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <a
